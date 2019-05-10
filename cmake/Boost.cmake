@@ -116,8 +116,6 @@ if(MSVC)
   list(APPEND _boost_defines -DBOOST_NO_CXX11_VARIADIC_TEMPLATES)
 endif()
 
-set(Boost_DEFINES ${_boost_defines} CACHE STRING "Boost compiler defines")
-
 # -------------- INTERNALS ----------------------------------------------------
 
 # Disable Boost's own CMake as it's known to be buggy
@@ -136,9 +134,9 @@ find_package(Boost ${Boost_MIN_VERSION} COMPONENTS ${_boost_components})
 if(Boost_FOUND)
   # Force the cache entries to be updated
   # Normally, these would not be exported. However, we need them in the Testsuite
-  set(Boost_INCLUDE_DIRS ${Boost_INCLUDE_DIRS} CACHE PATH "Boost include directory" FORCE)
-  set(Boost_LIBRARY_DIRS ${Boost_LIBRARY_DIRS} CACHE PATH "Boost library directory" FORCE)
-  set(Boost_INCLUDE_DIR ${Boost_INCLUDE_DIR} CACHE PATH "Boost include directory" FORCE)
+  set(_boost_root ${Boost_ROOT_DIR})
+  set(_boost_inc ${Boost_INCLUDE_DIRS})
+  set(_boost_lib ${Boost_LIBRARY_DIRS})
   add_library(boost SHARED IMPORTED)
 else()
   # If we didn't find a suitable version on the system, then download one from the web
@@ -180,13 +178,10 @@ else()
     set(_boost_runtime_link shared)
   endif()
   
-  # Change the base directory
-  set(Boost_ROOT_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "Base directory the of Boost installation" FORCE)
-
-  # Update the exported variables  
-  set(Boost_INCLUDE_DIRS ${Boost_ROOT_DIR}/include CACHE PATH "Boost include directory" FORCE)
-  set(Boost_LIBRARY_DIRS ${Boost_ROOT_DIR}/lib CACHE PATH "Boost library directory" FORCE)
-  set(Boost_INCLUDE_DIR ${Boost_INCLUDE_DIRS} CACHE PATH "Boost include directory" FORCE)
+  # Update the exported variables
+  set(_boost_root ${CMAKE_INSTALL_PREFIX})
+  set(_boost_inc ${_boost_root}/include)
+  set(_boost_lib ${_boost_root}/lib)
   
   set(BOOST_ARGS
       --ignore-site-config
@@ -225,7 +220,7 @@ else()
     PREFIX ${CMAKE_BINARY_DIR}/boost
     URL http://downloads.sourceforge.net/project/boost/boost/${_boost_download_version}/boost_${_boost_download_filename}.zip
     BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND ${BOOST_BOOTSTRAP} --prefix=${Boost_ROOT_DIR} --with-libraries=${_boost_lib_names}
+    CONFIGURE_COMMAND ${BOOST_BOOTSTRAP} --prefix=${_boost_root} --with-libraries=${_boost_lib_names}
     BUILD_COMMAND ${BOOST_BUILD} ${BOOST_ARGS} install
     INSTALL_COMMAND ""
   )
@@ -238,20 +233,20 @@ else()
       
       # Also export cache variables for the file location of each library
       string(TOUPPER ${c} _basename)
-      set(Boost_${_basename}_LIBRARY_RELEASE "${Boost_LIBRARY_DIRS}/libboost_${c}.dll" CACHE FILEPATH "" FORCE)
-      set(Boost_${_basename}_LIBRARY_DEBUG "${Boost_LIBRARY_DIRS}/libboost_${c}-gd.dll" CACHE FILEPATH "" FORCE)
+      set(Boost_${_basename}_LIBRARY_RELEASE "${_boost_lib}/libboost_${c}.dll" CACHE FILEPATH "" FORCE)
+      set(Boost_${_basename}_LIBRARY_DEBUG "${_boost_lib}/libboost_${c}-gd.dll" CACHE FILEPATH "" FORCE)
     endforeach()
   else()
     # Transform the component names into the library filenames
     # e.g., system -> boost_system
     set(Boost_LIBRARIES "")
     foreach(c ${_boost_components})
-      list(APPEND Boost_LIBRARIES "${Boost_LIBRARY_DIRS}/libboost_${c}.so")
+      list(APPEND Boost_LIBRARIES "${_boost_lib}/libboost_${c}.so")
       
       # Also export cache variables for the file location of each library
       string(TOUPPER ${c} _basename)
-      set(Boost_${_basename}_LIBRARY_RELEASE "${Boost_LIBRARY_DIRS}/libboost_${c}.so" CACHE FILEPATH "" FORCE)
-      set(Boost_${_basename}_LIBRARY_DEBUG "${Boost_LIBRARY_DIRS}/libboost_${c}.so" CACHE FILEPATH "" FORCE)
+      set(Boost_${_basename}_LIBRARY_RELEASE "${_boost_lib}/libboost_${c}.so" CACHE FILEPATH "" FORCE)
+      set(Boost_${_basename}_LIBRARY_DEBUG "${_boost_lib}/libboost_${c}.so" CACHE FILEPATH "" FORCE)
     endforeach()
   endif()
 endif()
@@ -271,8 +266,12 @@ if(Boost_USE_MULTITHREADED)
   list(APPEND Boost_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
-# Export the complete set of libraries
-set(Boost_LIBRARIES ${Boost_LIBRARIES} CACHE FILEPATH "Boost library files" FORCE)
+set(Boost_ROOT_DIR ${_boost_root} CACHE PATH "Base directory the of Boost installation" FORCE)
+set(Boost_LIBRARIES ${Boost_LIBRARIES} CACHE INTERNAL "Boost library files")
+set(Boost_INCLUDE_DIRS ${_boost_inc} CACHE INTERNAL "Boost include directory")
+set(Boost_LIBRARY_DIRS ${_boost_lib} CACHE INTERNAL "Boost library directory")
+set(Boost_DEFINES ${_boost_defines} CACHE INTERNAL "Boost compiler defines")
+set(Boost_MIN_VERSION ${Boost_MIN_VERSION} CACHE STRING "Minimum version of Boost")
 
 message(STATUS "Boost includes: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost library dirs: ${Boost_LIBRARY_DIRS}")
