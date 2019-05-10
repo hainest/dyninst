@@ -229,7 +229,7 @@ else()
 
   if(WIN32)
     # We need to specify different library names for debug vs release
-    set(Boost_LIBRARIES "")
+    unset(Boost_LIBRARIES)
     foreach(c ${_boost_components})
       list(APPEND Boost_LIBRARIES "optimized libboost_${c} debug libboost_${c}-gd ")
       
@@ -241,7 +241,7 @@ else()
   else()
     # Transform the component names into the library filenames
     # e.g., system -> boost_system
-    set(Boost_LIBRARIES "")
+    unset(Boost_LIBRARIES)
     foreach(c ${_boost_components})
       list(APPEND Boost_LIBRARIES "${_boost_lib}/libboost_${c}.so")
       
