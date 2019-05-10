@@ -74,11 +74,13 @@ endif()
 
 # Enable debug output from FindBoost
 set(Boost_DEBUG OFF CACHE BOOL "Enable debug output from FindBoost")
+mark_as_advanced(Boost_DEBUG)
 
 # -------------- PATHS --------------------------------------------------------
 
 # By default, search system paths
 set(Boost_NO_SYSTEM_PATHS OFF CACHE BOOL "Disable searching in locations not specified by hint variables")
+mark_as_advanced(Boost_NO_SYSTEM_PATHS)
 
 # A sanity check
 # This must be done _before_ the cache variables are set
