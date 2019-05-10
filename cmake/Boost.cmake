@@ -258,7 +258,7 @@ list(FIND _boost_components "thread" _building_threads)
 if(Boost_USE_MULTITHREADED AND ${_building_threads})
   # On Windows, always use the debug version
   # On Linux, we don't use tagged builds, so the debug/release filenames are the same
-  set(Boost_THREAD_LIBRARY ${Boost_THREAD_LIBRARY_DEBUG} CACHE FILEPATH "Boost thread library")
+  set(Boost_THREAD_LIBRARY ${Boost_THREAD_LIBRARY_DEBUG} CACHE INTERNAL "Boost thread library")
 endif()
 
 # Add the system thread library
