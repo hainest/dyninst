@@ -150,6 +150,14 @@ else()
      ${Boost_MIN_VERSION} VERSION_GREATER ${_boost_download_version})
     set(_boost_download_version ${Boost_MIN_VERSION})
   endif()
+  
+  # Ensure the version uses dotted-decimal triplet (e.g., 1.65 -> 1.65.0)
+  string(REPLACE "." ";" _tmp ${_boost_download_version})
+  list(LENGTH _tmp _len)
+  if(${_len} LESS 3)
+    set(_boost_download_version "${_boost_download_version}.0")
+  endif()
+  
   message(STATUS "${Boost_ERROR_REASON}")
   message(STATUS "Attempting to build ${_boost_download_version} as external project")
 
