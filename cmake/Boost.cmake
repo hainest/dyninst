@@ -117,7 +117,6 @@ if(MSVC)
 endif()
 
 set(Boost_DEFINES ${_boost_defines} CACHE STRING "Boost compiler defines")
-add_definitions(${Boost_DEFINES})
 
 # -------------- INTERNALS ----------------------------------------------------
 
@@ -266,9 +265,6 @@ endif()
 
 # Export the complete set of libraries
 set(Boost_LIBRARIES ${Boost_LIBRARIES} CACHE FILEPATH "Boost library files" FORCE)
-
-link_directories(${Boost_LIBRARY_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
 
 message(STATUS "Boost includes: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost library dirs: ${Boost_LIBRARY_DIRS}")

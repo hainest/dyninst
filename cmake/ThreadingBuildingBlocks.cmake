@@ -21,7 +21,7 @@
 # TBB_INCLUDE_DIR     - Alias for TBB_INCLUDE_DIRS
 # TBB_LIBRARY_DIRS    - TBB library directory
 # TBB_LIBRARY_DIR     - Alias for TBB_LIBRARY_DIRS
-# TBB_DEFINITIONS     - TBB compiler definitions
+# TBB_DEFINES         - TBB compiler definitions
 # TBB_LIBRARIES       - TBB library files
 #
 # TBB_<c>_LIBRARY_RELEASE - Path to the release version of component <c>
@@ -80,7 +80,7 @@ if(TBB_FOUND)
   # Normally, these would not be exported. However, we need them in the Testsuite
   set(TBB_INCLUDE_DIRS ${TBB_INCLUDE_DIRS} CACHE PATH "TBB include directory" FORCE)
   set(TBB_LIBRARY_DIRS ${TBB_LIBRARY_DIRS} CACHE PATH "TBB library directory" FORCE)
-  set(TBB_DEFINITIONS ${TBB_DEFINITIONS} CACHE STRING "TBB compiler definitions" FORCE)
+  set(TBB_DEFINES ${TBB_DEFINITIONS} CACHE STRING "TBB compiler definitions" FORCE)
   set(TBB_LIBRARIES ${TBB_LIBRARIES} CACHE FILEPATH "TBB library files" FORCE)
   
   if(NOT TARGET TBB)
@@ -108,7 +108,7 @@ else()
   set(TBB_ROOT_DIR ${CMAKE_INSTALL_PREFIX} CACHE PATH "TBB root directory" FORCE)
   set(TBB_INCLUDE_DIRS ${TBB_ROOT_DIR}/include CACHE PATH "TBB include directory" FORCE)
   set(TBB_LIBRARY_DIRS ${TBB_ROOT_DIR}/lib CACHE PATH "TBB library directory" FORCE)
-  set(TBB_DEFINITIONS "" CACHE STRING "TBB compiler definitions" FORCE)
+  set(TBB_DEFINES "" CACHE STRING "TBB compiler definitions" FORCE)
 
   set(_tbb_libraries)
   set(_tbb_components_cfg)
@@ -158,14 +158,11 @@ else()
       	-P ${CMAKE_CURRENT_LIST_DIR}/ThreadingBuildingBlocks.install.cmake
   )
 endif()
- 
-include_directories(${TBB_INCLUDE_DIRS})
-link_directories(${TBB_LIBRARY_DIRS})
 
 message(STATUS "TBB include directory: ${TBB_INCLUDE_DIRS}")
 message(STATUS "TBB library directory: ${TBB_LIBRARY_DIRS}")
 message(STATUS "TBB libraries: ${TBB_LIBRARIES}")
-message(STATUS "TBB definitions: ${TBB_DEFINITIONS}")
+message(STATUS "TBB definitions: ${TBB_DEFINES}")
 
 if(USE_COTIRE)
   cotire(TBB)

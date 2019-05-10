@@ -136,9 +136,6 @@ set(ElfUtils_LIBRARIES ${_eu_libs}
     CACHE FILEPATH "elfutils library files"
     FORCE)
 
-link_directories(${ElfUtils_LIBRARY_DIRS})
-include_directories(${ElfUtils_INCLUDE_DIRS})
-
 message(STATUS "ElfUtils includes: ${ElfUtils_INCLUDE_DIRS}")
 message(STATUS "ElfUtils library dirs: ${ElfUtils_LIBRARY_DIRS}")
 message(STATUS "ElfUtils libraries: ${ElfUtils_LIBRARIES}")

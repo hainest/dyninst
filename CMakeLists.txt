@@ -25,6 +25,17 @@ include(ElfUtils)
 include(LibIberty)
 include (${DYNINST_ROOT}/cmake/shared.cmake)
 
+add_definitions(${Boost_DEFINES})
+link_directories(${Boost_LIBRARY_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
+
+link_directories(${ElfUtils_LIBRARY_DIRS})
+include_directories(${ElfUtils_INCLUDE_DIRS})
+
+add_definitions(${TBB_DEFINES})
+include_directories(${TBB_INCLUDE_DIRS})
+link_directories(${TBB_LIBRARY_DIRS})
+
 configure_file(cmake/version.h.in common/h/dyninstversion.h)
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_BINARY_DIR}/common/h)
