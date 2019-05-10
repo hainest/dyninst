@@ -85,7 +85,8 @@ mark_as_advanced(Boost_NO_SYSTEM_PATHS)
 # A sanity check
 # This must be done _before_ the cache variables are set
 if(PATH_BOOST AND Boost_ROOT_DIR)
-  message(FATAL_ERROR "PATH_BOOST AND Boost_ROOT_DIR both specified. Please provide only one")
+  message(STATUS "PATH_BOOST AND Boost_ROOT_DIR both specified- using Boost_ROOT_DIR")
+  set(PATH_BOOST ${Boost_ROOT_DIR})
 endif()
 
 # Provide a default root directory
