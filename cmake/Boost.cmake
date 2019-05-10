@@ -213,8 +213,10 @@ else()
     string(CONCAT _boost_lib_names "${_boost_lib_names}${c},")
   endforeach()
 
-  include(ExternalProject)
+  # Create the download file name
   string(REPLACE "." "_" _boost_download_filename ${_boost_download_version})
+	
+  include(ExternalProject)
   ExternalProject_Add(
     boost
     PREFIX ${CMAKE_BINARY_DIR}/boost
