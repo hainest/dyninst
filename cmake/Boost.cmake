@@ -11,14 +11,11 @@
 # PATH_BOOST                - Alias for Boost_ROOT_DIR
 # Boost_MIN_VERSION         - Minimum acceptable version of Boost
 # Boost_USE_MULTITHREADED   - Use the multithreaded version of Boost
-# Boost_USE_STATIC_RUNTIME  - Use libraries linked statically to the C++ runtime
-#
-# Options inherited from Modules/FindBoost.cmake that may be useful
-#
+# Boost_USE_STATIC_RUNTIME  - Don't use libraries linked statically to the C++ runtime
 # BOOST_INCLUDEDIR          - Hint directory that contains the Boost headers files
 # BOOST_LIBRARYDIR          - Hint directory that contains the Boost library files
 #
-# Advanced options:
+# Advanced input options:
 #
 # Boost_DEBUG               - Enable debug output from FindBoost
 # Boost_NO_SYSTEM_PATHS     - Disable searching in locations not specified by hint variables 
