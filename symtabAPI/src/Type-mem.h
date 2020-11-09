@@ -32,7 +32,6 @@
 #define TYPE_MEM_H_
 
 #include "symtabAPI/h/Type.h"
-#include "boost/static_assert.hpp"
 #include <utility>
 
 using namespace Dyninst;
@@ -62,8 +61,6 @@ boost::shared_ptr<Type>>::type typeCollection::addOrUpdateType(boost::shared_ptr
 	//the following assert tries to guard against.  If you trigger this,
 	//then a caller to this function is likely using 'Type'.  Change
 	//this to a more specific call, e.g. typeFunction instead of Type
-    // NOTE: Disabled, we use SFINAE instead to handle this.
-    // BOOST_STATIC_ASSERT(sizeof(T) != sizeof(Type));
 
     dyn_c_hash_map<int, boost::shared_ptr<Type>>::accessor a;
 	if (typesByID.insert(a, {type->getID(), type}))
