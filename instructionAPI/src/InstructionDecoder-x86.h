@@ -49,9 +49,6 @@ namespace Dyninst { namespace InstructionAPI {
 
     DYNINST_EXPORT virtual ~InstructionDecoder_x86();
 
-  private:
-    DYNINST_EXPORT InstructionDecoder_x86(const InstructionDecoder_x86& o);
-
   public:
     DYNINST_EXPORT virtual Instruction decode(InstructionDecoder::buffer& b);
 
