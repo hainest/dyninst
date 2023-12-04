@@ -1589,16 +1589,6 @@ namespace Dyninst { namespace InstructionAPI {
     }
   }
 
-  void InstructionDecoder_x86::decodeOpcode(InstructionDecoder::buffer& b) {
-    doIA32Decode(b);
-
-    // Do not move through the buffer if a bad instruction was encountered
-    if(m_Operation.getID() == e_No_Entry)
-      return;
-
-    b.start += decodedInstruction->getSize();
-  }
-
   bool InstructionDecoder_x86::decodeOperands(const Instruction* insn_to_complete) {
     int imm_index = 0; // handle multiple immediate operands
     if(!decodedInstruction || !decodedInstruction->getEntry())
