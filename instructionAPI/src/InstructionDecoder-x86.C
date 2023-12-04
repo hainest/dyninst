@@ -116,18 +116,6 @@ namespace Dyninst { namespace InstructionAPI {
     return sGetImplicitOP(implicit_operands, i) != 0x0;
   }
 
-  DYNINST_EXPORT InstructionDecoder_x86::InstructionDecoder_x86(Architecture a)
-      : InstructionDecoderImpl(a), locs(NULL), decodedInstruction(NULL), sizePrefixPresent(false),
-        addrSizePrefixPresent(false) {
-    if(a == Arch_x86_64)
-      InstructionDecoder_x86::setMode(true);
-  }
-
-  DYNINST_EXPORT InstructionDecoder_x86::~InstructionDecoder_x86() {
-    free(decodedInstruction);
-    free(locs);
-  }
-
   static const unsigned char modrm_use_sib = 4;
 
   DYNINST_EXPORT void InstructionDecoder_x86::setMode(bool is64) {
