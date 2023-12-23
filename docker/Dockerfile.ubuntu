@@ -42,8 +42,7 @@ RUN apt-get -qq update && \
       pkg-config              \
       libtbb-dev
       
-
-COPY docker/dependencies.versions /
+COPY docker/build_elfutils.sh docker/build_capstone.sh docker/dependencies.versions /
 
 RUN <<EOD bash
   set -ex
@@ -71,3 +70,8 @@ RUN <<EOD bash
     rm -rf elfutils-\${version}/ elfutils-\${version}.tar
   fi
 EOD
+
+RUN bash build_capstone.sh --jobs ${build_jobs}
+
+RUN rm build_elfutils.sh docker/build_capstone.sh dependencies.versions
+
