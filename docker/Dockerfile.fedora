@@ -14,7 +14,10 @@ LABEL maintainer="@hainest"
 
 ENV TZ=America/Chicago
 
-RUN yum install -y     \
+ARG build_jobs=1
+
+RUN yum update -y &&   \
+    yum install -y     \
       binutils-devel   \
       boost-devel      \
       clang            \
@@ -28,3 +31,9 @@ RUN yum install -y     \
       libomp           \
       libstdc++-static \
       tbb-devel
+
+COPY docker/build_capstone.sh docker/dependencies.versions /
+
+RUN bash build_capstone.sh --jobs ${build_jobs}
+
+RUN rm build_capstone.sh dependencies.versions
