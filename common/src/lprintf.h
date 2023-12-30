@@ -28,30 +28,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/************************************************************************
- * lprintf.h: interface to printf-like error functions.
-************************************************************************/
-
-
-
-
 #if !defined(_lprintf_h_)
 #define _lprintf_h_
 #include "compiler_annotations.h"
-
-
-
-
-/************************************************************************
- * function prototypes.
-************************************************************************/
 
 extern DYNINST_EXPORT void log_msg(const char *);
 extern DYNINST_EXPORT void log_printf(void (*)(const char *), const char *, ...)
         DYNINST_PRINTF_ANNOTATION(2, 3);
 extern DYNINST_EXPORT void log_perror(void (*)(const char *), const char *);
 
-
-
-
-#endif /* !defined(_lprintf_h_) */
+#endif
