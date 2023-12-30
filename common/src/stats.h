@@ -107,7 +107,6 @@ class DYNINST_EXPORT CntStatistic : public Statistic {
     long int cnt_;
 };
 
-/* Wraps the timer class */
 class DYNINST_EXPORT TimeStatistic : public Statistic {
  friend class StatContainer;
 
@@ -148,33 +147,22 @@ typedef enum {
 } StatType;
 
 
-/* A container for a group of (one expects) mutually related statistics. */
 class StatContainer {
  public:
     DYNINST_EXPORT StatContainer(); 
 
-    /* Access or create a statistic indexed by the provided name.
-     *
-     * This operator may return null if the named statistic does
-     * not exist.
-     */
     DYNINST_EXPORT Statistic * operator[](const std::string &);
     DYNINST_EXPORT Statistic * operator[](const char *s) {
+
        std::string namestr(s);
        return (*this)[namestr];
     }
 
-    // Create a new statistic of the given type indexed by name.
-    // **This will replace any existing stat with the same index
-    //   within this container**
     DYNINST_EXPORT void add(const std::string& name, StatType type);
 
-    // Access all of the existing statistics
     DYNINST_EXPORT dyn_hash_map< std::string, Statistic * > &
        allStats() { return stats_; }
 
-    // And some pass-through methods, encapsulated for
-    // ease of use
     DYNINST_EXPORT void startTimer(const std::string&);
     DYNINST_EXPORT void stopTimer(const std::string&);
     DYNINST_EXPORT void incrementCounter(const std::string&);
