@@ -45,6 +45,7 @@
 #include <string>
 #include <vector>
 
+
 namespace Dyninst { namespace InstructionAPI {
   class Instruction {
 
@@ -54,6 +55,7 @@ namespace Dyninst { namespace InstructionAPI {
 #else
       uintptr_t small_insn;
 #endif
+
       unsigned char* large_insn;
     };
 
