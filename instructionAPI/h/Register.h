@@ -75,7 +75,6 @@ namespace Dyninst { namespace InstructionAPI {
     MachRegister getID() const;
 
     unsigned int lowBit() const { return m_Low; }
-
     unsigned int highBit() const { return m_High; }
 
     static RegisterAST::Ptr promote(const InstructionAST::Ptr reg);
