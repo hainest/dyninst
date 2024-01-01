@@ -87,4 +87,4 @@ namespace Dyninst { namespace InstructionAPI {
   };
 }}
 
-#endif //! defined(OPERAND_H)
+#endif
