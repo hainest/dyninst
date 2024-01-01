@@ -42,12 +42,14 @@
 #include <stddef.h>
 #include <string>
 
+#include <boost/thread/lockable_adapter.hpp>
+#include <boost/thread/recursive_mutex.hpp>
+
 namespace NS_x86 {
   struct ia32_entry;
   class ia32_prefixes;
 }
 class ia32_locations;
-
 
 namespace Dyninst { namespace InstructionAPI {
 
@@ -106,4 +108,4 @@ namespace Dyninst { namespace InstructionAPI {
   };
 }}
 
-#endif //! defined(DYN_OPERATION_H)
+#endif
