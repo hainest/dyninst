@@ -47,11 +47,6 @@
 namespace Dyninst {
 namespace ParseAPI {
 
-/** A CodeObject defines a collection of binary code, for example a binary,
-    dynamic library, archive, memory snapshot, etc. In the context of
-    Dyninst, it maps to an image object.
-**/
-
 class Parser;   // internals
 class ParseCallback;
 class ParseCallbackManager;
@@ -76,19 +71,14 @@ class CodeObject {
     DYNINST_EXPORT ~CodeObject();
 
     /** Parsing interface **/
-    
-    // `hint-based' parsing
     DYNINST_EXPORT void parse();
     
-    // `exact-target' parsing; optinally recursive
     DYNINST_EXPORT void parse(Address target, bool recursive);
     DYNINST_EXPORT void parse(const std::vector<Address> &targets, bool recursive);
 
-    // `even-more-exact-target' parsing; optinally recursive
     DYNINST_EXPORT void parse(CodeRegion *cr, Address target, bool recursive);
     DYNINST_EXPORT void parse(const std::vector<std::pair<Address, CodeRegion *>> &targets, bool recursive);
 
-    // parses new edges in already parsed functions
 	struct NewEdgeToParse {
 		Block *source;
 		Address target;
@@ -100,18 +90,15 @@ class CodeObject {
 
     DYNINST_EXPORT bool parseNewEdges( std::vector<NewEdgeToParse> & worklist ); 
 
-    // `speculative' parsing
     DYNINST_EXPORT void parseGaps(CodeRegion *cr, GapParsingType type=IdiomMatching);
 
     /** Lookup routines **/
 
-    // functions
     DYNINST_EXPORT Function * findFuncByEntry(CodeRegion * cr, Address entry);
     DYNINST_EXPORT int findFuncsByBlock(CodeRegion *cr, Block* b, std::set<Function*> &funcs);
     DYNINST_EXPORT int findFuncs(CodeRegion * cr, 
             Address addr, 
             std::set<Function*> & funcs);
-      // Find functions overlapping the range [start,end)
     DYNINST_EXPORT int findFuncs(CodeRegion * cr,
             Address start, Address end,
             std::set<Function*> & funcs);
@@ -126,45 +113,28 @@ class CodeObject {
     DYNINST_EXPORT Block * findBlockByEntry(CodeRegion * cr, Address entry);
     DYNINST_EXPORT int findBlocks(CodeRegion * cr, 
         Address addr, std::set<Block*> & blocks);
-    // finds blocks without parsing. 
+
     DYNINST_EXPORT int findCurrentBlocks(CodeRegion * cr, 
         Address addr, std::set<Block*> & blocks);
     DYNINST_EXPORT Block * findNextBlock(CodeRegion * cr, Address addr);
 
-    /* Misc */
     DYNINST_EXPORT CodeSource * cs() const { return _cs; }
     DYNINST_EXPORT CFGFactory * fact() const { return _fact; }
     DYNINST_EXPORT bool defensiveMode() { return defensive; }
 
     DYNINST_EXPORT bool isIATcall(Address insn, std::string &calleeName);
 
-    // This is for callbacks; it is often much more efficient to 
-    // batch callbacks and deliver them all at once than one at a time. 
-    // Particularly if we're deleting code, it's better to get
-    // "The following blocks were deleted" than "block 1 was deleted;
-    // block 2 lost an edge; block 2 was deleted..."
-
     DYNINST_EXPORT void startCallbackBatch();
     DYNINST_EXPORT void finishCallbackBatch();
     DYNINST_EXPORT void registerCallback(ParseCallback *cb);
     DYNINST_EXPORT void unregisterCallback(ParseCallback *cb);
 
-    /*
-     * Calling finalize() forces completion of all on-demand
-     * parsing operations for this object, if any remain.
-     */
     DYNINST_EXPORT void finalize();
 
-    /*
-     * Deletion support
-     */
     DYNINST_EXPORT void destroy(Edge *);
     DYNINST_EXPORT void destroy(Block *);
     DYNINST_EXPORT void destroy(Function *);
 
-    /*
-     * Hacky "for insertion" method
-     */
     DYNINST_EXPORT Address getFreeAddr() const;
     ParseData* parse_data();
 
