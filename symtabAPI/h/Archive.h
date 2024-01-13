@@ -44,9 +44,6 @@ class MappedFile;
 namespace Dyninst{
 namespace SymtabAPI{
 
-/**
- * Helps facilitate lazy parsing and quick lookup once parsing is finished
- */
 class DYNINST_EXPORT ArchiveMember {
     public:
         ArchiveMember() = default;
@@ -92,38 +89,20 @@ class DYNINST_EXPORT Archive : public AnnotatableSparse {
       Archive(std::string const& filename, bool &err);
       Archive(char *mem_image, size_t image_size, bool &err);
 
-      /**
-       * This method is architecture specific
-       *
-       * Post-condition:
-       *        sets serr and errMsg if there is an error 
-       *        sets Symtab field of passed ArchiveMember
-       */
       bool parseMember(Symtab *&img, ArchiveMember *member);
 
-      /**
-       * This method is architecture specific
-       *
-       * Post-condition:
-       *        sets serr and errMsg if there is an error
-       */
       bool parseSymbolTable();      
 
       MappedFile *mf;
 
-      //architecture specific data - 
-      //For ELF the elf pointer for the archive
       void *basePtr;
 
       dyn_hash_map<std::string, ArchiveMember *> membersByName;
       dyn_hash_map<Offset, ArchiveMember *> membersByOffset;
       std::multimap<std::string, ArchiveMember *> membersBySymbol;
 
-      // The symbol table is lazily parsed
       bool symbolTableParsed;
 
-      // A vector of all Archives. Used to avoid duplicating
-      // an Archive that already exists.
       static std::vector<Archive *> allArchives;
 
       static SymtabError serr;
