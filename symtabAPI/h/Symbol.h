@@ -37,10 +37,6 @@
 #define _Symbol_h_
 
 
-/************************************************************************
- * header files.
-************************************************************************/
-
 #include "symutil.h"
 #include "Annotatable.h"
 #include <iosfwd>
@@ -66,10 +62,6 @@ class Variable;
 class Type;
 class typeCollection;
 class Symtab;
-
-/************************************************************************
- * class Symbol
-************************************************************************/
 
 class DYNINST_EXPORT Symbol : public AnnotatableSparse
 {
@@ -173,9 +165,6 @@ class DYNINST_EXPORT Symbol : public AnnotatableSparse
 
    bool          operator== (const Symbol &) const;
 
-   /***********************************************************
-     Name Output Functions
-    ***********************************************************/		
    std::string      getMangledName () const;
    std::string	 getPrettyName() const;
    std::string      getTypedName() const;
@@ -213,7 +202,6 @@ class DYNINST_EXPORT Symbol : public AnnotatableSparse
    void setReferringSymbol (Symbol *referringSymbol);
    Symbol* getReferringSymbol () const;
 
-   //////////////// Modification
    bool setOffset (Offset newOffset);
    bool setPtrOffset (Offset newOffset);
    bool setLocalTOC (Offset localTOC);
