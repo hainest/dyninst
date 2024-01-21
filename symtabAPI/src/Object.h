@@ -37,11 +37,6 @@
 #if !defined(_Object_h_)
 #define _Object_h_
 
-/************************************************************************
- * header files.
-************************************************************************/
-
-// trace data streams
 #include <iosfwd>
 #include <utility>
 #include <string>
@@ -67,16 +62,6 @@ class relocationEntry;
 
 const char WILDCARD_CHARACTER = '?';
 const char MULTIPLE_WILDCARD_CHARACTER = '*';
-
-/************************************************************************
- * class Object
- *
- *  WHAT IS THIS CLASS????  COMMENTS????
- *  Looks like it has a dictionary hash of symbols, as well as
- *   a ptr to to the code section, an offset into the code section,
- *   and a length of the code section, and ditto for the data
- *   section....
-************************************************************************/
 
 class Object : public boost::basic_lockable_adapter<boost::mutex>
 {
@@ -117,7 +102,7 @@ public:
     DYNINST_EXPORT virtual  bool   getSegments(std::vector<Segment> &) const { return false; }
 
     DYNINST_EXPORT bool have_deferred_parsing( void ) const;
-    // for debuggering....
+
     DYNINST_EXPORT const std::ostream &dump_state_info(std::ostream &s);
 
     DYNINST_EXPORT void * getErrFunc() const;
@@ -182,7 +167,6 @@ public:
     virtual void parseFileLineInfo() { }
     virtual void parseTypeInfo() { }
 
-    // Only implemented for ELF right now
     DYNINST_EXPORT virtual void getSegmentsSymReader(std::vector<SymSegment> &) {}
 	  DYNINST_EXPORT virtual void rebase(Offset) {}
     virtual void addModule(SymtabAPI::Module *) {}
@@ -190,7 +174,6 @@ public:
     FileFormat getFileFormat() const { return file_format_; }
 protected:
     DYNINST_EXPORT virtual ~Object();
-    // explicitly protected
     DYNINST_EXPORT Object(MappedFile *, void (*err_func)(const char *), Symtab*);
 friend class Module;
     virtual void parseLineInfoForCU(Offset , LineInformation* ) { }
@@ -199,8 +182,6 @@ friend class Module;
 
     std::vector< Region *> regions_;
 
-    // XXX symbols_ is the owner of Symbol pointers; memory
-    //     is reclaimed from this structure
     dyn_c_hash_map< std::string, std::vector< Symbol *> > symbols_;
     dyn_hash_map< std::string, std::vector< Symbol *> > symbols_tmp_;
     dyn_c_hash_map<Offset, std::vector<Symbol *> > symsByOffset_;
@@ -242,7 +223,7 @@ friend class Module;
     void (*err_func_)(const char*);
     int addressWidth_nbytes;
 
-    std::vector<ExceptionBlock> catch_addrs_; //Addresses of C++ try/catch blocks;
+    std::vector<ExceptionBlock> catch_addrs_;
     Symtab* associated_symtab;
 
     FileFormat file_format_;
@@ -250,17 +231,12 @@ private:
     friend class SymbolIter;
     friend class Symtab;
 
-    // declared but not implemented; no copying allowed
     Object(const Object &obj);
     const Object& operator=(const Object &obj);
 };
 
 }//namepsace Symtab
 }//namespace Dyninst
-
-/************************************************************************
- * class SymbolIter
-************************************************************************/
 
 namespace Dyninst{
 namespace SymtabAPI{
@@ -282,14 +258,12 @@ class SymbolIter {
    void operator++ ( int );
    const std::string & currkey() const;
    
-   /* If it's important that this be const, we could try to initialize
-      currentVector to '& symbolIterator.currval()' in the constructor. */
    Symbol *currval();
    
  private:	
    
-   SymbolIter & operator = ( const SymbolIter & ); // explicitly disallowed
-}; /* end class SymbolIter() */
+   SymbolIter & operator = ( const SymbolIter & );
+};
 
 Object *parseObjectFile(MappedFile *, bool, void(*)(const char *) = log_msg, bool = true, Symtab * = NULL);
 
