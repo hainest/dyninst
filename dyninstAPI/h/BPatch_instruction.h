@@ -47,7 +47,6 @@ class DYNINST_EXPORT BPatch_instruction {
   friend class BPatch_basicBlock;
 
  public:
-  // maximum number of memory accesses per instruction; platform dependent
    static const unsigned int nmaxacc_NP;
 
  protected:
@@ -55,10 +54,9 @@ class DYNINST_EXPORT BPatch_instruction {
   unsigned int nacc;
   bool *isLoad;
   bool *isStore;
-  int *preFcn;       // prefetch function (-1 = none)
-  int *condition;    // -1 means no condition, all other values are machine specific
-                                // conditions, currently (8/13/02) the tttn field on x86
-  bool *nonTemporal; // non-temporal (cache non-polluting) write on x86
+  int *preFcn;
+  int *condition;
+  bool *nonTemporal;
 
   BPatch_basicBlock *parent;
   long unsigned int addr;
@@ -69,7 +67,8 @@ class DYNINST_EXPORT BPatch_instruction {
 
   void getInstruction(const unsigned char *&_buffer, unsigned char &_length);
 
-  // Not yet implemented
+  internal_instruction *insn();
+
   char *getMnemonic() const { return NULL; }
 
   BPatch_point * getInstPoint();
