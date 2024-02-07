@@ -65,14 +65,11 @@ class DYNINST_EXPORT StackMod
             CLEANUP
         };
 
-        // Constructor
         StackMod() {}
 
-        // Functions
         MType type() const;
         MOrder order() const { return _order; }
 
-        // Virtual Functions
 	virtual ~StackMod() = default;
         virtual std::string format() const { return ""; }
 
@@ -81,15 +78,12 @@ class DYNINST_EXPORT StackMod
         MType _type{};
 };
 
-/* Modification to insert stack space at [low, high) */
 class DYNINST_EXPORT Insert : public StackMod
 {
     friend class StackModChecker; 
     public:
-        // Constructor
         Insert(int, int);
 
-        // Functions
         int low() const { return _low; }
         int high() const { return _high; }
 
@@ -103,15 +97,14 @@ class DYNINST_EXPORT Insert : public StackMod
         int _high{};
 };
 
-/* Modification to remove stack space at [low, high) */
 class DYNINST_EXPORT Remove : public StackMod
 {
     friend class StackModChecker; 
     public:
-        // Constructor
+
         Remove(int, int);
 
-        // Functions
+
         int low() const { return _low; }
         int high() const { return _high; }
 
@@ -125,15 +118,11 @@ class DYNINST_EXPORT Remove : public StackMod
         int _high{};
 };
 
-/* Modification to move stack space from [srcLow, srcHigh)
- * to [destLow, destLow+(srcHigh-srcLow)) */
 class DYNINST_EXPORT Move : public StackMod
 {
     public:
-        // Constructor
         Move(int, int, int);
 
-        // Functions
         int srcLow() const { return _srcLow; }
         int srcHigh() const { return _srcHigh; }
         int destLow() const { return _destLow; }
@@ -150,23 +139,13 @@ class DYNINST_EXPORT Move : public StackMod
         int _destHigh{};
 };
 
-/* Modification to insert a stack canary at function entry
- * (and canary verification at function exit(s)) */
 class DYNINST_EXPORT Canary : public StackMod
 {
     public:
-        // Constructors
-
-        // The default constructor uses a canary check failure function
-        // provided by libc (__stack_chk_fail); this constructor is only
-        // valid on Linux, and libc must be present in the address space.
         Canary();
 
-        // This constructor will use failFunc as the canary check failure
-        // function. failFunc cannot take any arguments
         Canary(BPatch_function* failFunc);
 
-        // Functions
         int low() const { return _low; }
         int high() const { return _high; }
         
@@ -185,13 +164,9 @@ class DYNINST_EXPORT Canary : public StackMod
         BPatch_function* _failFunc{};
 };
 
-/* Modification to randomize the locations of the DWARF-specified
- * local variables. This modification has no effect on functions
- * without DWARF information. */
 class DYNINST_EXPORT Randomize : public StackMod
 {
     public:
-        // Constructor
         Randomize();
         Randomize(int);
 
