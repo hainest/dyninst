@@ -31,10 +31,6 @@
 #ifndef _BPatch_Set_h_
 #define _BPatch_Set_h_
 
-/*******************************************************/
-/*		header files 			       */
-/*******************************************************/
-
 #include <assert.h>
 #include <stdlib.h>
 #include <set>
@@ -59,10 +55,6 @@ class BPatch_basicBlock;
 class BPatch_function;
 class BPatch_flowGraph;
 class BPatch;
-
-/** template struct that will be used for default compare 
-  * class for BPatch_Set operations.
-  */
 
 template <class T>
 struct comparison {
@@ -100,103 +92,58 @@ class DYNINST_EXPORT BPatch_Set {
 
    DO_INLINE_F BPatch_Set(int_t s) : int_set(s) {}
 
-   /** copy constructor.
-    * @param newBPatch_Set the BPatch_Set which will be copied
-    */
    DO_INLINE_F BPatch_Set(const BPatch_Set<Key,Compare>& rhs){
       int_set = rhs.int_set;
    } 
 
-   /** returns the cardinality of the tree , number of elements */
    DO_INLINE_F unsigned int size() const { return int_set.size(); }
    
-   /** returns true if tree is empty */
    DO_INLINE_F bool empty() const { return int_set.empty(); }
    
-   /** inserts the element in the tree 
-    * @param 1 element that will be inserted
-    */
    DO_INLINE_F void insert(const Key &k) { int_set.insert(k); }
    
-   /** removes the element in the tree 
-    * @param 1 element that will be removed  
-    */
    DO_INLINE_F void remove(const Key &k) { int_set.erase(k); }
    DO_INLINE_F void erase(const Key &k) { int_set.erase(k); }
    
-   /** returns true if the argument is member of the BPatch_Set
-    * @param e the element that will be searched for
-    */
    DO_INLINE_F bool contains(const Key &key) const { return int_set.find(key) != int_set.end(); }
    
-   /** fill an buffer array with the sorted
-    * elements of the BPatch_Set in ascending order according to comparison function
-    * if the BPatch_Set is empty it retuns NULL, other wise it returns 
-    * the input argument.
-    */
    DO_INLINE_F Key* elements(Key *a) const { 
       std::copy(begin(), end(), a);
       return a;
    }
 
-   /** Like the above, but put things in a vector.
-    */
    DO_INLINE_F void elements(BPatch_Vector<Key> &v) {
       std::copy(begin(), end(), std::back_inserter(v));
    }
    
-   /** returns the minimum valued member in the BPatch_Set according to the 
-    * comparison function supplied. If the BPatch_Set is empty it retuns 
-    * any number. Not safe to use for empty sets 
-    */
    DO_INLINE_F Key minimum() const {
       if (empty()) return Key();
       return *begin();
    }
    
-   /** returns the maximum valued member in the BPatch_Set according to the 
-    * comparison function supplied. If the BPatch_Set is empty it retuns 
-    * any number. Not safe to use for empty sets 
-    */
    DO_INLINE_F Key maximum() const {
       if (empty()) return Key();
       return *(--end());
    }
    
-   /** assignment operator for BPatch_Set. It replicate sthe tree 
-    * structure into the new BPatch_Set.
-    * @param 1 BPatch_Set that will be used in assignment
-    */
    DO_INLINE_F BPatch_Set<Key,Compare>& operator= (const BPatch_Set<Key,Compare>&rhs) {
       int_set = rhs.int_set;
       return *this;
    }
    
-   /** equality comparison for the BPatch_Set
-    * @param 1 BPatch_Set that will be used equality check
-    */
    DO_INLINE_F bool operator== (const BPatch_Set<Key,Compare>&rhs) const { 
       return int_set == rhs.int_set;
    }
    
-   /** inequality comparison for the BPatch_Set
-    * @param 1 BPatch_Set that will be used inequality check
-    */
    DO_INLINE_F bool operator!= (const BPatch_Set<Key,Compare>&rhs) const {
       return int_set != rhs.int_set;
    }
    
-   /** insertion in to the BPatch_Set 
-    * @param 1 element that will be inserted 
-    */
    DO_INLINE_F BPatch_Set<Key,Compare>& operator+= (const Key &k) {
       int_set.insert(k);
       return *this;
    }
    
-   /** union operation with this BPatch_Set 
-    * @param 1 BPatch_Set that will be used in union operation
-    */
    DO_INLINE_F BPatch_Set<Key,Compare>& operator|= (const BPatch_Set<Key,Compare> &rhs) {
       Compare comp;
       std::set<Key, Compare> tmp;
@@ -207,9 +154,6 @@ class DYNINST_EXPORT BPatch_Set {
    }
 
    
-   /** intersection operation with this BPatch_Set 
-    * @param 1 BPatch_Set that will be used in intersection operation
-    */
    DO_INLINE_F BPatch_Set<Key,Compare>& operator&= (const BPatch_Set<Key,Compare>&rhs) {
       Compare comp;
       std::set<Key, Compare> tmp;
@@ -219,9 +163,6 @@ class DYNINST_EXPORT BPatch_Set {
       return *this;
    }
    
-   /** difference operation with this BPatch_Set 
-    * @param 1 BPatch_Set that will be used in difference operation
-    */
    DO_INLINE_F BPatch_Set<Key,Compare>& operator-= (const BPatch_Set<Key,Compare>&rhs) {
       Compare comp;
       std::set<Key, Compare> tmp;
@@ -231,9 +172,6 @@ class DYNINST_EXPORT BPatch_Set {
       return *this;
    }
    
-   /** union operation 
-    * @param 1 BPatch_Set that will be used in union operation
-    */
    DO_INLINE_F BPatch_Set<Key,Compare> operator| (const BPatch_Set<Key,Compare>&rhs) const {
       Compare comp;
       BPatch_Set<Key, Compare> tmp;
@@ -242,9 +180,6 @@ class DYNINST_EXPORT BPatch_Set {
       return tmp;
    }
    
-   /** intersection operation 
-    * @param 1 BPatch_Set that will be used in intersection operation
-    */
    DO_INLINE_F BPatch_Set<Key,Compare> operator& (const BPatch_Set<Key,Compare>&rhs) const {
       Compare comp;
       BPatch_Set<Key, Compare> tmp;
@@ -253,9 +188,6 @@ class DYNINST_EXPORT BPatch_Set {
       return tmp;
    }
    
-   /** difference operation 
-    * @param 1 BPatch_Set that will be used in difference operation
-    */
    DO_INLINE_F BPatch_Set<Key,Compare> operator- (const BPatch_Set<Key,Compare>&rhs) const {
       Compare comp;
       BPatch_Set<Key, Compare> tmp;
@@ -264,11 +196,6 @@ class DYNINST_EXPORT BPatch_Set {
       return tmp;
    }
    
-   /** removes the element in the root of the tree 
-    * if the BPatch_Set is empty it return false
-    * @param e refernce to the element that the value of removed
-    * element will be copied.
-    */
    DO_INLINE_F bool extract(Key&k) {
       if (empty()) return false;
       iterator iter = begin();
