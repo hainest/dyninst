@@ -42,7 +42,6 @@ class codeGen;
 
 class insnCodeGen {
  public:
-    // All of these write into a buffer
     static void generateTrap(codeGen &gen);
     static void generateIllegal(codeGen &gen);
 
@@ -57,16 +56,11 @@ class insnCodeGen {
                              Dyninst::Address from,
                              Dyninst::Address to);
 
-    // This is a register-stomping, full-range branch. Uses one GPR
-    // and either LR or CTR. New addition: use liveness information to
-    // calculate which registers to use; otherwise, trap.
-
     static void generateLongBranch(codeGen &gen,
                                    Dyninst::Address from,
                                    Dyninst::Address to,
                                    bool isCall);
 
-    // Using the process trap mapping for a branch
     static void generateBranchViaTrap(codeGen &gen,
                                       Dyninst::Address from,
                                       Dyninst::Address to,
@@ -126,7 +120,6 @@ class insnCodeGen {
                             Dyninst::Register newLoadReg,
                             Dyninst::Register newStoreReg);
 
-   // Routines to create/remove a new stack frame for getting scratch registers
    static int createStackFrame(codeGen &gen, int numRegs, std::vector<Dyninst::Register>& freeReg,  std::vector<Dyninst::Register>& excludeReg);
    static void removeStackFrame(codeGen &gen);
 
