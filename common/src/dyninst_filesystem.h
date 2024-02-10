@@ -32,7 +32,6 @@
 #define DYNINST_COMMON_PATHNAME_H
 
 #include "dyninst_visibility.h"
-
 #include <string>
 
 namespace Dyninst { namespace filesystem {
