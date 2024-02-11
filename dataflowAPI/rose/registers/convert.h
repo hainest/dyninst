@@ -32,7 +32,6 @@
 #define DYNINST_DATAFLOW_ROSE_REGISTERS_CONVERT_H
 
 #include "registers/MachRegister.h"
-
 #include <tuple>
 
 namespace Dyninst { namespace DataflowAPI {
