@@ -39,20 +39,19 @@
 #include "Architecture.h"
 
 #ifndef EM_CUDA
-#define EM_CUDA		190	/* NVIDIA CUDA */
+#define EM_CUDA		190
 #endif
 
 #ifndef EM_INTEL_GEN9
-#define EM_INTEL_GEN9		182	/* INTEL GEN9 */
+#define EM_INTEL_GEN9		182
 #endif
 
 #ifndef EM_INTELGT
-#define EM_INTELGT		205	/* INTEL Graphics Technology */
+#define EM_INTELGT		205
 #endif
 
 namespace Dyninst {
 
-// Forward declarations
 class Elf_X;
 class Elf_X_Phdr;
 class Elf_X_Shdr;
@@ -73,18 +72,13 @@ class Elf_X_Dyn;
 class Elf_X_Nhdr;
 
 
-// Wrappers to allow word-independant use of libelf routines.
 
-// ------------------------------------------------------------------------
-// Class Elf_X simulates the Elf(32|64)_Ehdr structure.
-// Also works for ELF archives. 
 class DYNINST_EXPORT Elf_X {
   public:
     static Elf_X *newElf_X(int input, Elf_Cmd cmd, Elf_X *ref = NULL, std::string name = std::string());
     static Elf_X *newElf_X(char *mem_image, size_t mem_size, std::string name = std::string());
     void end();
 
-    // Read Interface
     Elf *e_elfp() const;
     unsigned char *e_ident() const;
     unsigned short e_type() const;
@@ -106,7 +100,6 @@ class DYNINST_EXPORT Elf_X {
     Elf_X *e_next(Elf_X *ref);
     Elf_X *e_rand(unsigned offset);
 
-    // Write Interface
     void e_ident(unsigned char *input);
     void e_type(unsigned short input);
     void e_machine(unsigned short input);
@@ -122,7 +115,7 @@ class DYNINST_EXPORT Elf_X {
     void e_shnum(unsigned short input);
     void e_shstrndx(unsigned short input);
     void e_endian(unsigned short input);
-    // Data Interface
+
     bool isValid() const;
     int wordSize() const;
     Elf_X_Phdr &get_phdr(unsigned int i = 0);
@@ -156,21 +149,14 @@ class DYNINST_EXPORT Elf_X {
     Elf_X(int input, Elf_Cmd cmd, Elf_X *ref = NULL);
     Elf_X(char *mem_image, size_t mem_size);
     ~Elf_X();
-
-    // Two maps:
-    // One name/FD for Elf_Xs created that way
-    // One name/baseaddr
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Phdr simulates the Elf(32|64)_Phdr structure.
 class DYNINST_EXPORT Elf_X_Phdr {
    friend class Elf_X;
   public:
     Elf_X_Phdr();
     Elf_X_Phdr(bool is64_, void *input);
 
-    // Read Interface
     unsigned long p_type() const;
     unsigned long p_offset() const;
     unsigned long p_vaddr() const;
@@ -180,7 +166,6 @@ class DYNINST_EXPORT Elf_X_Phdr {
     unsigned long p_flags() const;
     unsigned long p_align() const;
 
-    // Write Interface
     void p_type(unsigned long input);
     void p_offset(unsigned long input);
     void p_vaddr(unsigned long input);
@@ -198,8 +183,6 @@ class DYNINST_EXPORT Elf_X_Phdr {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Shdr simulates the Elf(32|64)_Shdr structure.
 class DYNINST_EXPORT Elf_X_Shdr {
     friend class Elf_X;
 
@@ -207,7 +190,6 @@ class DYNINST_EXPORT Elf_X_Shdr {
     Elf_X_Shdr();
     Elf_X_Shdr(bool is64_, Elf_Scn *input);
 
-    // Read Interface
     unsigned long sh_name() const;
     unsigned long sh_type() const;
     unsigned long sh_flags() const;
@@ -220,7 +202,6 @@ class DYNINST_EXPORT Elf_X_Shdr {
     unsigned long sh_entsize() const;
     bool isFromDebugFile() const;
 
-    // Write Interface
     void sh_name(unsigned long input);
     void sh_type(unsigned long input);
     void sh_flags(unsigned long input);
@@ -233,10 +214,8 @@ class DYNINST_EXPORT Elf_X_Shdr {
     void sh_entsize(unsigned long input);
     void setDebugFile(bool b);
 
-    // Section Data Interface
     Elf_X_Data get_data() const;
 
-    // For Sections with Multiple Data Sections
     void first_data();
     bool next_data();
 
@@ -256,14 +235,11 @@ class DYNINST_EXPORT Elf_X_Shdr {
     const Elf_X *_elf;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Data simulates the Elf_Data structure.
 class DYNINST_EXPORT Elf_X_Data {
   public:
     Elf_X_Data();
     Elf_X_Data(bool is64_, Elf_Data *input);
 
-    // Read Interface
     void *d_buf() const;
     Elf_Data * elf_data() const;
     Elf_Type d_type() const;
@@ -274,7 +250,6 @@ class DYNINST_EXPORT Elf_X_Data {
     void xlatetom(unsigned int encode);
     void xlatetof(unsigned int encode);
 
-    // Write Interface
     void d_buf(void *input);
     void d_type(Elf_Type input);
     void d_version(unsigned int input);
@@ -282,7 +257,6 @@ class DYNINST_EXPORT Elf_X_Data {
     void d_off(signed int input);
     void d_align(unsigned int input);
 
-    // Data Interface
     const char *get_string() const;
     Elf_X_Dyn get_dyn();
     Elf_X_Versym get_versyms();
@@ -300,17 +274,13 @@ class DYNINST_EXPORT Elf_X_Data {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Versym simulates the SHT_GNU_versym structure.
 class DYNINST_EXPORT Elf_X_Versym {
   public:
     Elf_X_Versym();
     Elf_X_Versym(bool is64_, Elf_Data *input);
 
-    // Read Interface
     unsigned long get(int i) const;
 
-    // Meta-Info Interface
     unsigned long count() const;
     bool isValid() const;
 
@@ -321,19 +291,15 @@ class DYNINST_EXPORT Elf_X_Versym {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Verdaux simulates the Elf(32|64)_Verdaux structure.
 class DYNINST_EXPORT Elf_X_Verdaux {
   public:
     Elf_X_Verdaux();
     Elf_X_Verdaux(bool is64_, void *input);
 
-    // Read Interface
     unsigned long vda_name() const;
     unsigned long vda_next() const;
     Elf_X_Verdaux *get_next() const;
 
-    // Meta-Info Interface
     bool isValid() const;
 
   protected:
@@ -343,14 +309,11 @@ class DYNINST_EXPORT Elf_X_Verdaux {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Verdef simulates the Elf(32|64)_Verdef structure.
 class DYNINST_EXPORT Elf_X_Verdef {
   public:
     Elf_X_Verdef();
     Elf_X_Verdef(bool is64_, void *input);
 
-    // Read Interface
     unsigned long vd_version() const;
     unsigned long vd_flags() const;
     unsigned long vd_ndx() const;
@@ -361,7 +324,6 @@ class DYNINST_EXPORT Elf_X_Verdef {
     Elf_X_Verdaux *get_aux() const;
     Elf_X_Verdef *get_next() const;
 
-    // Meta-Info Interface
     bool isValid() const;
    
   protected:
@@ -371,14 +333,11 @@ class DYNINST_EXPORT Elf_X_Verdef {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Vernaux simulates the Elf(32|64)_Vernaux structure.
 class DYNINST_EXPORT Elf_X_Vernaux {
   public:
     Elf_X_Vernaux();
     Elf_X_Vernaux(bool is64_, void *input);
 
-    // Read Interface
     unsigned long vna_hash() const;
     unsigned long vna_flags() const;
     unsigned long vna_other() const;
@@ -386,7 +345,6 @@ class DYNINST_EXPORT Elf_X_Vernaux {
     unsigned long vna_next() const;
     Elf_X_Vernaux *get_next() const;
 
-    // Meta-Info Interface
     bool isValid() const;
 
   protected:
@@ -396,14 +354,11 @@ class DYNINST_EXPORT Elf_X_Vernaux {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Verneed simulates the Elf(32|64)_Verneed structure.
 class DYNINST_EXPORT Elf_X_Verneed {
   public:
     Elf_X_Verneed();
     Elf_X_Verneed(bool is64_, void *input);
 
-    // Read Interface
     unsigned long vn_version() const;
     unsigned long vn_cnt() const;
     unsigned long vn_file() const;
@@ -412,7 +367,6 @@ class DYNINST_EXPORT Elf_X_Verneed {
     Elf_X_Vernaux *get_aux() const;
     Elf_X_Verneed *get_next() const;
 
-    // Meta-Info Interface
     bool isValid() const;
 
   protected:
@@ -423,14 +377,11 @@ class DYNINST_EXPORT Elf_X_Verneed {
 };
 
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Sym simulates the Elf(32|64)_Sym structure.
 class DYNINST_EXPORT Elf_X_Sym {
   public:
     Elf_X_Sym();
     Elf_X_Sym(bool is64_, Elf_Data *input);
 
-    // Read Interface
     unsigned long st_name(int i) const;
     unsigned long st_value(int i) const;
     unsigned long st_size(int i) const;
@@ -443,7 +394,6 @@ class DYNINST_EXPORT Elf_X_Sym {
     void *st_symptr(int i) const;
     unsigned st_entsize() const;
 
-    // Write Interface
     void st_name(int i, unsigned long input);
     void st_value(int i, unsigned long input);
     void st_size(int i, unsigned long input);
@@ -451,7 +401,6 @@ class DYNINST_EXPORT Elf_X_Sym {
     void st_other(int i, unsigned char input);
     void st_shndx(int i, unsigned short input);
 
-    // Meta-Info Interface
     unsigned long count() const;
     bool isValid() const;
 
@@ -462,24 +411,19 @@ class DYNINST_EXPORT Elf_X_Sym {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Rel simulates the Elf(32|64)_Rel structure.
 class DYNINST_EXPORT Elf_X_Rel {
   public:
    Elf_X_Rel();
    Elf_X_Rel(bool is64_, Elf_Data *input);
 
-    // Read Interface
     unsigned long r_offset(int i) const;
     unsigned long r_info(int i) const;
     unsigned long R_SYM(int i) const;
     unsigned long R_TYPE(int i) const;
 
-    // Write Interface
     void r_offset(int i, unsigned long input);
     void r_info(int i, unsigned long input);
 
-    // Meta-Info Interface
     unsigned long count() const;
     bool isValid() const;
 
@@ -490,26 +434,21 @@ class DYNINST_EXPORT Elf_X_Rel {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Rela simulates the Elf(32|64)_Rela structure.
 class DYNINST_EXPORT Elf_X_Rela {
   public:
     Elf_X_Rela();
     Elf_X_Rela(bool is64_, Elf_Data *input);
 
-    // Read Interface
     unsigned long r_offset(int i) const;
     unsigned long r_info(int i) const;
     signed   long r_addend(int i) const;
     unsigned long R_SYM(int i) const;
     unsigned long R_TYPE(int i) const;
 
-    // Write Interface
     void r_offset(int i, unsigned long input);
     void r_info(int i, unsigned long input);
     void r_addend(int i, signed long input);
 
-    // Meta-Info Interface
     unsigned long count() const;
     bool isValid() const;
 
@@ -520,24 +459,19 @@ class DYNINST_EXPORT Elf_X_Rela {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Dyn simulates the Elf(32|64)_Dyn structure.
 class DYNINST_EXPORT Elf_X_Dyn {
   public:
     Elf_X_Dyn();
     Elf_X_Dyn(bool is64_, Elf_Data *input);
 
-    // Read Interface
     signed long d_tag(int i) const;
     unsigned long d_val(int i) const;
     unsigned long d_ptr(int i) const;
 
-    // Write Interface
     void d_tag(int i, signed long input);
     void d_val(int i, unsigned long input);
     void d_ptr(int i, unsigned long input);
 
-    // Meta-Info Interface
     unsigned long count() const;
     bool isValid() const;
 
@@ -548,8 +482,6 @@ class DYNINST_EXPORT Elf_X_Dyn {
     bool is64;
 };
 
-// ------------------------------------------------------------------------
-// Class Elf_X_Nhdr simulates the Elf(32|64)_Shdr structure.
 class DYNINST_EXPORT Elf_X_Nhdr {
     friend class Elf_X;
 
@@ -557,12 +489,10 @@ class DYNINST_EXPORT Elf_X_Nhdr {
     Elf_X_Nhdr();
     Elf_X_Nhdr(Elf_Data *data_, size_t offset);
 
-    // Read Interface
     unsigned long n_namesz() const;
     unsigned long n_descsz() const;
     unsigned long n_type() const;
 
-    // Meta-Info Interface
     bool isValid() const;
 
     const char* get_name() const;
