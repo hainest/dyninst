@@ -322,8 +322,6 @@ SgAsmExpression *ExpressionConversionVisitor::makeSegRegExpr() {
     }
 }
 
-/////////////// Visitor class /////////////////
-
 void ExpressionConversionVisitor::visit(BinaryFunction *binfunc) {
     assert(m_stack.size() >= 2);
     SgAsmExpression *rhs = m_stack.front();
