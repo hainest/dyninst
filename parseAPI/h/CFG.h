@@ -108,8 +108,7 @@ class DYNINST_EXPORT Edge {
         { }
         uint16_t _type_enum;
         uint8_t _sink;
-        uint8_t  _interproc;    // modifier for interprocedural branches
-                                // (tail calls)
+        uint8_t  _interproc;
     };
     EdgeType _type;
 
@@ -139,7 +138,6 @@ class DYNINST_EXPORT Edge {
     }
 
     void install();
-
     void uninstall();
 
     static void destroy(Edge *, CodeObject *);
@@ -245,7 +243,6 @@ public:
     CodeObject * obj() const {  return _obj; }
     CodeRegion * region() const {  return _region; }
 
-    /* Edge access */
     const edgelist & sources() const { return _srclist; }
     const edgelist & targets() const { return _trglist; }
     void copy_sources(edgelist & src) const;
@@ -264,7 +261,6 @@ public:
 
     bool wasUserAdded() const;
 
-    /* interval implementation */
     Address low() const override {  return start(); }
     Address high() const override {   return end(); }
 
@@ -427,7 +423,6 @@ class DYNINST_EXPORT Function : public AnnotatableSparse, public boost::lockable
     Block * entry() const { return _entry; }
     bool parsed() const { return _parsed; }
 
-    /* Basic block and CFG access */
     blocklist blocks();
     const_blocklist blocks() const;
     size_t num_blocks()
@@ -449,31 +444,26 @@ class DYNINST_EXPORT Function : public AnnotatableSparse, public boost::lockable
     const_blocklist exitBlocks();
     const_blocklist exitBlocks() const;
 
-    /* Function details */
     bool hasNoStackFrame() const { return _no_stack_frame; }
     bool savesFramePointer() const { return _saves_fp; }
     bool cleansOwnStack() const { return _cleans_stack; }
 
-    /* Loops */    
     LoopTreeNode* getLoopTree() const;
     Loop* findLoop(const char *name) const;
     bool getLoops(std::vector<Loop*> &loops) const;
     bool getOuterLoops(std::vector<Loop*> &loops) const;
 
-    /* Dominator info */
     bool dominates(Block* A, Block *B) const;
     Block* getImmediateDominator(Block *A) const;
     void getImmediateDominates(Block *A, std::set<Block*> &) const;
     void getAllDominates(Block *A, std::set<Block*> &) const;
 
-    /* Post-dominator info */
     bool postDominates(Block* A, Block *B) const;
     Block* getImmediatePostDominator(Block *A) const;
     void getImmediatePostDominates(Block *A, std::set<Block*> &) const;
     void getAllPostDominates(Block *A, std::set<Block*> &) const;
 
 
-    /* Parse updates and obfuscation */
     void setEntryBlock(Block *new_entry);
     void set_retstatus(FuncReturnStatus rs);
     void removeBlock( Block* );
@@ -482,30 +472,6 @@ class DYNINST_EXPORT Function : public AnnotatableSparse, public boost::lockable
 
     struct less
     {
-        /**
-         * If there are more than one guest binary file loaded, multiple
-         * functions may have the same entry point address in different
-         * code regions. And regions themselves may use the same
-         * address ranges.
-         *
-         * We order functions by their regions first, by their address second.
-         *
-         * We order regions by their start first, by their end second,
-         * by the numeric value of their pointers third. We consider NULL
-         * to be less than any non-NULL region.
-         *
-         * The algorithm below is the same as ordering with per-component
-         * comparison vectors
-         *
-         *   ( Region::low(), Region::high(), Region::ptr, Function::addr(), Function::ptr )
-         *
-         * where low() and high() for NULL region are considered to be -INF.
-         *
-         * For typical shared libraries and executables this should order
-         * functions by their address. For static libraries it should group
-         * functions by their object files and order object files by their
-         * size.
-         */
         bool operator()(const Function * f1, const Function * f2) const
         {
             CodeRegion *f1_region = f1->region();
@@ -550,11 +516,8 @@ class DYNINST_EXPORT Function : public AnnotatableSparse, public boost::lockable
         }
     };
 
-    /* Contiguous code segments of function */
     std::vector<FuncExtent *> const& extents();
 
-    /* This should not remain here - this is an experimental fix for
-       defensive mode CFG inconsistency */
     void invalidateCache() { _cache_valid = false; }
     inline std::pair<Address, Block*> get_next_block(
             Address addr,
@@ -562,7 +525,6 @@ class DYNINST_EXPORT Function : public AnnotatableSparse, public boost::lockable
 
     static void destroy(Function *f);
 
-    /*** Internal parsing methods and state ***/
     void add_block(Block *b);
 
  private:
@@ -573,7 +535,6 @@ class DYNINST_EXPORT Function : public AnnotatableSparse, public boost::lockable
     //    blocklist _bl;
     std::vector<FuncExtent *> _extents;
 
-    /* rapid lookup for edge predicate tests */
     blocklist blocks_int();
     
     blockmap _bmap;
@@ -595,7 +556,6 @@ class DYNINST_EXPORT Function : public AnnotatableSparse, public boost::lockable
     
     
 
-    /* rapid lookup for interprocedural queries */
     edgelist _call_edge_list;
     blockmap _retBL;
     bmap_const_iterator ret_begin() const 
@@ -606,10 +566,7 @@ class DYNINST_EXPORT Function : public AnnotatableSparse, public boost::lockable
     {
       return bmap_const_iterator(_retBL.end());
     }
-    // Superset of return blocks; this includes all blocks where
-    // execution leaves the function without coming back, including
-    // returns, calls to non-returning calls, tail calls, etc.
-    // Might want to include exceptions...
+
     blockmap _exitBL;
     bmap_const_iterator exit_begin() const 
     {
@@ -620,30 +577,25 @@ class DYNINST_EXPORT Function : public AnnotatableSparse, public boost::lockable
       return bmap_const_iterator(_exitBL.end());
     }
 
-    /* function details */
     bool _no_stack_frame;
     bool _saves_fp;
     bool _cleans_stack;
     StackTamper _tamper;
     Address _tamper_addr;
 
-    /* Loop details*/
-    mutable bool _loop_analyzed; // true if loops in the function have been found and stored in _loops
+    mutable bool _loop_analyzed;
     mutable std::set<Loop*> _loops;
-    mutable LoopTreeNode *_loop_root; // NULL if the tree structure has not be calculated
+    mutable LoopTreeNode *_loop_root;
     void getLoopsByNestingLevel(std::vector<Loop*>& lbb, bool outerMostOnly) const;
     std::map<Address, JumpTableInstance> jumptables;
 
-    /* Dominator and post-dominator info details */
     mutable bool isDominatorInfoReady;
     mutable bool isPostDominatorInfoReady;
     void fillDominatorInfo() const;
     void fillPostDominatorInfo() const;
-    /** set of basic blocks that this basicblock dominates immediately*/
+
     mutable std::map<Block*, std::set<Block*>*> immediateDominates;
-    /** basic block which is the immediate dominator of the basic block */
     mutable std::map<Block*, Block*> immediateDominator;
-    /** same as previous two fields, but for postdominator tree */
     mutable std::map<Block*, std::set<Block*>*> immediatePostDominates;
     mutable std::map<Block*, Block*> immediatePostDominator;
 
@@ -694,7 +646,6 @@ class DYNINST_EXPORT FuncExtent : public Dyninst::SimpleInterval<Address, Functi
     Address start() const { return _start; }
     Address end() const { return _end; }
 
-    /* interval implementation */
     Address low() const { return _start; }
     Address high() const { return _end; }
     Function* id() const { return _func; }
@@ -718,13 +669,9 @@ private:
         std::set<Edge*> backEdges;
 	std::set<Block*> entries;
 
-        // the function this loop is part of
         const Function * func;
 
-	/** set of loops that are contained (nested) in this loop. */
         std::set<Loop*> containedLoops;
-
-	/** the basic blocks in the loop */
 
         std::set<Block*> childBlocks;
         std::set<Block*> exclusiveBlocks;
@@ -766,18 +713,13 @@ public:
     void insertLoop(Loop *childLoop);
 
 private:
-// internal use only
-	/** constructor of class */
 	Loop(const Function *);
-
-	/** constructor of the class */
 	Loop(Edge *, const Function *);
 
-	/** get either contained or outer loops, determined by outerMostOnly */
 	bool getLoops(std::vector<Loop*>&, 
 		      bool outerMostOnly) const;
 
-        }; // class Loop
+        };
 
 class DYNINST_EXPORT LoopTreeNode {
     friend class LoopAnalyzer;
@@ -803,12 +745,7 @@ class DYNINST_EXPORT LoopTreeNode {
     Loop * findLoop(const char *name);
 
  private:
-
-    /** name which indicates this loop's relative nesting */
     char *hierarchicalName;
-
-    // A vector of functions called within the body of this loop (and
-    // not the body of sub loops). 
     std::vector<Function *> callees;
 
 }; // class LoopTreeNode 
