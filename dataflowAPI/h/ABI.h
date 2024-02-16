@@ -49,9 +49,6 @@ class ABI{
     DYNINST_EXPORT const bitArray &getReturnReadRegisters() const;
     DYNINST_EXPORT const bitArray &getReturnRegisters() const;
     DYNINST_EXPORT const bitArray &getParameterRegisters() const;
-    // No such thing as return written...
-
-    // Syscall!
     DYNINST_EXPORT const bitArray &getSyscallReadRegisters() const;
     DYNINST_EXPORT const bitArray &getSyscallWrittenRegisters() const;
 
