@@ -64,7 +64,6 @@ class Absloc {
    DYNINST_EXPORT static Absloc makeSP(Dyninst::Architecture arch);
    DYNINST_EXPORT static Absloc makeFP(Dyninst::Architecture arch);
   
-  // Some static functions for "well-known" Abslocs
   DYNINST_EXPORT bool isPC() const;
   DYNINST_EXPORT bool isSPR() const;
   
@@ -184,9 +183,6 @@ class Absloc {
 
 class AbsRegion {
  public:
-  // Set operations get included here? Or third-party
-  // functions?
-  
   DYNINST_EXPORT bool contains(const Absloc::Type t) const;
   DYNINST_EXPORT bool contains(const Absloc &abs) const;
   DYNINST_EXPORT bool contains(const AbsRegion &rhs) const;
@@ -234,18 +230,9 @@ class AbsRegion {
   }
 
  private:
-  // Type is for "we're on the stack but we don't know where".
-  // Effectively, it's a wildcard.
   Absloc::Type type_;
-
-  // For specific knowledge.
   Absloc absloc_;
-
-  // And the AST that gave rise to this Absloc. We use this
-  // as a generating function (if present and not overridden)
   AST::Ptr generator_;
-
-  // Size in bits
   size_t size_;
 };
 
@@ -273,10 +260,8 @@ class Assignment {
 
   DYNINST_EXPORT const std::string format() const;
 
-  // FIXME
   Aliases aliases;
 
-  // Factory functions. 
   DYNINST_EXPORT static std::set<Assignment::Ptr> create(InstructionAPI::Instruction insn,
 					  Address addr);
 
@@ -318,11 +303,6 @@ class Assignment {
                              const AbsRegion &o);
 
 
-  // Internally used method; add a dependence on 
-  // a new abstract region. If this is a new region
-  // we'll add it to the dependence list. Otherwise 
-  // we'll join the provided input set to the known
-  // inputs.
   DYNINST_EXPORT void addInput(const AbsRegion &reg);
   DYNINST_EXPORT void addInputs(const std::vector<AbsRegion> &regions);
 
@@ -345,8 +325,6 @@ class Assignment {
   AbsRegion out_;
 };
 
-// compare assignments by value.
-// note this is a fast comparison--it checks output and address only.
 struct AssignmentPtrValueComp {
     bool operator()(const Assignment::Ptr& a, const Assignment::Ptr& b) const {
         if (a->addr() < b->addr()) { return true; }
