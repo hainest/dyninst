@@ -600,9 +600,10 @@ Register EmitterAARCH64::emitCall(opCode op,
     //#sasha This function implementation is experimental.
 
     if (op != callOp) {
-        cerr << "ERROR: emitCall with op == " << op << endl;
+        inst_printf("emitCall expected 'callOp' (%d) opcode, but got %d\n",
+                    static_cast<int>(callOp), static_cast<int>(op));
+        return Null_Register;
     }
-    assert(op == callOp);
 
     std::vector<Register> srcs;
     std::vector<Register> saves;
