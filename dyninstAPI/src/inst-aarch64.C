@@ -452,9 +452,6 @@ Register EmitterAARCH64::emitCall(opCode op,
         return Null_Register;
     }
 
-    std::vector<Register> srcs;
-    std::vector<Register> saves;
-
     //  Sanity check for NULL address arg
     if (!callee) 
     {
