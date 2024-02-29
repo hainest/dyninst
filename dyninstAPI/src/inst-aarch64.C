@@ -605,14 +605,10 @@ Register EmitterAARCH64::emitCall(opCode op,
         return Null_Register;
     }
 
-    //  Sanity check for NULL address arg
-    if (!callee) 
-    {
-        char msg[256];
-        sprintf(msg, "%s[%d]:  internal error:  emitFuncCall called w/out"
-                "callee argument", __FILE__, __LINE__);
-        showErrorCallback(80, msg);
-        assert(0);
+    if (!callee)  {
+      inst_printf("emitCall called without `callee`\n");
+      assert(0);
+      return Null_Register;
     }
 
     vector<int> savedRegs;
