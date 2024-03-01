@@ -41,10 +41,6 @@
 #include "instPoint.h"
 #include "addressSpace.h"
 
-/**************************************************************************
- * BPatch_instruction
- *************************************************************************/
-
 #if defined(DYNINST_HOST_ARCH_X86) || defined(DYNINST_HOST_ARCH_X86_64)
 const unsigned int BPatch_instruction::nmaxacc_NP = 2;
 #else
