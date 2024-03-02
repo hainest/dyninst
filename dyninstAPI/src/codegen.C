@@ -79,7 +79,6 @@ codeGen::codeGen() :
     modifiedStackFrame_(false)
 {}
 
-// size is in bytes
 codeGen::codeGen(unsigned size) :
     buffer_(NULL),
     offset_(0),
@@ -110,7 +109,6 @@ codeGen::codeGen(unsigned size) :
     memset(buffer_, 0, size+codeGenPadding);
 }
 
-// size is in bytes
 codeGen::codeGen(codeBuf_t *buffer, int size) :
     buffer_(buffer),
     offset_(0),
@@ -144,7 +142,6 @@ codeGen::~codeGen() {
     }
 }
 
-// Deep copy
 codeGen::codeGen(const codeGen &g) :
     buffer_(NULL),
     offset_(g.offset_),
@@ -235,7 +232,6 @@ void codeGen::allocate(unsigned size)
    assert(buffer_);
 }
 
-// Very similar to destructor
 void codeGen::invalidate() {
     if (allocated_ && buffer_) {
         free(buffer_);
@@ -345,7 +341,6 @@ void codeGen::copyAligned(const void *b, const unsigned size) {
 
 
 
-// codeBufIndex_t stores in platform-specific units.
 unsigned codeGen::used() const {
     return offset_ * CODE_GEN_OFFSET_SIZE;
 }
