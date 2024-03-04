@@ -48,10 +48,6 @@
 using namespace Dyninst;
 using namespace PatchAPI;
 
-/*
- * return the time required to execute the passed primitive.
- *
- */
 std::map<std::string, unsigned> primitiveCosts;
 
 unsigned getPrimitiveCost(const std::string &name)
@@ -61,8 +57,6 @@ unsigned getPrimitiveCost(const std::string &name)
    return 1;
 }
 
-
-// find any tags to associate semantic meaning to function
 unsigned findTags(const std::string ) {
   return 0;
 #ifdef notdef
