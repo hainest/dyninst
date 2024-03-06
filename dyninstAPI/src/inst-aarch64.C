@@ -75,8 +75,6 @@ void initDefaultPointFrequencyTable() {
     assert(0); //Not implemented
 }
 
-/************************************* Register Space **************************************/
-
 void registerSpace::initialize32() {
     assert(!"No 32-bit implementation for the ARM architecture!");
 }
@@ -128,13 +126,6 @@ void registerSpace::initialize() {
     initialize64();
 }
 
-/************************************************************************************************/
-/************************************************************************************************/
-
-/********************************* EmitterAARCH64SaveRegs ***************************************/
-
-/********************************* Private methods *********************************************/
-
 void EmitterAARCH64SaveRegs::saveSPR(codeGen &gen, Register scratchReg, int sprnum, int stkOffset)
 {
     assert(scratchReg!=Null_Register);
@@ -165,8 +156,6 @@ void EmitterAARCH64SaveRegs::saveFPRegister(codeGen &gen, Register reg, int save
     insnCodeGen::generateMemAccessFP(gen, insnCodeGen::Store, reg, REG_SP, save_off, 0, true);
 
 }
-
-/********************************* Public methods *********************************************/
 
 unsigned EmitterAARCH64SaveRegs::saveGPRegisters(
         codeGen &gen, registerSpace *theRegSpace, int offset, int numReqGPRs)
@@ -260,13 +249,6 @@ void EmitterAARCH64SaveRegs::createFrame(codeGen &gen) {
     insnCodeGen::generateMoveSP(gen, stackPointer, framePointer, true);
 }
 
-/***********************************************************************************************/
-/***********************************************************************************************/
-
-/********************************* EmitterAARCH64RestoreRegs ************************************/
-
-/********************************* Public methods *********************************************/
-
 unsigned EmitterAARCH64RestoreRegs::restoreGPRegisters(
         codeGen &gen, registerSpace *theRegSpace, int offset)
 {
@@ -350,9 +332,6 @@ void EmitterAARCH64RestoreRegs::tearFrame(codeGen &gen) {
     insnCodeGen::restoreRegister(gen, linkRegister, 2*GPRSIZE_64);
 }
 
-
-/********************************* Private methods *********************************************/
-
 void EmitterAARCH64RestoreRegs::restoreSPR(codeGen &gen, Register scratchReg, int sprnum, int stkOffset)
 {
     insnCodeGen::generateMemAccess(gen, insnCodeGen::Load, scratchReg, REG_SP, stkOffset, 4);
@@ -378,14 +357,9 @@ void EmitterAARCH64RestoreRegs::restoreFPRegister(codeGen &gen, Register reg, in
     insnCodeGen::generateMemAccessFP(gen, insnCodeGen::Load, reg, REG_SP, save_off, 0, true);
 }
 
-/***********************************************************************************************/
-/***********************************************************************************************/
-
-/*
- * Emit code to push down the stack
- */
 void pushStack(codeGen &gen)
 {
+    // Emit code to push down the stack
     if (gen.width() == 8)
         insnCodeGen::generateAddSubImmediate(gen, insnCodeGen::Sub, 0,
                 TRAMP_FRAME_SIZE_64, REG_SP, REG_SP, true);
@@ -402,7 +376,6 @@ void popStack(codeGen &gen)
         assert(0); // 32 bit not implemented
 }
 
-/*********************************** Base Tramp ***********************************************/
 bool baseTramp::generateSaves(codeGen &gen, registerSpace *)
 {
     regalloc_printf("========== baseTramp::generateSaves\n");
@@ -459,9 +432,6 @@ bool baseTramp::generateRestores(codeGen &gen, registerSpace *)
 
     return true;
 }
-
-/***********************************************************************************************/
-/***********************************************************************************************/
 
 //TODO: 32-/64-bit regs?
 void emitImm(opCode op, Register src1, RegValue src2imm, Register dest, 
