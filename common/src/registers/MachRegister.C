@@ -574,6 +574,50 @@ namespace Dyninst {
     // clang-format: on
   }
 
+  bool MachRegister::isVector() const {
+    // clang-format: off
+    auto const length = reg & 0x0000FF00;
+    auto const category = regClass();
+    switch(getArchitecture()) {
+      case Arch_x86:
+        return length == x86::MMS ||
+               length == x86::XMMS ||
+               length == x86::YMMS ||
+               length == x86::ZMMS ||
+               length == x86::KMSKS;
+        break;
+      case Arch_x86_64:
+        return length == x86_64::MMS ||
+               length == x86_64::XMMS ||
+               length == x86_64::YMMS ||
+               length == x86_64::ZMMS ||
+               length == x86_64::KMSKS;
+        break;
+      case Arch_aarch64: return length == aarch64::Q_REG; break;
+      case Arch_ppc32: return false; break;  // We don't represent these yet
+      case Arch_ppc64: return false; break;  // We don't represent these yet
+      case Arch_cuda: return false; break;  // We don't represent these yet
+      case Arch_amdgpu_gfx908:
+        return length == amdgpu_gfx908::VGPR ||
+               length == amdgpu_gfx908::ACC_VGPR;
+        break;
+      case Arch_amdgpu_gfx90a:
+        return length == amdgpu_gfx90a::VGPR ||
+               length == amdgpu_gfx90a::ACC_VGPR;
+        break;
+      case Arch_amdgpu_gfx940:
+        return length == amdgpu_gfx940::VGPR ||
+               length == amdgpu_gfx940::ACC_VGPR;
+        break;
+      case Arch_intelGen9:
+      case Arch_aarch32:
+      case Arch_none:
+        return false;
+    }
+    return false;
+    // clang-format: on
+  }
+
   // reg_idx needs to be set as the offset from base register
   // offset needs to be set as the offset inside the register
 
