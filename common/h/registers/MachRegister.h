@@ -89,6 +89,14 @@ namespace Dyninst {
      */
     bool isGeneralPurpose() const;
 
+    /* Checks if this is a vector register
+     *
+     *  Vector registers are those capable of performing arithmetic
+     *  on multiple data values simultaneously.
+     */
+    bool isVector() const;
+
+
     void getROSERegister(int& c, int& n, int& p);
 
     static MachRegister DwarfEncToReg(int encoding, Dyninst::Architecture arch);
