@@ -540,6 +540,40 @@ namespace Dyninst {
     return false;
   }
 
+  bool MachRegister::isGeneralPurpose() const {
+    // clang-format: off
+    auto const category = regClass();
+    switch(getArchitecture()) {
+      case Arch_x86: return category == x86::GPR; break;
+      case Arch_x86_64: return category == x86_64::GPR; break;
+      case Arch_aarch64: return category == aarch64::GPR; break;
+      case Arch_ppc32: return category == ppc32::GPR; break;
+      case Arch_ppc64: return category == ppc64::GPR; break;
+      case Arch_cuda: return category == cuda::GPR; break;
+      case Arch_amdgpu_gfx908:
+        return category == amdgpu_gfx908::SGPR ||
+               category == amdgpu_gfx908::VGPR ||
+               category == amdgpu_gfx908::ACC_VGPR;
+        break;
+      case Arch_amdgpu_gfx90a:
+        return category == amdgpu_gfx90a::SGPR ||
+               category == amdgpu_gfx90a::VGPR ||
+               category == amdgpu_gfx90a::ACC_VGPR;
+        break;
+      case Arch_amdgpu_gfx940:
+        return category == amdgpu_gfx940::SGPR ||
+               category == amdgpu_gfx940::VGPR ||
+               category == amdgpu_gfx940::ACC_VGPR;
+        break;
+      case Arch_intelGen9:
+      case Arch_aarch32:
+      case Arch_none:
+        return false;
+    }
+    return false;
+    // clang-format: on
+  }
+
   // reg_idx needs to be set as the offset from base register
   // offset needs to be set as the offset inside the register
 
