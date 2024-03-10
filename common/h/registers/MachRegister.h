@@ -81,6 +81,14 @@ namespace Dyninst {
     bool isFlag() const;
     bool isZeroFlag() const;
 
+    /* Checks if this is a general-purpose register
+     *
+     *  General-purpose registers are those that do not have a
+     *  specific data type or use. For example, those that can
+     *  be used for both integer arithmetic and memory addressing.
+     */
+    bool isGeneralPurpose() const;
+
     void getROSERegister(int& c, int& n, int& p);
 
     static MachRegister DwarfEncToReg(int encoding, Dyninst::Architecture arch);
