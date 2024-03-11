@@ -61,10 +61,8 @@ using namespace Dyninst::ProcControlAPI;
 #else
 #define FS_FIELD_SEPERATOR '/'
 #endif
-// Whee hasher...
 
 
-// triggered when parsing needs to check if the underlying data has changed
 bool codeBytesUpdateCB(void *objCB, Address targ)
 {
     mapped_object *obj = (mapped_object*) objCB;
@@ -371,8 +369,6 @@ mapped_module *mapped_object::findModule(pdmodule *pdmod)
       return NULL;
 }
 
-// fill in "short_name" data member.  Use last component of "name" data
-// member with FS_FIELD_SEPERATOR ("/") as field seperator....
 void mapped_object::set_short_name() {
    const char *name_string = fullName_.c_str();
    const char *ptr = strrchr(name_string, FS_FIELD_SEPERATOR);
@@ -524,7 +520,6 @@ const std::vector <int_variable *> *mapped_object::findVarVectorByMangled(const 
   return allVarsByMangledName[varname];
 }
 
-//Returns one variable, doesn't search other mapped_objects.  Use carefully.
 const int_variable *mapped_object::getVariable(const std::string &varname) {
     const std::vector<int_variable *> *vars = NULL;
     vars = findVarVectorByPretty(varname);
@@ -704,7 +699,6 @@ void mapped_object::addFunction(func_instance *func) {
     func->mod()->addFunction(func);
 }
 
-// Enter a function in all the appropriate tables
 int_variable *mapped_object::findVariable(image_variable *img_var) {
     if (!img_var) return NULL;
 
@@ -779,11 +773,6 @@ void mapped_object::addVariable(int_variable *var) {
     var->mod()->addVariable(var);
 }
 
-/////////// Dinky functions
-
-// This way we don't have to cross-include every header file in the
-// world.
-
 AddressSpace *mapped_object::proc() const { return proc_; }
 
 bool mapped_object::isSharedLib() const
@@ -807,7 +796,6 @@ const std::string mapped_object::debugString() const
     return debug;
 }
 
-// Search an object for heapage
 bool mapped_object::getInfHeapList(std::vector<heapDescriptor> &infHeaps) {
     vector<pair<string,Address> > foundHeaps;
 
@@ -901,10 +889,6 @@ unsigned mapped_object::memoryEnd()
     return memEnd_;
 }
 
-
-// This gets called once per image. Poke through to the internals;
-// all we care about, amusingly, is symbol table information.
-
 void mapped_object::getInferiorHeaps(vector<pair<string, Address> > &foundHeaps)
 {
     vector<pair<string, Address> > code_heaps;
@@ -952,9 +936,6 @@ void *mapped_object::getPtrToData(Address addr) const
    return image_->codeObject()->cs()->getPtrToData(offset);
 }
 
-// mapped objects may contain multiple Symtab::Regions, this function
-// should not be used, but must be included in the class because this
-// function is a subclass of codeRange
 void *mapped_object::get_local_ptr() const
 {
     assert(0);// if you crash here, blame me. -kevin
@@ -1008,7 +989,6 @@ mapped_module* mapped_object::getDefaultModule()
 }
 
 
-// Grabs all block_instances corresponding to the region (horribly inefficient)
 bool mapped_object::findBlocksByRange(Address startAddr,
                                       Address endAddr,
                                       list<block_instance*> &rangeBlocks)//output
@@ -1041,16 +1021,7 @@ void mapped_object::findFuncsByRange(Address startAddr,
    }
 }
 
-/* Re-trigger parsing in the object.  This function should
- * only be invoked if all funcEntryAddrs lie within the boundaries of
- * the object.
- *
- * Copies over the raw data if a funcEntryAddr lies in between
- * the region's disk size and memory size, also copies raw data
- * if the memory around the entry point has changed
- *
- * A true return value means that new functions were parsed
-*/
+
 bool mapped_object::parseNewFunctions(vector<Address> &funcEntryAddrs)
 {
 
@@ -1124,15 +1095,6 @@ bool mapped_object::parseNewFunctions(vector<Address> &funcEntryAddrs)
     return reparsedObject;
 }
 
-
-/* 0. The target and source must be in the same mapped region, make sure memory
- *    for the target is up to date
- * 1. Parse from target address, add new edge at image layer
- * 2. Register all newly created functions as a result of new edge parsing
- * 3. Add image blocks as block_instances
- * 4. fix up mapping of split blocks with points
- * 5. Add image points, as instPoints
-*/
 bool mapped_object::parseNewEdges(const std::vector<edgeStub> &stubs)
 {
     using namespace SymtabAPI;
@@ -1258,11 +1220,6 @@ bool mapped_object::parseNewEdges(const std::vector<edgeStub> &stubs)
 }
 
 
-/* 1. Copy the entire region in from the mutatee,
- * 2. if memory emulation is not on, copy blocks back in from the
- * mapped file, since we don't want to copy instrumentation into
- * the mutatee.
- */
 void mapped_object::expandCodeBytes(SymtabAPI::Region *reg)
 {
     assert(reg);
@@ -1352,9 +1309,6 @@ void mapped_object::expandCodeBytes(SymtabAPI::Region *reg)
     }
 }
 
-// 1. use other update functions to update non-code areas of mapped files,
-//    expanding them if we overwrote into unmapped areas
-// 2. copy overwritten regions into the mapped objects
 void mapped_object::updateCodeBytes(const list<pair<Address,Address> > &owRanges)
 {
 // 1. use other update functions to update non-code areas of mapped files,
@@ -1417,12 +1371,6 @@ void mapped_object::updateCodeBytes(const list<pair<Address,Address> > &owRanges
     pagesUpdated_ = true;
 }
 
-// this is a helper function
-//
-// update mapped data for whole object, or just one region, if specified
-//
-// Read unprotected pages into the mapped file
-// (not analyzed code regions so we don't get instrumentation in our parse)
 void mapped_object::updateCodeBytes(SymtabAPI::Region * symReg)
 {
     assert(NULL != symReg);
@@ -1509,12 +1457,7 @@ void mapped_object::updateCodeBytes(SymtabAPI::Region * symReg)
     }
 }
 
-// checks if update is needed by looking in the gap between the previous
-// and next block for changes to the underlying bytes
-//
-// should only be called if we've already checked that we're not on an
-// analyzed page that's been protected from overwrites, as this
-// check would not be needed
+
 bool mapped_object::isUpdateNeeded(Address entry)
 {
     using namespace ParseAPI;
@@ -1582,7 +1525,6 @@ bool mapped_object::isUpdateNeeded(Address entry)
     return updateNeeded;
 }
 
-// checks to see if expansion is needed
 bool mapped_object::isExpansionNeeded(Address entry)
 {
     using namespace SymtabAPI;
@@ -1633,11 +1575,6 @@ bool mapped_object::isExpansionNeeded(Address entry)
     }
 }
 
-// updates the raw code bytes by fetching from memory, if needed
-//
-// updates if we haven't updated since the last time code could have
-// changed, and if the entry address is on an unprotected code page,
-// or if the address is in an uninitialized memory,
 bool mapped_object::updateCodeBytesIfNeeded(Address entry)
 {
 
@@ -1755,12 +1692,10 @@ void mapped_object::remove(instPoint *point)
     bpmod->remove(point);
 }
 
-// does not delete
 void mapped_object::destroy(PatchAPI::PatchBlock *b) {
    calleeNames_.erase(SCAST_BI(b));
 }
 
-// does not delete
 void mapped_object::destroy(PatchAPI::PatchFunction *f) {
     remove(SCAST_FI(f));
 }
@@ -1944,14 +1879,6 @@ std::string mapped_object::getCalleeName(block_instance *b) {
 void mapped_object::setCalleeName(block_instance *b, std::string s) {
    calleeNames_[b] = s;
 }
-
-// Missing
-// findEdge
-// findBlock
-// findOneBlockByAddr
-// splitBlock
-// findFuncByEntry
-// findBlock (again)
 
 edge_instance *mapped_object::findEdge(ParseAPI::Edge *e,
                                        block_instance *src,
