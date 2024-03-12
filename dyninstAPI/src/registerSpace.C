@@ -483,11 +483,6 @@ bool registerSpace::stealRegister(Register reg, codeGen &gen, bool /*noCost*/) {
     return true;
 }
 
-
-// This might mean something different later, but for now means
-// "Save special purpose registers". We may want to define a "volatile"
-// later - something like "can be unintentionally nuked". For example,
-// x86 flags register.
 #if defined(DYNINST_CODEGEN_ARCH_X86_64) || defined(DYNINST_CODEGEN_ARCH_X86)
 bool registerSpace::checkVolatileRegisters(codeGen & /*gen*/,
                                            registerSlot::livenessState_t state)
@@ -613,7 +608,6 @@ bool registerSpace::restoreVolatileRegisters(codeGen &) {
 }
 #endif
 
-// Free the specified register (decrement its refCount)
 void registerSpace::freeRegister(Register num)
 {
     registerSlot *reg = findRegister(num);
@@ -638,7 +632,6 @@ void registerSpace::freeRegister(Register num)
 
 }
 
-// Free the register even if its refCount is greater that 1
 void registerSpace::forceFreeRegister(Register num)
 {
     registerSlot *reg = findRegister(num);
@@ -647,10 +640,6 @@ void registerSpace::forceFreeRegister(Register num)
     reg->refCount = 0;
 }
 
-// DO NOT USE THIS!!!! to tell if you can use a register as
-// a scratch register; do that with trySpecificRegister
-// or allocateSpecificRegister. This is _ONLY_ to determine
-// if a register should be saved (e.g., over a call).
 bool registerSpace::isFreeRegister(Register num) {
     registerSlot *reg = findRegister(num);
     if (!reg) return false;
@@ -662,8 +651,6 @@ bool registerSpace::isFreeRegister(Register num) {
     return true;
 }
 
-// Bump up the reference count. Occasionally, we underestimate it
-// and call this routine to correct this.
 void registerSpace::incRefCount(Register num)
 {
     registerSlot *reg = findRegister(num);
@@ -989,9 +976,6 @@ registerSlot *registerSpace::operator[](Register reg) {
     return registers_[reg];
 }
 
-
-// Big honkin' name->register map
-
 void registerSpace::getAllRegisterNames(std::vector<std::string> &ret) {
     // Currently GPR only
     for (unsigned i = 0; i < GPRs_.size(); i++) {
@@ -1226,15 +1210,6 @@ bool registerSpace::spilledAnything()
    return regs_been_spilled.size() != 0;
 }
 
-/**
- * This handles merging register states at merges
- * in the generated code CFG.  Used for things like
- * 'if' statements.
- * Takes the top level registerState (e.g, the code that was
- * generated in an 'if') and emits the saves/restores such to
- * takes us back to the preceding registerState (e.g, the code
- * we would be in if the 'if' hadn't executed).
- **/
 void registerSpace::unifyTopRegStates(codeGen &gen)
 {
    if (addr_width == 8) {
