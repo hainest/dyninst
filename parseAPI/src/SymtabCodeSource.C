@@ -66,9 +66,6 @@ static const vector<std::string> skipped_symbols = {
           "std::exception::`vftable'",
           "std::bad_typeid::`vftable'" };
 
-
-/** SymtabCodeRegion **/
-
 SymtabCodeRegion::~SymtabCodeRegion()
 {
 
@@ -227,8 +224,6 @@ SymtabCodeRegion::length() const
 {
     return _region->getDiskSize();
 }
-
-/** SymtabCodeSource **/
 
 SymtabCodeSource::~SymtabCodeSource()
 {
@@ -892,10 +887,6 @@ SymtabCodeSource::removeRegion(CodeRegion *cr)
 	CodeSource::removeRegion(cr);
 }
 
-// fails and returns false if it can't find a CodeRegion
-// to match the SymtabAPI::region
-// has to remove the region before modifying the region's size, 
-// otherwise the region can't be found
 bool
 SymtabCodeSource::resizeRegion(SymtabAPI::Region *sr, Address newDiskSize)
 {
