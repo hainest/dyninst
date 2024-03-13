@@ -47,8 +47,6 @@ using namespace std;
 using namespace Dyninst;
 using namespace Dyninst::ParseAPI;
 
-/** SymReaderCodeRegion **/
-
 SymbolReaderFactory* getSymReaderFactory()
 {
   static SymbolReaderFactory* se(NULL);
@@ -195,7 +193,6 @@ SymReaderCodeRegion::length() const
     return _region->file_size;
 }
 
-/** SymReaderCodeSource **/
 
 SymReaderCodeSource::~SymReaderCodeSource()
 {
@@ -524,10 +521,6 @@ SymReaderCodeSource::removeRegion(CodeRegion *cr)
 	CodeSource::removeRegion(cr);
 }
 
-// fails and returns false if it can't find a CodeRegion
-// to match the region
-// has to remove the region before modifying the region's size, 
-// otherwise the region can't be found
 bool
 SymReaderCodeSource::resizeRegion(SymSegment *sr, Address newDiskSize)
 {
