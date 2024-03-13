@@ -47,7 +47,6 @@ CodeSource::~CodeSource() {
     delete r;
 }
 
-/** CodeSource **/
 void
 CodeSource::addRegion(CodeRegion * cr)
 {
