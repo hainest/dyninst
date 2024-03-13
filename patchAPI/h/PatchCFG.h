@@ -108,7 +108,6 @@ class DYNINST_EXPORT PatchBlock {
     PatchBlock(ParseAPI::Block *block, PatchObject *obj);
     virtual ~PatchBlock();
 
-    // Getters
     Address start() const;
     Address end() const;
     Address last() const;
