@@ -22,8 +22,6 @@
 
 using namespace Dyninst::InstructionAPI;
 
-///////// Base Formatter
-
 std::string ArchSpecificFormatter::getInstructionString(const std::vector<std::string> &operands) const
 {
     // non-x86_64 operand formatter:  join non-empty operands strings with ", "
@@ -41,8 +39,6 @@ bool ArchSpecificFormatter::operandPrintOrderReversed() const
 {
     return false;
 }
-
-///////////////////////////
 
 ///////// Formatter for PowerPC
 
@@ -302,7 +298,7 @@ std::string AmdgpuFormatter::formatMultiRegister(MachRegister m_Reg, uint32_t le
     return "BAD-MULTIFORMAT_REGISTER:" + name;
 }
 
-/////////////////////////// x86 Formatter functions
+/////////  x86 Formatter
 
 x86Formatter::x86Formatter()
 {
@@ -438,7 +434,6 @@ bool x86Formatter::operandPrintOrderReversed() const
     return true;
 }
 
-///////////////////////////
 ArchSpecificFormatter& ArchSpecificFormatter::getFormatter(Architecture a)
 {
     static dyn_tls std::map<Dyninst::Architecture, boost::shared_ptr<ArchSpecificFormatter> > theFormatters;
