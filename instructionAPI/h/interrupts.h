@@ -36,8 +36,7 @@
 
 namespace Dyninst { namespace InstructionAPI {
 
-// Checks if instruction is a software interrupt
-bool DYNINST_EXPORT isSoftwareInterrupt(Instruction const& ins);
+  bool DYNINST_EXPORT isSoftwareInterrupt(Instruction const& ins);
 
 }}
 
