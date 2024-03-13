@@ -57,7 +57,6 @@ class SymReaderCodeRegion : public CodeRegion {
     DYNINST_EXPORT void names(Address, std::vector<std::string> &) override;
     DYNINST_EXPORT bool findCatchBlock(Address addr, Address & catchStart) override;
 
-    /** InstructionSource implementation **/
     DYNINST_EXPORT bool isValidAddress(const Address) const override;
     DYNINST_EXPORT void* getPtrToInstruction(const Address) const override;
     DYNINST_EXPORT void* getPtrToData(const Address) const override;
@@ -69,7 +68,6 @@ class SymReaderCodeRegion : public CodeRegion {
     DYNINST_EXPORT Address length() const override;
     DYNINST_EXPORT Architecture getArch() const override;
 
-    /** interval **/
     DYNINST_EXPORT Address low() const override { return offset(); }
     DYNINST_EXPORT Address high() const override { return offset() + length(); }
 
@@ -82,7 +80,6 @@ class SymReaderCodeSource : public CodeSource {
     bool owns_symtab;
     mutable CodeRegion * _lookup_cache;
 
-    // Stats information
     StatContainer * stats_parse;
     bool _have_stats;
     
@@ -99,7 +96,6 @@ class SymReaderCodeSource : public CodeSource {
 
     DYNINST_EXPORT SymReader * getSymReaderObject() {return _symtab;} 
 
-    /** InstructionSource implementation **/
     DYNINST_EXPORT bool isValidAddress(const Address) const;
     DYNINST_EXPORT void* getPtrToInstruction(const Address) const;
     DYNINST_EXPORT void* getPtrToData(const Address) const;
@@ -115,11 +111,9 @@ class SymReaderCodeSource : public CodeSource {
 
     DYNINST_EXPORT static void addNonReturning(std::string func_name);
     
-    // statistics accessor
     DYNINST_EXPORT void print_stats() const;
     DYNINST_EXPORT bool have_stats() const { return _have_stats; }
 
-    // manage statistics
     void incrementCounter(const std::string& name) const;
     void addCounter(const std::string& name, int num) const; 
     void decrementCounter(const std::string& name) const;
@@ -127,13 +121,12 @@ class SymReaderCodeSource : public CodeSource {
  private:
 
     CodeRegion * lookup_region(const Address addr) const;
-    void removeRegion(CodeRegion *); // removes from region tree
+    void removeRegion(CodeRegion *);
 
     void overlapping_warn(const char * file, unsigned line) const;
     
     void init_regions();
-    
-    // statistics
+
     bool init_stats();
     
  
