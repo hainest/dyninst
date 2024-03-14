@@ -82,7 +82,6 @@ namespace {
   }
 }
 
-//constructors, blank functions
 arm_process::arm_process(Dyninst::PID p, std::string e, std::vector<std::string> a,
                          std::vector<std::string> envp, std::map<int, int> f) :
    int_process(p, e, a, envp, f)
@@ -135,17 +134,6 @@ bool arm_process::plat_convertToBreakpointAddress(Address &, int_thread *) {
    return true;
 }
 
-// The following a few of functions are used for emulated
-// singlestep. The scenario is quite similiar to what happens
-// on PPC.
-// ----
-// ldaxr
-// ...
-// stxr
-// ----
-//
-
-// to check if this insn is exclusive load/store
 static bool atomicLoad(const instruction &insn) {
     return insn.isAtomicLoad();
 }
@@ -416,9 +404,6 @@ void arm_process::plat_getEmulatedSingleStepAsyncs(int_thread *, std::set<respon
    }
 }
 
-// ------------------------------------
-// arm thread functions implementations
-
 arm_thread::arm_thread(int_process *p, Dyninst::THR_ID t, Dyninst::LWP l) :
    int_thread(p, t, l), have_cached_pc(false), cached_pc(0)
 {
@@ -428,7 +413,6 @@ arm_thread::~arm_thread()
 {
 }
 
-//#warning "HWBreakpoint is not supported now."
 bool arm_thread::rmHWBreakpoint(hw_breakpoint *,
                                 bool,
                                 std::set<response::ptr> &,
