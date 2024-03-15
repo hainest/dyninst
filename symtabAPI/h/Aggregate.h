@@ -75,13 +75,11 @@ class DYNINST_EXPORT Aggregate
       Module * getModule() const { return module_; }
       Region * getRegion() const;
 
-      /***** Symbol Collection Management *****/
       bool addSymbol(Symbol *sym);
       virtual bool removeSymbol(Symbol *sym) = 0;
       bool getSymbols(std::vector<Symbol *> &syms) const;
       Symbol *getFirstSymbol() const;
 
-      /***** Symbol naming *****/
       //std::vector<std::string> getAllMangledNames();
       //std::vector<std::string> getAllPrettyNames();
       //std::vector<std::string> getAllTypedNames();
@@ -93,7 +91,6 @@ class DYNINST_EXPORT Aggregate
       name_iter typed_names_begin() const;
       name_iter typed_names_end() const;
       
-     /***** Aggregate updating *****/
       virtual bool addMangledName(std::string name, bool isPrimary, bool isDebug=false);
       virtual bool addPrettyName(std::string name, bool isPrimary, bool isDebug=false);
       virtual bool addTypedName(std::string name, bool isPrimary, bool isDebug=false);
