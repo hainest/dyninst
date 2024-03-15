@@ -118,7 +118,7 @@ class DYNINST_EXPORT Region : public AnnotatableSparse {
    void setFileOffset(Offset);
 
    void *getPtrToRawData() const;
-   bool setPtrToRawData(void *, unsigned long);//also sets diskSize
+   bool setPtrToRawData(void *, unsigned long);
 
    bool isBSS() const;
    bool isText() const;
@@ -161,7 +161,7 @@ class DYNINST_EXPORT Region : public AnnotatableSparse {
    RegionType rType_;
    bool isDirty_;
    std::vector<relocationEntry> rels_;
-   char *buffer_;  //To hold dirty data
+   char *buffer_;
    bool isLoadable_;
    bool isTLS_;
    unsigned long memAlign_;
