@@ -156,12 +156,6 @@ ostream &operator<<(ostream &os, relocationEntry &q) {
 }
 #endif
 
-/**************************************************
- *
- *  Stream based debuggering output - for regreesion testing.
- *  Dump info on state of object *this....
- *
- **************************************************/
 
 DYNINST_EXPORT unsigned Object::nsymbols () const 
 { 
@@ -294,7 +288,6 @@ DYNINST_EXPORT Object::~Object()
     }
 }
 
-// explicitly protected
 DYNINST_EXPORT Object::Object(MappedFile *mf_, void (*err_func)(const char *), Symtab* st)
 : mf(mf_),
    code_ptr_(0), code_off_(0), code_len_(0),
@@ -371,9 +364,6 @@ const string & SymbolIter::currkey() const
 {
    return symbolIterator->first;
 }
-
-/* If it's important that this be const, we could try to initialize
-   currentVector to '& symbolIterator.currval()' in the constructor. */
 
 Symbol *SymbolIter::currval() 
 {
