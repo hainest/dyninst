@@ -305,11 +305,6 @@ bool DwarfWalker::buildSrcFiles(::Dwarf * /*dbg*/, Dwarf_Die entry, StringTableP
     return true;
 }
 
-
-// As mentioned in the header, this is separate from parse()
-// so we can have a non-Context-creating parse method that reuses
-// the Context from the parent. This allows us to pass in current
-// function, etc. without the Context stack exploding
 bool DwarfWalker::parse_int(Dwarf_Die e, bool parseSib, bool dissociate_context) {
     dwarf_printf("PARSE_INT entry, context size %d\n", stack_size());
     // We escape the loop by checking parseSibling() after
@@ -580,8 +575,6 @@ void DwarfParseActions::addPrettyFuncName(std::string name)
    curFunc()->addPrettyName(name, true, true);
 }
 
-
-// helper class to set and restore currentSubprogramFunction
 namespace {
 class SetAndRestoreFunction
 {
@@ -1462,7 +1455,6 @@ bool DwarfWalker::parseMember() {
    return true;
 }
 
-// TODO: this looks a lot like parseTypedef. Collapse?
 bool DwarfWalker::parseConstPackedVolatile() {
    dwarf_printf("(0x%lx) parseConstPackedVolatile entry\n", id());
 
@@ -1674,8 +1666,6 @@ std::vector<VariableLocation>& DwarfParseActions::getFramePtrRefForInit()
    return curFunc()->getFramePtrRefForInit();
 }
 
-// getFrameBase is a helper function to parseSubprogram
-// inlined functions will return its parent's frame info
 bool DwarfWalker::getFrameBase() {
     dwarf_printf("(0x%lx) Checking for frame pointer information\n", id());
 
@@ -1714,8 +1704,6 @@ bool DwarfWalker::getReturnType(boost::shared_ptr<Type>&returnType) {
     return ret;
 }
 
-// I'm not sure how the provided fieldListType is different from curEnclosure(),
-// but that's the way the code was structured and it was working.
 bool DwarfWalker::addFuncToContainer(boost::shared_ptr<Type> returnType) {
    /* Using the mangled name allows us to distinguish between overridden
       functions, but confuses the tests.  Since Type uses vectors
@@ -1730,6 +1718,8 @@ bool DwarfWalker::addFuncToContainer(boost::shared_ptr<Type> returnType) {
       demangledName.erase(0, offset+1);
    }
 
+   // I'm not sure how the provided fieldListType is different from curEnclosure(),
+   // but that's the way the code was structured and it was working.
    curEnclosure()->asFieldListType().addField( demangledName, Type::make_shared<typeFunction>(
       type_id(), returnType, demangledName));
 
