@@ -73,7 +73,6 @@ class InsertedRegion : public CodeRegion {
    DYNINST_EXPORT Address low() const { return base_; }
    DYNINST_EXPORT Address high() const { return base_ + size_; }
 
-   /** InstructionSource implementation **/
    DYNINST_EXPORT bool isValidAddress(const Address a) const { 
       return (a >= low() && a < high());
    }
