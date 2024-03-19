@@ -69,14 +69,7 @@ class InsertedRegion : public CodeRegion {
    
    DYNINST_EXPORT InsertedRegion(Address base, void *data, unsigned size, Architecture arch); 
    DYNINST_EXPORT virtual ~InsertedRegion();
-   
-   
-   // names: not overriden (as there are no names [yet])
-   // findCatchBlock: there isn't one
 
-   // Addresses are provided by the user, as Dyninst etc. have
-   // well-known ways of allocating additional code by extending
-   // the binary or allocating memory, etc. 
    DYNINST_EXPORT Address low() const { return base_; }
    DYNINST_EXPORT Address high() const { return base_ + size_; }
 
