@@ -66,6 +66,9 @@ namespace Dyninst {
     auto end() const -> decltype(regs.end()) {
       return regs.end();
     }
+    size_t cardinality() const {
+      return regs.size();
+    }
 
     // Union (in-place)
     void operator|=(registerSet const& rhs) {
