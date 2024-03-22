@@ -476,40 +476,43 @@ void instPoint::markModified() {
          
 bitArray instPoint::liveRegisters(){
 	stats_codegen.startTimer(CODEGEN_LIVENESS_TIMER);
-	static LivenessAnalyzer live1(4);
-	static LivenessAnalyzer live2(8);
-	LivenessAnalyzer *live;
-	if (func()->function()->region()->getAddressWidth() == 4) live = &live1; else live = &live2;
-	if (liveRegs_.size() && liveRegs_.size() == live->getABI()->getAllRegs().size()){
-		return liveRegs_;
-	}	
+
+	// Querying is expensive, so only do it once.
+	static bool skip=false;
+	if(skip) {
+	  return liveRegs_;
+	}
+	skip = true;
+
+	LivenessAnalyzer live(func()->function()->region()->getArch());
+
 	switch(type()) {
 		case FuncEntry:
-			if (!live->query(ParseAPI::Location(EntrySite(func()->function(), func()->function()->entry())), LivenessAnalyzer::Before, liveRegs_)) assert(0);
+			if (!live.query(ParseAPI::Location(EntrySite(func()->function(), func()->function()->entry())), LivenessAnalyzer::Before, liveRegs_)) assert(0);
 			break;
 		case BlockEntry:
-			if (!live->query(ParseAPI::Location(BlockSite(func()->function(), block()->block())), LivenessAnalyzer::Before, liveRegs_)) assert(0);
+			if (!live.query(ParseAPI::Location(BlockSite(func()->function(), block()->block())), LivenessAnalyzer::Before, liveRegs_)) assert(0);
 			break;
 		case BlockExit:
-			if (!live->query(ParseAPI::Location(BlockSite(func()->function(), block()->block())), LivenessAnalyzer::After, liveRegs_)) assert(0);
+			if (!live.query(ParseAPI::Location(BlockSite(func()->function(), block()->block())), LivenessAnalyzer::After, liveRegs_)) assert(0);
 			break;
 		case EdgeDuring:
-			if (!live->query(ParseAPI::Location(EdgeLoc(func()->function(), edge()->edge())), LivenessAnalyzer::After, liveRegs_)) assert(0);
+			if (!live.query(ParseAPI::Location(EdgeLoc(func()->function(), edge()->edge())), LivenessAnalyzer::After, liveRegs_)) assert(0);
 			break;
 		case FuncExit:
-			if (!live->query(ParseAPI::Location(ExitSite(func()->function(), block()->block())), LivenessAnalyzer::After, liveRegs_)) assert(0);
+			if (!live.query(ParseAPI::Location(ExitSite(func()->function(), block()->block())), LivenessAnalyzer::After, liveRegs_)) assert(0);
 			break;
 		case PostCall:
-			if (!live->query(ParseAPI::Location(CallSite(func()->function(), block()->block())), LivenessAnalyzer::After, liveRegs_)) assert(0);
+			if (!live.query(ParseAPI::Location(CallSite(func()->function(), block()->block())), LivenessAnalyzer::After, liveRegs_)) assert(0);
 			break;
 		case PreCall:
-			if (!live->query(ParseAPI::Location(CallSite(func()->function(), block()->block())), LivenessAnalyzer::Before, liveRegs_)) assert(0);
+			if (!live.query(ParseAPI::Location(CallSite(func()->function(), block()->block())), LivenessAnalyzer::Before, liveRegs_)) assert(0);
 			break;
 		case PreInsn:
-			if (!live->query(ParseAPI::Location(func()->function(), InsnLoc(block()->block(), insnAddr() - func()->obj()->codeBase(), insn())), LivenessAnalyzer::Before, liveRegs_)) assert(0);
+			if (!live.query(ParseAPI::Location(func()->function(), InsnLoc(block()->block(), insnAddr() - func()->obj()->codeBase(), insn())), LivenessAnalyzer::Before, liveRegs_)) assert(0);
 			break;
 		case PostInsn:
-		        if (!live->query(ParseAPI::Location(func()->function(), InsnLoc(block()->block(), insnAddr() - func()->obj()->codeBase(), insn())), LivenessAnalyzer::After, liveRegs_)) assert(0);
+		        if (!live.query(ParseAPI::Location(func()->function(), InsnLoc(block()->block(), insnAddr() - func()->obj()->codeBase(), insn())), LivenessAnalyzer::After, liveRegs_)) assert(0);
 			break;
 		default:
 			assert(0);  
