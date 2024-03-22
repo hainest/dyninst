@@ -54,18 +54,8 @@ using namespace Dyninst::InstructionAPI;
 
 // Code for register liveness detection
 
-LivenessAnalyzer::LivenessAnalyzer(int w): errorno((ErrorType)-1) {
-    width = w;
-    abi = ABI::getABI(width);
-}
-
-LivenessAnalyzer::LivenessAnalyzer(Architecture arch, int w): errorno((ErrorType)-1) {
-    width = w;
-    abi = ABI::getABI(arch);
-}
-
-int LivenessAnalyzer::getIndex(MachRegister machReg){
-   return abi->getIndex(machReg);
+LivenessAnalyzer::LivenessAnalyzer(Dyninst::Architecture arch): errorno((ErrorType)-1), abi(arch) {
+  width = abi.getAddressWidth();
 }
 
 const bitArray& LivenessAnalyzer::getLivenessIn(Block *block) {

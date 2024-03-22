@@ -41,7 +41,7 @@
 #include <map>
 #include <set>
 #include "Register.h"
-
+#include "abi.h"
 
 using namespace Dyninst;
 using namespace Dyninst::InstructionAPI;
@@ -70,13 +70,14 @@ class DYNINST_EXPORT LivenessAnalyzer{
 	bool isMMX(MachRegister machReg);
 	MachRegister changeIfMMX(MachRegister machReg);
 	int width;
-	ABI* abi;
+	Dyninst::ABI abi;
 
 public:
 	typedef enum {Before, After} Type;
 	typedef enum {Invalid_Location} ErrorType;
-	LivenessAnalyzer(int w);
-	LivenessAnalyzer(Architecture arch, int w);
+
+	explicit LivenessAnalyzer(Dyninst::Architecture);
+
 	void analyze(ParseAPI::Function *func);
 
 	bool query(ParseAPI::Location loc, Type type, const MachRegister &machReg, bool& live);
@@ -86,9 +87,6 @@ public:
 
 	void clean(ParseAPI::Function *func);
 	void clean();
-
-	int getIndex(MachRegister machReg);
-	ABI* getABI() { return abi;}
 
 private:
 	ErrorType errorno;

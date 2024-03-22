@@ -33,6 +33,7 @@
 
 #include "Architecture.h"
 #include "registers/registerSet.h"
+#include "dyninst_visibility.h"
 
 #include <memory>
 
@@ -42,7 +43,7 @@ namespace Dyninst {
     struct abi_impl;
   }
 
-  class COMMON_EXPORT ABI {
+  class DYNINST_EXPORT ABI {
     std::unique_ptr<Dyninst::abi::abi_impl> impl{};
   public:
     explicit ABI(Dyninst::Architecture a);
