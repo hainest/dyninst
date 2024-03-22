@@ -49,7 +49,6 @@
 #include "dyninstAPI/src/image.h"
 // get_index...
 #include "dyninstAPI/src/dynThread.h"
-#include "ABI.h"
 #include "liveness.h"
 #include "RegisterConversion.h"
 */
