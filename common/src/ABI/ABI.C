@@ -36,6 +36,8 @@
 #include "registers/registerSet.h"
 #include "ABI/architecture.h"
 
+#include <memory>
+
 namespace Dyninst { namespace abi {
 
   struct abi_impl final {
@@ -71,3 +73,29 @@ namespace Dyninst { namespace abi {
 }}
 
 Dyninst::ABI::ABI(Dyninst::Architecture a) : impl(new Dyninst::abi::abi_impl(a)) {}
+
+Dyninst::registerSet const& Dyninst::ABI::getFunctionParams() const {
+  return impl->machine.function.params;
+}
+Dyninst::registerSet const& Dyninst::ABI::getFunctionReturns() const {
+  return impl->machine.function.returns;
+}
+Dyninst::registerSet const& Dyninst::ABI::getFunctionPreserved() const {
+  return impl->machine.function.preserved;
+}
+Dyninst::registerSet const& Dyninst::ABI::getFunctionGlobals() const {
+  return impl->machine.function.globals;
+}
+
+Dyninst::registerSet const& Dyninst::ABI::getSyscallParams() const {
+  return impl->machine.syscall.params;
+}
+Dyninst::registerSet const& Dyninst::ABI::getSyscallReturns() const {
+  return impl->machine.syscall.returns;
+}
+Dyninst::registerSet const& Dyninst::ABI::getSyscallPreserved() const {
+  return impl->machine.syscall.preserved;
+}
+Dyninst::registerSet const& Dyninst::ABI::getSyscallGlobals() const {
+  return impl->machine.syscall.globals;
+}

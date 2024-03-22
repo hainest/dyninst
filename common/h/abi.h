@@ -33,6 +33,7 @@
 
 #include "Architecture.h"
 #include "registers/registerSet.h"
+
 #include <memory>
 
 namespace Dyninst {
@@ -46,13 +47,15 @@ namespace Dyninst {
   public:
     explicit ABI(Dyninst::Architecture a);
 
-  //  const bitArray &getCallReadRegisters() const;
-  //  const bitArray &getCallWrittenRegisters() const;
-  //  const bitArray &getReturnReadRegisters() const;
-  //  const bitArray &getReturnRegisters() const;
-  //  const bitArray &getParameterRegisters() const;
-  //  const bitArray &getSyscallReadRegisters() const;
-  //  const bitArray &getSyscallWrittenRegisters() const;
+    registerSet const& getFunctionParams() const;
+    registerSet const& getFunctionReturns() const;
+    registerSet const& getFunctionPreserved() const;
+    registerSet const& getFunctionGlobals() const;
+
+    registerSet const& getSyscallParams() const;
+    registerSet const& getSyscallReturns() const;
+    registerSet const& getSyscallPreserved() const;
+    registerSet const& getSyscallGlobals() const;
   };
 
 }
