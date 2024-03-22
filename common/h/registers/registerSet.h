@@ -66,16 +66,22 @@ namespace Dyninst {
     auto end() const -> decltype(regs.end()) {
       return regs.end();
     }
+
+    // Union (in-place)
     void operator|=(registerSet const& rhs) {
       for(auto r : rhs) {
         regs.insert(r);
       }
     }
+
+    // Union
     registerSet operator|(registerSet const& rhs) const {
       auto tmp = *this;
       tmp |= rhs;
       return tmp;
     }
+
+    // Intersection (in-place)
     void operator&=(registerSet const& rhs) {
       for(auto r : regs) {
         if(rhs.contains(r)) {
@@ -83,6 +89,8 @@ namespace Dyninst {
         }
       }
     }
+
+    // Intersection
     registerSet operator&(registerSet const& rhs) const {
       auto tmp = *this;
       tmp &= rhs;
