@@ -52,7 +52,6 @@ namespace Dyninst { namespace abi {
 
 architecture make_x86_64() {
   architecture arch;
-  arch.address_width = getArchAddressWidth(Arch_x86_64);
 
   arch.function.params = {
     x86_64::rax,   // number of vector registers for varargs

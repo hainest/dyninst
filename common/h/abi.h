@@ -56,7 +56,8 @@ namespace Dyninst {
     registerSet const& getSyscallReturns() const;
     registerSet const& getSyscallPreserved() const;
     registerSet const& getSyscallGlobals() const;
-    
+
+    unsigned int getAddressWidth() const;
     Dyninst::Architecture getArchitecture() const;
   };
 

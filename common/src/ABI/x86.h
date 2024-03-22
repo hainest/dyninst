@@ -46,7 +46,6 @@ namespace Dyninst { namespace abi {
  */
 architecture make_x86() {
   architecture arch;
-  arch.address_width = getArchAddressWidth(Arch_x86);
 
   arch.function.params = {
     /*

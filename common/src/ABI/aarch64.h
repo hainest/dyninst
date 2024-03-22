@@ -48,7 +48,6 @@ namespace Dyninst { namespace abi {
 
 architecture make_aarch64() {
   architecture arch;
-  arch.address_width = getArchAddressWidth(Arch_aarch64);
 
   arch.function.params = {
     aarch64::x0,  // 32- and 64-bit GPRs

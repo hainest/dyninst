@@ -99,6 +99,9 @@ Dyninst::registerSet const& Dyninst::ABI::getSyscallPreserved() const {
 Dyninst::registerSet const& Dyninst::ABI::getSyscallGlobals() const {
   return impl->machine.syscall.globals;
 }
+unsigned int Dyninst::ABI::getAddressWidth() const {
+  return Dyninst::getArchAddressWidth(impl->arch);
+}
 Dyninst::Architecture Dyninst::ABI::getArchitecture() const {
   return impl->arch;
 }

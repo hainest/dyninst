@@ -56,7 +56,6 @@ namespace Dyninst { namespace abi {
 
 architecture make_ppc64() {
   architecture arch;
-  arch.address_width = getArchAddressWidth(Arch_ppc64);
 
   arch.function.params = {
     ppc64::r3,    // GPRs

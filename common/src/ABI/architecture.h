@@ -36,7 +36,6 @@
 
 namespace Dyninst { namespace abi {
   struct architecture {
-    int address_width{};
     interface_definition function;
     interface_definition syscall;
   };
