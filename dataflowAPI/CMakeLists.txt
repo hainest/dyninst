@@ -25,7 +25,6 @@ set(_rose_sources
 set_source_files_properties(${_rose_sources} PROPERTIES LANGUAGE CXX COMPILE_FLAGS -w)
 
 set(_dataflow_sources
-    ${PROJECT_SOURCE_DIR}/dataflowAPI/src/ABI.C
     ${PROJECT_SOURCE_DIR}/dataflowAPI/src/Absloc.C
     ${PROJECT_SOURCE_DIR}/dataflowAPI/src/AbslocInterface.C
     ${PROJECT_SOURCE_DIR}/dataflowAPI/src/convertOpcodes.C
@@ -116,7 +115,6 @@ set(_dataflow_private_headers
     ${PROJECT_SOURCE_DIR}/dataflowAPI/rose/util/WarningsRestore.h)
 
 set(_dataflow_public_headers
-    ${PROJECT_SOURCE_DIR}/dataflowAPI/h/ABI.h
     ${PROJECT_SOURCE_DIR}/dataflowAPI/h/Absloc.h
     ${PROJECT_SOURCE_DIR}/dataflowAPI/h/AbslocInterface.h
     ${PROJECT_SOURCE_DIR}/dataflowAPI/h/bitArray.h

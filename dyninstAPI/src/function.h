@@ -43,8 +43,6 @@
 #include "codeRange.h"
 #include "parse-cfg.h"
 
-#include "bitArray.h"
-
 #include "block.h"
 #include "instPoint.h"
 #include "PatchCFG.h"

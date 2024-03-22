@@ -38,8 +38,6 @@
 
 #include "dataflowAPI/h/stackanalysis.h"
 #include "dataflowAPI/h/slicing.h"
-#include "ABI.h"
-#include "bitArray.h"
 #include "registers/x86_regs.h"
 #include "registers/x86_64_regs.h"
 
