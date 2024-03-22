@@ -35,7 +35,7 @@
 #include <unordered_set>
 #include <initializer_list>
 
-namespace Dyninst { namespace abi {
+namespace Dyninst {
 
   namespace detail {
     struct reg_hasher final {
@@ -90,6 +90,6 @@ namespace Dyninst { namespace abi {
     }
   };
 
-}}
+}
 
 #endif
