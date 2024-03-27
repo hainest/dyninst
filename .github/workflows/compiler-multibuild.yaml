@@ -11,9 +11,11 @@ on:
 
 jobs:
   fetch-oses:
+    runs-on: ubuntu-latest
     uses: ./.github/workflows/oses.yaml
     
   use-oses:
     needs: fetch-oses
+    runs-on: ubuntu-latest
     steps:
-    - run: echo ${{ needs.fetch-oses.outputs.matrix }}
+      - run: echo ${{ needs.fetch-oses.outputs.matrix }}
