@@ -13,6 +13,8 @@ jobs:
   gcc-ubuntu-20_04:
     strategy:
       fail-fast: false
+      matrix:
+        version: [ 11 ]
     uses: ./.github/workflows/build.yaml
     with:
       name: gcc-${{ matrix.version }}
@@ -23,6 +25,8 @@ jobs:
   gcc-ubuntu-20_04:
     strategy:
       fail-fast: false
+      matrix:
+        version: [ 11 ]
     uses: ./.github/workflows/build.yaml
     with:
       name: gcc-${{ matrix.version }}
