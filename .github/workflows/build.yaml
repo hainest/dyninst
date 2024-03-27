@@ -39,9 +39,9 @@ jobs:
     - id: set-matrix
       run: |
         type="${{ inputs.build-type }}"
-        if test "$types" = "ALL"; then
+        if test "${type}" = "ALL"; then
           type="'DEBUG', 'RELWITHDEBINFO', 'RELEASE'"
-        elif [[ ! "$types" =~ "," ]]; then
+        elif [[ ! "${type}" =~ "," ]]; then
           # Add JSON quote
           #   Assume a comma-separated list is correctly quoted
           type="'${type}'"
