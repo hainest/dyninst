@@ -55,4 +55,4 @@ jobs:
     runs-on: ubuntu-latest
     name: ${{ inputs.name }} (${{ matrix.build-type }})
     steps:
-      run: echo "${{ matrix.build-type }}
+      run: echo "${{ matrix.build-type }}"
