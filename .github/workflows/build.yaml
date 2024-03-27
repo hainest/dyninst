@@ -44,7 +44,7 @@ jobs:
         elif [[ ! "$types" =~ "," ]]; then
           # Add JSON quote
           #   Assume a comma-separated list is correctly quoted
-          type="'${types}'"
+          type="'${type}'"
         fi
         echo "build_types=[$type]" >> $GITHUB_OUTPUT
 
