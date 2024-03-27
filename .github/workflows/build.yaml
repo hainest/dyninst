@@ -25,15 +25,34 @@ on:
         required: false
         type: boolean
         default: false
+      build-type:
+        required: false
+        type: string
+        default: 'ALL'
 
 jobs:
+  set_build_types:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.build_types }}
+    steps:
+    - name: Populate build types
+    - id: set-matrix
+      run: |
+        types="${{ inputs.build-type }}"
+        if test "$types" = "ALL"; then
+          types="'DEBUG', 'RELWITHDEBINFO', 'RELEASE'"
+        fi
+        echo "build_types=[$types]" >> $GITHUB_OUTPUT
+
   build:
+    needs: set_build_types
     permissions:
       packages: read
     strategy:
       fail-fast: false
       matrix:
-         build-type: ['DEBUG', 'RELWITHDEBINFO', 'RELEASE']
+         build-type: ${{ fromJson(needs.set_build_types.outputs.matrix) }}
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/dyninst/amd64/${{ inputs.os }}:latest
