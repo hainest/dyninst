@@ -36,7 +36,6 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.build_types }}
     steps:
-    - name: Populate build types
     - id: set-matrix
       run: |
         types="${{ inputs.build-type }}"
@@ -47,7 +46,6 @@ jobs:
 
   build:
     needs: set_build_types
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
