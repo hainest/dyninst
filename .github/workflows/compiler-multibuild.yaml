@@ -33,4 +33,4 @@ jobs:
       os: "ubuntu-20.04"
       c-compiler: "gcc-${{ matrix.version }}"
       cxx-compiler: "g++-${{ matrix.version }}"
-      build-type: "'MOO'"
+      build-type: "MOO"
