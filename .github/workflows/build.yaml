@@ -47,6 +47,7 @@ jobs:
 
   build:
     needs: set_build_types
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
