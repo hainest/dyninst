@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  gcc-ubuntu-20_04:
+  test2:
     strategy:
       fail-fast: false
       matrix:
@@ -22,7 +22,7 @@ jobs:
       c-compiler: "gcc-${{ matrix.version }}"
       cxx-compiler: "g++-${{ matrix.version }}"
 
-  gcc-ubuntu-20_04:
+  test1:
     strategy:
       fail-fast: false
       matrix:
