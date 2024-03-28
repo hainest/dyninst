@@ -13,7 +13,7 @@ jobs:
   fetch-oses:
     runs-on: ubuntu-latest
     outputs:
-      names: ${{ steps.fetch-os.output.names }}
+      names: ${{ steps.fetch-os.outputs.names }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
