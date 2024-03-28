@@ -7,7 +7,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - id: values
+    - id: make_oses
       shell: bash
       run: |
         # As yaml strings
