@@ -10,14 +10,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  fetch-oses:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fetch OSes
-        uses: ./.github/workflows/oses.yaml
+#  fetch-oses:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Fetch OSes
+#        uses: ./.github/workflows/oses.yaml
 
   use-oses:
-    needs: fetch-oses
+#    needs: fetch-oses
     runs-on: ubuntu-latest
     steps:
+      - uses: ./.github/workflows/oses.yaml
       - run: echo ${{ needs.fetch-oses.outputs.matrix }}
