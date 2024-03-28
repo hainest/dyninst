@@ -1,12 +1,24 @@
 name: Dyninst OSes
 description: 'Operating systems Dyninst is tested on'
 outputs:
-  matrix:
-    - ubuntu-20.04
-    - ubuntu-22.04
-    - ubuntu-23.04
-    - ubuntu-23.10
-    - ubuntu-24.04
-    - fedora-37
-    - fedora-38
-    - fedora-39
+  matrix: ${{ jobs.make_oses.outputs.matrix }}
+
+jobs:
+  make_oses:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ fromJson(steps.values.outputs.names) }}
+    steps:
+      - id: values
+        run: |
+          # As yaml strings
+          names+="'ubuntu-20.04, '"
+          names+="'ubuntu-22.04, '"
+          names+="'ubuntu-23.04, '"
+          names+="'ubuntu-23.10, '"
+          names+="'ubuntu-24.04, '"
+          names+="'fedora-37, '"
+          names+="'fedora-38, '"
+          names+="'fedora-39, '"
+
+          echo "names=[${names}]" >> $GITHUB_OUTPUT
