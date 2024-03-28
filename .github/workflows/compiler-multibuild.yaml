@@ -13,5 +13,8 @@ jobs:
   use-oses:
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/workflows/oses.yaml
-        run: echo ${{ needs.fetch-oses.outputs.matrix }}
+      - name: Get OSes
+        id: fetch-os
+        uses: ./.github/workflows/oses.yaml
+      - name: Use OSes
+        run: echo ${{ steps.fetch-os.outputs.matrix }}
