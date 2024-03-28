@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ needs.fetch-oses.outputs.names }}
+        os: ${{ fromJson(needs.fetch-oses.outputs.names) }}
     steps:
       - name: ${{ matrix.os }}
         run: echo Hello from ${{ matrix.os }}
