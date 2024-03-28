@@ -10,12 +10,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  fetch-oses:
+    runs-on: ubuntu-latest
+    outputs:
+      names: ${{ steps.fetch-os.outputs.names }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Get OSes
+        id: fetch-os
+        uses: ./.github/actions/os-versions
+
   test:
     runs-on: ubuntu-latest
+    needs: fetch-oses
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(steps.fetch-os.outputs.names) }}
+        os: ${{ fromJson(needs.fetch-oses.outputs.names) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
