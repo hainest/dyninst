@@ -12,8 +12,10 @@ on:
 jobs:
   fetch-oses:
     runs-on: ubuntu-latest
-    uses: ./.github/workflows/oses.yaml
-    
+    steps:
+      - name: Fetch OSes
+        uses: ./.github/workflows/oses.yaml
+
   use-oses:
     needs: fetch-oses
     runs-on: ubuntu-latest
