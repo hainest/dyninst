@@ -9,8 +9,7 @@ on:
       - master
   workflow_dispatch:
   
-  use-oses:
-    needs: fetch-oses
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
