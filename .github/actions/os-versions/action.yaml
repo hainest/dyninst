@@ -1,15 +1,14 @@
 name: Dyninst OSes
 description: 'Operating systems Dyninst is tested on'
 outputs:
-  matrix: ${{ jobs.make_oses.outputs.matrix }}
-
-jobs:
-  make_oses:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ fromJson(steps.values.outputs.names) }}
+  matrix:
+    description: 'Stuff'
+    value: ${{ steps.make_oses.outputs.names }}
+  runs:
+    using: "composite"
     steps:
       - id: values
+        shell: bash
         run: |
           # As yaml strings
           names+="'ubuntu-20.04, '"
@@ -20,5 +19,4 @@ jobs:
           names+="'fedora-37, '"
           names+="'fedora-38, '"
           names+="'fedora-39, '"
-
           echo "names=[${names}]" >> $GITHUB_OUTPUT
