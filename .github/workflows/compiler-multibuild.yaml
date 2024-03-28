@@ -17,6 +17,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Get OSes
         id: fetch-os
-        uses: ./.github/actions/operating_systems
+        uses: ./.github/actions/os-versions
       - name: Use OSes
         run: echo ${{ steps.fetch-os.outputs.matrix }}
