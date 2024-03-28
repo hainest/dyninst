@@ -1,7 +1,7 @@
 name: Dyninst OSes
 description: 'Operating systems Dyninst is tested on'
 outputs:
-  matrix:
+  names:
     description: 'Stuff'
     value: ${{ steps.make_oses.outputs.names }}
 runs:
