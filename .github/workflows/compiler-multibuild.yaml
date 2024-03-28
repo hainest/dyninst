@@ -8,18 +8,6 @@ on:
     branches:
       - master
   workflow_dispatch:
-
-jobs:
-  fetch-oses:
-    runs-on: ubuntu-latest
-    outputs:
-      names: ${{ steps.fetch-os.outputs.names }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Get OSes
-        id: fetch-os
-        uses: ./.github/actions/os-versions
   
   use-oses:
     needs: fetch-oses
@@ -27,7 +15,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.fetch-oses.outputs.names) }}
+        os: ${{ fromJson(steps.fetch-os.outputs.names) }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get OSes
+        id: fetch-os
+        uses: ./.github/actions/os-versions
       - name: ${{ matrix.os }}
         run: echo Hello from ${{ matrix.os }}
