@@ -3,7 +3,7 @@ description: 'Operating systems Dyninst is tested on'
 outputs:
   matrix:
     description: 'Stuff'
-    value: ${{ steps.make_oses.outputs.names }}
+    value: ${{ fromJson(steps.make_oses.outputs.names) }}
 runs:
   using: "composite"
   steps:
