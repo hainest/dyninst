@@ -1,6 +1,3 @@
-# 1. Build with multiple versions of gcc and clang using the ubuntu-provided compiler
-# 2. Using the latest version of each compiler, build against all supported C++ standards
-
 name: Compiler multibuild
 
 on:
@@ -9,122 +6,135 @@ on:
   workflow_dispatch:
 
 jobs:
-  gcc-ubuntu-20_04:
+
+  get-build-types:
+    runs-on: ubuntu-latest
+    outputs:
+      all:  ${{ steps.build-type.outputs.all }}
+    steps:
+      - name: Checkout Dyninst
+        uses: actions/checkout@v4
+
+      - id: build-type
+        uses: ./.github/actions/build-types
+
+  get-oses:
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.all.outputs.all }}
+      latest: ${{ steps.all.outputs.latest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: all
+        uses: ./.github/actions/os-versions
+
+  get-build-configs:
+    runs-on: ubuntu-latest
+    needs: get-build-types
+    outputs:
+      matrix: ${{ steps.configs.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - id: configs
+        shell: bash
+        run: |
+          set -ex
+          script="./.github/scripts/compiler_multibuild_configs.py"
+          python3 ${script} '${{ needs.get-build-types.outputs.all }}' >> $GITHUB_OUTPUT
+
+#############################################################################
+#
+#  Build with all supported compilers
+#
+  compiler-multibuild:
+    needs: get-build-configs
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.get-build-configs.outputs.matrix) }}
+    permissions:
+      packages: read
+    container:
+      image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    name: ${{ matrix.os }}, ${{ matrix.c-compiler }}, ${{ matrix.build-type }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: "src"  # relative to $GITHUB_WORKSPACE
+
+      - name: Build
+        uses: ./src/.github/actions/build
+        with:
+          os: ${{ matrix.os }}
+          c-compiler: ${{ matrix.c-compiler }}
+          cxx-compiler: ${{ matrix.cxx-compiler }}
+          build-type: ${{ matrix.build-type }}
+          src-dir: "${GITHUB_WORKSPACE}/src"
+
+#######################################################################################
+#
+#  Build with C++11 to C++23 using the latest distributions
+#
+#  This doesn't test every possible os/compiler/std, but it makes sure Dyninst builds
+#  on -some- compiler for each standard version.
+#
+  cxx-standards:
+    runs-on: ubuntu-latest
+    needs: [get-oses]
     strategy:
       fail-fast: false
       matrix:
-         version: [7, 8, 9, 10]
-    uses: ./.github/workflows/build.yaml
-    with:
-      name: gcc-${{ matrix.version }}
-      os: "ubuntu-20.04"
-      c-compiler: "gcc-${{ matrix.version }}"
-      cxx-compiler: "g++-${{ matrix.version }}"
+        os: ${{ fromJson(needs.get-oses.outputs.latest) }}
+        c-compiler: ['gcc', 'clang']
+        std: [11, 14, 17, 20, 23]
+        include:
+          - c-compiler: 'gcc'
+            cxx-compiler: 'g++'
+          - c-compiler: 'clang'
+            cxx-compiler: 'clang++'
+    permissions:
+      packages: read
+    container:
+      image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    name: ${{ matrix.os }}, ${{ matrix.c-compiler }}, std=${{ matrix.std }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: "src"    # Relative to $GITHUB_WORKSPACE
 
-  gcc-ubuntu-22_04:
-    strategy:
-      fail-fast: false
-      matrix:
-         version: [11, 12]
-    uses: ./.github/workflows/build.yaml
-    with:
-      name: gcc-${{ matrix.version }}
-      os: "ubuntu-22.04"
-      c-compiler: "gcc-${{ matrix.version }}"
-      cxx-compiler: "g++-${{ matrix.version }}"
+      - name: Clang check
+        id: clang-check
+        shell: bash
+        run: |
+          set -ex
+          ret="true"
+          if test "${{ matrix.c-compiler }}" = "clang"; then
+            if test "${{ matrix.std }}" -gt "17"; then
+              # clang has a bug with 20+ and operator== reflexiveness
+              ret="false"
+            fi
+          fi
+          
+          echo "value=${ret}" >> $GITHUB_OUTPUT
 
-  gcc-ubuntu-23_10:
-    strategy:
-      fail-fast: false
-      matrix:
-         version: [13]
-    uses: ./.github/workflows/build.yaml
-    with:
-      name: gcc-${{ matrix.version }}
-      os: "ubuntu-23.10"
-      c-compiler: "gcc-${{ matrix.version }}"
-      cxx-compiler: "g++-${{ matrix.version }}"
-
-
-  clang-ubuntu-20_04:
-    strategy:
-      fail-fast: false
-      matrix:
-         version: [7, 8, 9, 10, 11, 12]
-    uses: ./.github/workflows/build.yaml
-    with:
-      name: clang-${{ matrix.version }}
-      os: "ubuntu-20.04"
-      c-compiler: "clang-${{ matrix.version }}"
-      cxx-compiler: "clang++-${{ matrix.version }}"
-      is-clang: true
-      extra-libs: "libomp-${{ matrix.version }}-dev"
-
-  clang-ubuntu-22_04:
-    strategy:
-      fail-fast: false
-      matrix:
-         version: [13, 14, 15]
-    uses: ./.github/workflows/build.yaml
-    with:
-      name: clang-${{ matrix.version }}
-      os: "ubuntu-22.04"
-      c-compiler: "clang-${{ matrix.version }}"
-      cxx-compiler: "clang++-${{ matrix.version }}"
-      is-clang: true
-      extra-libs: "libomp-${{ matrix.version }}-dev"
-
-  clang-ubuntu-23_10:
-    strategy:
-      fail-fast: false
-      matrix:
-         version: [16, 17]
-    uses: ./.github/workflows/build.yaml
-    with:
-      name: clang-${{ matrix.version }}
-      os: "ubuntu-23.10"
-      c-compiler: "clang-${{ matrix.version }}"
-      cxx-compiler: "clang++-${{ matrix.version }}"
-      is-clang: true
-      extra-libs: "libomp-${{ matrix.version }}-dev"
-
-  gcc-cxx-standards-11-17:
-    strategy:
-      fail-fast: false
-      matrix:
-         std: [11, 14, 17]
-    uses: ./.github/workflows/build.yaml
-    with:
-      name: gcc-cxx-${{ matrix.std }}
-      os: "ubuntu-22.04"
-      c-compiler: "gcc-12"
-      cxx-compiler: "g++-12"
-      extra-cmake-flags: "-DDYNINST_CXX_LANGUAGE_STANDARD=${{ matrix.std }}"
-
-  gcc-cxx-standards-20-23:
-    strategy:
-      fail-fast: false
-      matrix:
-         std: [20, 23]
-    uses: ./.github/workflows/build.yaml
-    with:
-      name: gcc-cxx-${{ matrix.std }}
-      os: "ubuntu-23.10"
-      c-compiler: "gcc-13"
-      cxx-compiler: "g++-13"
-      extra-cmake-flags: "-DDYNINST_CXX_LANGUAGE_STANDARD=${{ matrix.std }}"
-
-  clang-cxx-standards:
-    strategy:
-      fail-fast: false
-      matrix:
-         std: [11, 14, 17]  # clang has a bug with 20+ and operator== reflexiveness
-    uses: ./.github/workflows/build.yaml
-    with:
-      name: cxx-${{ matrix.std }}
-      os: "ubuntu-22.04"
-      c-compiler: "clang-15"
-      cxx-compiler: "clang++-15"
-      is-clang: true
-      extra-cmake-flags: "-DDYNINST_CXX_LANGUAGE_STANDARD=${{ matrix.std }}"
-      extra-libs: "libomp-15-dev"
+      - name: Build
+        if: ${{ steps.clang-check.outputs.value == 'true' }}
+        uses: ./src/.github/actions/build
+        with:
+          os: ${{ matrix.os }}
+          c-compiler: ${{ matrix.c-compiler }}
+          cxx-compiler: ${{ matrix.cxx-compiler }}
+          src-dir: "${GITHUB_WORKSPACE}/src"
+          extra-cmake-flags: "-DDYNINST_CXX_LANGUAGE_STANDARD=${{ matrix.std }}"

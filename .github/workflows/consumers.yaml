@@ -1,5 +1,3 @@
-# Build the latest versions of applications that consume Dyninst
-
 name: Build Consumers
 
 on:
@@ -8,56 +6,88 @@ on:
   workflow_dispatch:
 
 jobs:
-  spack-build:
-    strategy:
-      fail-fast: false
-      matrix:
-        consumer: [
-          "hpctoolkit@develop",
-          "must+stackwalker~backward~tsan"
-#           extrae+dyninst    - not yet tested, may not support dyninst >10.0.0
-#           omnitrace         - Needs updated cmake
-#           timemory          - Needs updated cmake
-        ]
+
+  get-oses:
+    runs-on: ubuntu-latest
+    outputs:
+      latest: ${{ steps.all.outputs.latest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: all
+        uses: ./.github/actions/os-versions
+
+  hpctoolkit:
     runs-on: ubuntu-latest
     steps:
-    - name: ${{ matrix.consumer }}
-      run: |
-        sudo apt update -qq
-        sudo apt install -y -qq --no-install-recommends build-essential gcc g++ gfortran m4 cmake autoconf python3 git unzip openmpi-bin libopenmpi-dev
-        git clone --depth=1 --branch=develop https://github.com/spack/spack
-        spack/bin/spack compiler find
-        spack/bin/spack external find --not-buildable cmake git m4 openmpi gmake
-        spack/bin/spack install ${{ matrix.consumer }} ^dyninst@master
+      - shell: bash
+        run: |
+          set -ex
+          sudo apt update -qq
+          sudo apt install -y -qq build-essential gcc g++ gfortran m4 cmake autoconf python3 git unzip
+          git clone --depth=1 --branch=develop https://github.com/spack/spack
+          spack/bin/spack compiler find
+
+          # Don't use distro-provided python; it makes meson fail (https://github.com/spack/spack/issues/37632)
+          spack/bin/spack external find --not-buildable cmake git m4 gmake
+          spack/bin/spack install -j2 hpctoolkit@develop ^dyninst@master
+
+  must:
+    runs-on: ubuntu-latest
+    steps:
+      - shell: bash
+        run: |
+          set -ex
+          sudo apt update -qq
+          sudo apt install -y -qq build-essential gcc g++  m4 cmake autoconf python3 git openmpi-bin libopenmpi-dev gfortran
+          git clone --depth=1 --branch=develop https://github.com/spack/spack
+          spack/bin/spack compiler find
+          spack/bin/spack external find --not-buildable cmake git m4 openmpi gmake
+          spack/bin/spack install -j2 must+stackwalker~backward~tsan ^dyninst@master
 
   systemtap:
-    permissions:
-      packages: read
+    runs-on: ubuntu-latest
+    needs: get-oses
     strategy:
       fail-fast: true
       matrix:
-         os: ['ubuntu-23.10']
-    runs-on: ubuntu-latest
+         os: ${{ fromJson(needs.get-oses.outputs.latest) }}
+    permissions:
+      packages: read
     container:
       image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
-    name: systemtap ${{ matrix.os }}
+    name: ${{ matrix.os }}
     steps:
       - name: Install dependencies
+        if: ${{ starsWith(matrix.os, 'ubuntu') }}
+        shell: bash
         run: |
+          set -ex
           apt update
           apt install -y git python3 libjson-c-dev m4 autoconf
-      - name: Fetch systemtap
+
+      - name: Install dependencies          
+        if: ${{ starsWith(matrix.os, 'fedora') }}
+        shell: bash
+        run: |
+          set -ex
+          yum install -y git python3 json-c-devel m4 autoconf dh-autoreconf
+
+      - name: Set up systemtap
+        shell: bash
         run: |
           git clone --depth=1 https://sourceware.org/git/systemtap.git
-      - name: Make symlinks
-        run: |
           ln -s /dyninst/install/include /usr/include/dyninst
           ln -s /dyninst/install/lib* /usr/lib64/dyninst
+
       - name: Build systemtap
+        shell: bash
         run: |
+          set -ex
           cd systemtap
           autoreconf
           mkdir build
@@ -66,26 +96,44 @@ jobs:
           make -j2
 
   llnl-stat:
-    permissions:
-      packages: read
+    runs-on: ubuntu-latest
+    needs: get-oses
     strategy:
       fail-fast: true
       matrix:
-         os: ['ubuntu-20.04']
-    runs-on: ubuntu-latest
+         os: ${{ fromJson(needs.get-oses.outputs.latest) }}
+    permissions:
+      packages: read
     container:
       image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
-    name: llnl-stat ${{ matrix.os }}
+    name: ${{ matrix.os }}
     steps:
       - name: Install dependencies
+        if: ${{ starsWith(matrix.os, 'ubuntu') }}
+        shell: bash
         run: |
+          set -ex
           apt update
-          apt install -y nano git bison flex python3 build-essential dh-autoreconf wget libgcrypt20-dev libboost-program-options-dev libboost-regex-dev libboost-wave-dev libpython3-dev python3-distutils
-      - name: Install GraphLib
+          apt install -y git bison flex python3 build-essential dh-autoreconf wget libgcrypt20-dev \
+                         libboost-program-options-dev libboost-regex-dev libboost-wave-dev libpython3-dev \
+                         python3-distutils
+
+      - name: Install dependencies
+        if: ${{ starsWith(matrix.os, 'fedora') }}
+        shell: bash
         run: |
+          set -ex
+          yum install -y git bison flex python3 dh-autoreconf wget libgcrypt-devel \
+                         boost-program-options boost-regex boost-wave python3-devel \
+                         python3-distutils-extra libtool-ltdl-devel which
+
+      - name: Install GraphLib
+        shell: bash
+        run: |
+          set -ex
           git clone --depth=1 https://github.com/LLNL/graphlib
           cd graphlib
           mkdir build
@@ -93,30 +141,41 @@ jobs:
           cmake ..
           cmake --build . --parallel 2
           cmake --install .  # /usr
+
       - name: Install GraphViz
+        shell: bash
         run: |
+          set -ex
           cd /
           git clone --depth=1 https://gitlab.com/graphviz/graphviz.git
           cd graphviz
           ./autogen.sh
           mkdir build
           cd build
-          ../configure --without-qt --without-gts --without-doc --without-expat --without-ghostscript --without-gtkplus --without-libgd --without-pangocairo --without-popler --without-quartz --without-x
+          ../configure --without-qt --without-gts --without-doc --without-expat --without-ghostscript \
+                       --without-gtkplus --without-libgd --without-pangocairo --without-popler \
+                       --without-quartz --without-x
           make -j2
           make install
+
       - name: Install launchmon
+        shell: bash
         run: |
+          set -ex
           cd /
           git clone --depth=1 https://github.com/llnl/launchmon.git
           cd launchmon
           ./bootstrap
           mkdir build
           cd build
-          ../configure
+          ../configure CXXFLAGS='--std=c++11'
           make -j2
           make install
+
       - name: Install MRNet
+        shell: bash
         run: |
+          set -ex
           cd /
           git clone --depth=1 https://github.com/dyninst/mrnet.git
           cd mrnet
@@ -125,8 +184,11 @@ jobs:
           CC=gcc CXX=g++ ../configure --enable-shared
           make -j2
           make install
+
       - name: Install STAT
+        shell: bash
         run: |
+          set -ex
           cd /
           git clone --depth=1 https://github.com/llnl/stat.git
           cd stat
@@ -135,36 +197,55 @@ jobs:
           cd build
           ../configure --disable-gui --disable-examples --with-stackwalker=/dyninst/install --with-mrnet=/usr/local
           make -j2
+
   tau:
-    permissions:
-      packages: read
+    runs-on: ubuntu-latest
+    needs: get-oses
     strategy:
       fail-fast: true
       matrix:
-         os: ['ubuntu-20.04']
-    runs-on: ubuntu-latest
+         os: ${{ fromJson(needs.get-oses.outputs.latest) }}
+    permissions:
+      packages: read
     container:
       image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
-    name: TAU ${{ matrix.os }}
+    name: ${{ matrix.os }}
     steps:
-      - name: Install dependencies
+      - name: Install dependencies (Ubuntu)
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        shell: bash
         run: |
-            # TAU assumes Dyninst needs libdwarf instead of libdw. This has no real
-            # effect on Dyninst as we RPATH our deps. It just makes the manually-constructed
-            # link line in the TAU build work.
-            apt update
-            apt install -y git libdwarf1
-      - name: Fix libdwarf
-        run: |
+          set -ex
+          # TAU assumes Dyninst needs libdwarf instead of libdw. This has no real
+          # effect on Dyninst as we RPATH our deps. It just makes the manually-constructed
+          # link line in the TAU build work.
+          apt update
+          apt install -y git libdwarf1
           ln -s /usr/lib/x86_64-linux-gnu/libdwarf.so.1.0.0 /usr/lib/x86_64-linux-gnu/libdwarf.so
+
+      - name: Install dependencies (Fedora)
+        if: ${{ startsWith(matrix.os, 'fedora') }}
+        shell: bash
+        run: |
+          set -ex
+          # TAU assumes Dyninst needs libdwarf instead of libdw. This has no real
+          # effect on Dyninst as we RPATH our deps. It just makes the manually-constructed
+          # link line in the TAU build work.
+          yum install -y git libdwarf
+
       - name: Fetch TAU
+        shell: bash
         run: |
+          set -ex
           git clone --depth=1 https://github.com/UO-OACISS/tau2
+
       - name: Build TAU
+        shell: bash
         run: |
+          set -ex
           cd tau2
           ./configure -dyninst=/dyninst/install
           make -j2

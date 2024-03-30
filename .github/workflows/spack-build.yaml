@@ -6,14 +6,51 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+
+  get-oses:
     runs-on: ubuntu-latest
+    outputs:
+      latest: ${{ steps.all.outputs.latest }}
     steps:
-    - name: spack
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: all
+        uses: ./.github/actions/os-versions
+
+  spack-build:
+    runs-on: ubuntu-latest
+    needs: get-oses
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.get-oses.outputs.latest) }}
+    permissions:
+      packages: read
+    container:
+      image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    name: Spack on ${{ matrix.os }}
+    steps:
+    - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      shell: bash
       run: |
-        sudo apt update -qq
-        sudo apt install -y -qq --no-install-recommends build-essential gcc g++ m4 cmake autoconf python3 git
+        set -ex
+        apt update -qq
+        apt install -y --no-install-recommends m4 autoconf python3 make
         git clone --depth=1 --branch=develop https://github.com/spack/spack
         spack/bin/spack compiler find
-        spack/bin/spack external find --not-buildable cmake
-        spack/bin/spack install dyninst@master
+        spack/bin/spack external find --not-buildable cmake m4
+        spack/bin/spack install -j2 dyninst@master
+
+    - if: ${{ startsWith(matrix.os, 'fedora') }}
+      shell: bash
+      run: |
+        set -ex
+        yum install -y m4 autoconf python3 xz lbzip2 patch
+        git clone --depth=1 --branch=develop https://github.com/spack/spack
+        spack/bin/spack compiler find
+        spack/bin/spack external find --not-buildable cmake m4
+        spack/bin/spack install -j2 dyninst@master

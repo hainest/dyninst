@@ -1,0 +1,37 @@
+name: "Build Fedora single-config"
+
+inputs:
+  extra-cmake-flags:
+    required: false
+  c-compiler:
+    required: true
+  cxx-compiler:
+    required: true
+  build-type:
+    required: false
+    default: "RELWITHDEBINFO"
+  install-dir:
+    required: false
+    default: "/dyninst/install"
+  src-dir:
+    required: false
+    default: "/dyninst/src"
+  num-jobs:
+    required: false
+    default: 2
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build Dyninst (${{ inputs.c-compiler }}, ${{ inputs.build-type }} ${{ inputs.extra-cmake-flags }})
+      shell: bash
+      run: |
+        cmake_args="-DCMAKE_C_COMPILER=${{ inputs.c-compiler }} "
+        cmake_args+="-DCMAKE_CXX_COMPILER=${{ inputs.cxx-compiler }} "
+        cmake_args+="-DCMAKE_BUILD_TYPE=${{ inputs.build-type }} "
+        cmake_args+="${{ inputs.extra-cmake-flags }} "
+
+        src="${{ inputs.src-dir }}"
+        dest="${{ inputs.install-dir }}"
+        
+        bash ${src}/docker/build.sh $src $dest -v -j ${{ inputs.num-jobs }} -c "${cmake_args}"

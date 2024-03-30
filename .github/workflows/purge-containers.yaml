@@ -1,0 +1,55 @@
+name: Purge unused containers/packages
+
+on:
+  schedule:
+    # The 25th is arbitrary, but is always in the last
+    # week of the month.
+    - cron: '0 4 25 * *'
+  workflow_dispatch:
+
+jobs:
+
+  get-oses:
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.all.outputs.all }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: all
+        uses: ./.github/actions/os-versions
+
+  purge:
+    runs-on: ubuntu-latest
+    needs: get-oses
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-20.04'] #${{ fromJson(needs.get-oses.outputs.all }}
+    permissions:
+      packages: read
+    container:
+      image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    name: Purge ${{ matrix.os }}
+    steps:
+      - name: Development containers
+        uses: actions/delete-package-versions@v5
+        with:
+          owner: 'dyninst'
+          package-name: ${{ matrix.os }}:latest
+          package-type: 'container'
+          token: ${{ secrets.token }}
+          min-versions-to-keep: 1
+
+      - name: Base containers
+        uses: actions/delete-package-versions@v5
+        with:
+          owner: 'dyninst'
+          package-name: ${{ matrix.os }}-base
+          package-type: 'container'
+          token: ${{ secrets.token }}
+          min-versions-to-keep: 1

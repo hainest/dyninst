@@ -1,4 +1,4 @@
-name: Unit tests
+name: Unit Tests
 
 on:
   pull_request:
@@ -25,48 +25,76 @@ on:
   workflow_dispatch:
 
 jobs:
+
+  get-oses:
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.all.outputs.all }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: all
+        uses: ./.github/actions/os-versions
+
   unit-tests:
     if: github.event.pull_request.draft == false
-    permissions:
-      packages: read
+    needs: get-oses
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-         os: ['ubuntu-20.04', 'ubuntu-22.04', 'ubuntu-23.04', 'ubuntu-23.10', 'ubuntu-24.04', 'fedora-37', 'fedora-38', 'fedora-39']
-    runs-on: ubuntu-latest
+        os: ${{ fromJson(needs.get-oses.outputs.all) }}
+        c-compiler: ['gcc', 'clang']
+        include:
+          - c-compiler: 'gcc'
+            cxx-compiler: 'g++'
+          - c-compiler: 'clang'
+            cxx-compiler: 'clang++'
+    permissions:
+      packages: read
     container:
-      image: ghcr.io/dyninst/amd64/${{ matrix.os }}-base:latest
+      image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
-    name: unit tests
+    name: Unit tests ${{ matrix.os }}, ${{ matrix.c-compiler }}
     steps:
       - name: Checkout Dyninst
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          path: dyninst/src
+          path: "src"    # Relative to $GITHUB_WORKSPACE
+
+      - name: Clean
+        run: rm -rf /dyninst
 
       - name: Build Dyninst
-        run: |
-           ln -s $PWD/dyninst /dyninst
-           export DYNINST_C_FLAGS="-Werror" DYNINST_CXX_FLAGS="-Werror"
-           export DYNINST_C_COMPILER="gcc" DYNINST_CXX_COMPILER="g++"
-           export EXTRA_CMAKE_FLAGS="-DDYNINST_EXPORT_ALL=1"
-           bash /dyninst/src/docker/build.sh /dyninst/src 2
+        uses: ./src/.github/actions/build
+        with:
+          os: ${{ matrix.os }}
+          c-compiler: ${{ matrix.c-compiler }}
+          cxx-compiler: ${{ matrix.cxx-compiler }}
+          extra-cmake-flags: "-DDYNINST_EXPORT_ALL=1"
+          src-dir: "${GITHUB_WORKSPACE}/src"
+          install-dir: "${GITHUB_WORKSPACE}/install"
 
       - name: Checkout Unit Tests
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: dyninst/unit-tests
-          path: unit-tests
+          path: unit-tests  # Relative to $GITHUB_WORKSPACE
 
       - name: Build unit tests
+        shell: bash
         run: |
-           cd unit-tests; mkdir build; cd build
-           cmake .. -DDyninst_ROOT=/dyninst/install -DDYNINST_SOURCE_TREE=/dyninst/src
-           cmake --build . --parallel 2
+          set -ex
+          cd unit-tests; mkdir build; cd build
+          cmake .. -DDyninst_ROOT=${GITHUB_WORKSPACE}/install -DDYNINST_SOURCE_TREE=${GITHUB_WORKSPACE}/src
+          cmake --build . --parallel 2
 
       - name: Run unit tests
+        shell: bash
         run: |
-          cd unit-tests/build
+          set -ex
+          cd ${GITHUB_WORKSPACE}/unit-tests/build
           ctest -VV --output-on-failure .

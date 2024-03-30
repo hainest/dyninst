@@ -1,0 +1,87 @@
+name: "Build Ubuntu single-config"
+
+inputs:
+  extra-cmake-flags:
+    required: false
+  c-compiler:
+    required: true
+  cxx-compiler:
+    required: true
+  build-type:
+    required: false
+    default: "RELWITHDEBINFO"
+  install-dir:
+    required: false
+    default: "/dyninst/install"
+  src-dir:
+    required: false
+    default: "/dyninst/src"
+  num-jobs:
+    required: false
+    default: 2
+
+runs:
+  using: "composite"
+  steps:
+    - id: is-clang
+      shell: bash
+      run: |
+        set -ex
+        is_clang="false"
+        if [[ "${{ inputs.c-compiler }}" =~ "clang" ]]; then
+          is_clang="true"
+        fi
+        echo "value=${is_clang}" >> $GITHUB_OUTPUT
+
+    - name: Update
+      shell: bash
+      run: |
+        set -ex
+        apt update -qq
+
+    - name: Clean libomp install
+      if: ${{ steps.is-clang.outputs.value  == 'true' }}
+      shell: bash
+      run: |
+        set -ex
+
+        # Clang requires that only a single libomp be present and it must
+        # match the version of clang. If the user sets c-compiler to just
+        # 'clang', then we use the already-installed one. Otherwise, the
+        # user specified a particular version as 'clang-XX', so we clean
+        # out the old omp and install `libomp-XX-dev'.
+        if [[ "${{ inputs.c-compiler }}" =~ "clang-" ]]; then
+          apt remove --purge -y "libomp*"
+          readarray -d "-" -t array <<< "${{ matrix.c-compiler }}"
+          version=$(echo "${array[1]}" | sed 's/ //g')
+          apt install -qq --no-install-recommends -y libomp-${version}-dev
+        fi
+
+    - name: Install C compiler (${{ inputs.c-compiler }})
+      shell: bash
+      run: |
+        set -ex
+        apt install -qq --no-install-recommends -y ${{ inputs.c-compiler }}
+
+    # There is no apt package for clang++
+    - name: Install ${{ inputs.cxx-compiler }}
+      if: ${{ steps.is-clang.outputs.value == 'false' }}
+      shell: bash
+      run: |
+        set -ex
+        apt install -qq --no-install-recommends -y ${{ inputs.cxx-compiler }}
+
+    - name: Build Dyninst (${{ inputs.build-type }})
+      shell: bash
+      run: |
+        set -ex
+        
+        cmake_args="-DCMAKE_C_COMPILER=${{ inputs.c-compiler }} "
+        cmake_args+="-DCMAKE_CXX_COMPILER=${{ inputs.cxx-compiler }} "
+        cmake_args+="-DCMAKE_BUILD_TYPE=${{ inputs.build-type }} "
+        cmake_args+="${{ inputs.extra-cmake-flags }} "
+
+        src="${{ inputs.src-dir }}"
+        dest="${{ inputs.install-dir }}"
+        
+        bash ${src}/docker/build.sh $src $dest -v -j ${{ inputs.num-jobs }} -c "${cmake_args}"
