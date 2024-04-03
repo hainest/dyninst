@@ -54,7 +54,6 @@ namespace Dyninst { namespace InstructionAPI {
     virtual void getChildren(vector<Expression::Ptr>& children) const;
 
     virtual void getUses(set<InstructionAST::Ptr>& uses);
-
     virtual bool isUsed(InstructionAST::Ptr findMe) const;
 
     virtual std::string format(Architecture, formatStyle how = defaultStyle) const;
