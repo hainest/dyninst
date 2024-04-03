@@ -316,8 +316,6 @@ class DYNINST_EXPORT ProcessSet : public boost::enable_shared_from_this<ProcessS
    const MemoryUsageSet *getMemoryUsage() const;
 };
 
-ProcessSet::const_ptr getAllProcs();
-
 class DYNINST_EXPORT ThreadSet : public boost::enable_shared_from_this<ThreadSet> {
   private:
    int_threadSet *ithrset;
