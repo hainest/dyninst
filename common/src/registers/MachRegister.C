@@ -1817,6 +1817,9 @@ namespace Dyninst {
         }
         break;
       case Arch_aarch64: {
+
+        // this info can be found in
+        // DWARF for the ARM 64-bit Architecture (AArch64)
         switch(encoding) {
 
           // 64-bit general-purpose registers
