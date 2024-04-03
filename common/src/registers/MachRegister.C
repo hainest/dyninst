@@ -864,7 +864,7 @@ namespace Dyninst {
         return is_vec || is_fpr || is_fsr || is_ctr;
       }
 
-      case Arch_amdgpu_gfx908:
+     case Arch_amdgpu_gfx908:
         return category == amdgpu_gfx908::SGPR ||
                category == amdgpu_gfx908::VGPR ||
                category == amdgpu_gfx908::ACC_VGPR;
