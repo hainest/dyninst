@@ -1,9 +1,5 @@
 .. _manual-main:
 
-.. image:: https://img.shields.io/github/stars/dyninst/dyninst?style=social
-    :alt: GitHub stars
-    :target: https://github.com/dyninst/dyninst/stargazers
-
 =======
 Dyninst
 =======
