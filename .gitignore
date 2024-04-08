@@ -30,3 +30,6 @@ cmake-build-*/
 .settings
 .pydevproject
 *__pycache__*
+docs/env/
+docs/_build/
+docs/instructionAPI/fig/*.png
