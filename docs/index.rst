@@ -87,72 +87,72 @@ Developed by
 |     College Park, MD 20742
 
 .. toctree::
-   :caption: getting started
-   :name: basics
-   :hidden:
-   :maxdepth: 1
+  :caption: getting started
+  :name: basics
+  :hidden:
+  :maxdepth: 1
 
-   basics/building
-   basics/importing
-   basics/using
-   examples/index
-
-.. toctree::
-   :caption: toolkit overviews
-   :name: toolkit-overviews
-   :hidden:
-   :maxdepth: 3
-
-   dataflowAPI/overview
-   dyninstAPI/overview
-   instructionAPI/overview
-   parseAPI/overview
-   patchAPI/overview
-   proccontrol/overview
-   stackwalk/overview
-   symtabAPI/overview
-   usertools/DynC/overview
+  basics/building
+  basics/importing
+  basics/using
+  examples/index
 
 .. toctree::
-   :caption: toolkit api docs
-   :name: apis
-   :hidden:
-   :maxdepth: 2
+  :caption: toolkit overviews
+  :name: toolkit-overviews
+  :hidden:
+  :maxdepth: 3
 
-   common/public/API
-   dataflowAPI/public/API
-   dyninstAPI/public/API
-   instructionAPI/public/API
-   parseAPI/public/API
-   patchAPI/public/API
-   proccontrol/public/API
-   stackwalk/public/API
-   symtabAPI/public/API   
-
-.. toctree::
-   :caption: developer docs
-   :name: dev-docs
-   :hidden:
-   :maxdepth: 3
-
-   common/developer/API
-   dataflowAPI/developer/API
-   dwarf/developer/API
-   dyninstAPI/developer/API
-   dyninstAPI_RT/developer/API
-   elf/developer/API
-   instructionAPI/developer/API
-   parseAPI/developer/API
-   patchAPI/developer/API
-   proccontrol/developer/API
-   stackwalk/developer/API
-   symtabAPI/developer/API
+  dataflowAPI/overview
+  dyninstAPI/overview
+  instructionAPI/overview
+  parseAPI/overview
+  patchAPI/overview
+  proccontrol/overview
+  stackwalk/overview
+  symtabAPI/overview
+  usertools/DynC/overview
 
 .. toctree::
-   :caption: advanced
-   :name: advanced
-   :hidden:
-   :maxdepth: 2
-   
-   advanced/optimizations
-   advanced/pitfalls
+  :caption: toolkit api docs
+  :name: apis
+  :hidden:
+  :maxdepth: 2
+
+  common/public/API
+  dataflowAPI/public/API
+  dyninstAPI/public/API
+  instructionAPI/public/API
+  parseAPI/public/API
+  patchAPI/public/API
+  proccontrol/public/API
+  stackwalk/public/API
+  symtabAPI/public/API
+
+.. toctree::
+  :caption: developer docs
+  :name: dev-docs
+  :hidden:
+  :maxdepth: 3
+
+  common/developer/API
+  dataflowAPI/developer/API
+  dwarf/developer/API
+  dyninstAPI/developer/API
+  dyninstAPI_RT/developer/API
+  elf/developer/API
+  instructionAPI/developer/API
+  parseAPI/developer/API
+  patchAPI/developer/API
+  proccontrol/developer/API
+  stackwalk/developer/API
+  symtabAPI/developer/API
+
+.. toctree::
+  :caption: advanced
+  :name: advanced
+  :hidden:
+  :maxdepth: 2
+
+  advanced/optimizations
+  advanced/pitfalls
