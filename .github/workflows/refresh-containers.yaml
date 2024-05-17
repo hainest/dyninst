@@ -1,0 +1,28 @@
+name: Refresh base and dev containers
+
+on:
+  pull_request:
+     branches:
+        - master
+  schedule:
+    - cron: '0 3 25 * *'
+  workflow_dispatch:
+
+jobs:
+  
+  purge:
+    uses: ./.github/workflows/purge-containers.yaml
+    permissions:
+      packages: write
+
+  build-base:
+    needs: purge
+    uses: ./.github/workflows/base-containers.yaml
+    permissions:
+      packages: write
+
+  build-deploy-dev:
+    needs: build-base
+    uses: ./.github/workflows/dev-containers.yaml
+    permissions:
+      packages: write
