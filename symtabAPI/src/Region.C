@@ -142,6 +142,11 @@ ostream& Region::operator<< (ostream &os)
                 << " }" << endl;
 }
 
+bool Region::operator<(const Region &reg) const
+{
+   return memOff_ < reg.memOff_;
+}
+
 Region::~Region() 
 {
     if (buffer_)

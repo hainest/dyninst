@@ -46,6 +46,7 @@ class Symtab;
 
 class DYNINST_EXPORT Region : public AnnotatableSparse {
    friend class Object;
+   friend class ObjectELF;
    friend class Symtab;
    friend class SymtabTranslatorBase;
    friend class SymtabTranslatorBin;
@@ -96,6 +97,14 @@ class DYNINST_EXPORT Region : public AnnotatableSparse {
    Region& operator=(const Region &reg);
    std::ostream& operator<< (std::ostream &os);
    bool operator== (const Region &reg) const;
+   bool operator< (const Region &reg) const;
+
+   struct less {
+      bool operator()(const Region * r1, const Region * r2)
+      {
+         return *r1 < *r2;
+      }
+   };
 
    ~Region();
 
