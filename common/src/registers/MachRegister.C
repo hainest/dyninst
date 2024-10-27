@@ -1763,7 +1763,6 @@ namespace Dyninst {
         // Seperate switch statements to give compilers an easier time of
         //  optimizing
         switch(encoding) {
-          case 100: return Dyninst::ppc64::mq;
           case 101: return Dyninst::ppc64::xer;
           case 102: return Dyninst::InvalidReg;
           case 103: return Dyninst::InvalidReg;
@@ -2596,7 +2595,6 @@ namespace Dyninst {
           case Dyninst::ppc64::ifpr30: return 62;
           case Dyninst::ppc64::ifpr31: return 63;
           case Dyninst::ppc64::icr: return 64;
-          case Dyninst::ppc64::imq: return 100;
           case Dyninst::ppc64::ixer: return 101;
           case Dyninst::ppc64::ilr: return 108;
           case Dyninst::ppc64::ictr: return 109;
