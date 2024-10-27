@@ -257,7 +257,6 @@ multimap<Register, MachRegister> regToMachReg64 = map_list_of
   (registerSpace::xer, ppc64::xer)
   (registerSpace::lr, ppc64::lr)
   (registerSpace::ctr, ppc64::ctr)
-  (registerSpace::mq, ppc64::mq)
   (registerSpace::cr, ppc64::cr);
 */
 
@@ -507,7 +506,6 @@ MachRegister convertRegID(Register r, Dyninst::Architecture arch) {
             case registerSpace::xer: return ppc64::xer;
             case registerSpace::lr: return ppc64::lr;
             case registerSpace::ctr: return ppc64::ctr;
-            case registerSpace::mq: return ppc64::mq;
             case registerSpace::cr: return ppc64::cr0;
             default:
                 break;

@@ -110,9 +110,6 @@ _dyninst_dead = [
   "seg5",
   "seg6",
   "seg7",
-  
-  # Not in PowerPC arch
-  "mq",     # E.30 Deleted Instructions (footnote)
 ]
 _capstone_to_dyninst = {
   # F0..31     -> fpr0..31
