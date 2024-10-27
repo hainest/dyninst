@@ -100,16 +100,6 @@ _dyninst_dead = [
   "ivor8",    # 5.2.10 Interrupt Vector Offset Registers, ISA v2.03 (only in v2.0{3,4,5,6,7})
   "ppr",      # 3.2.3 Program Priority Register
   "ppr32",    # 3.2.3 Program Priority Register (upper 32 bits of PPR)
-
-  # Can be removed
-  "seg0",     # E.25 Segment Register Manipulation Instructions
-  "seg1",
-  "seg2",     # segment registers aren't named, aren't part of ABI, and only ppc32::seg0
-  "seg3",     # is ever used in InstructionDecoder_power::SR() that is private and never
-  "seg4",     # used.
-  "seg5",
-  "seg6",
-  "seg7",
 ]
 _capstone_to_dyninst = {
   # F0..31     -> fpr0..31
