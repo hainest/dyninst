@@ -606,11 +606,6 @@ RegisterMap &machRegIndex_ppc_64() {
          {ppc64::sdr1, 103},
          {ppc64::srr0, 104},
          {ppc64::srr1, 105},
-         {ppc64::sprg0, 106},
-         {ppc64::sprg1, 107},
-         {ppc64::sprg2, 108},
-         {ppc64::sprg3, 109},
-         {ppc64::sprg3_ro, 109},
          {ppc64::tbl_wo, 111},
          {ppc64::tbl_ro, 111},
          {ppc64::tbu_wo, 112},
@@ -637,15 +632,7 @@ RegisterMap &machRegIndex_ppc_64() {
          {ppc64::cr5, 156},
          {ppc64::cr6, 157},
          {ppc64::cr7, 158},
-         {ppc64::cr, 159},
-         {ppc64::sprg4, 160},
-         {ppc64::sprg4_ro, 160},
-         {ppc64::sprg5, 161},
-         {ppc64::sprg5_ro, 161},
-         {ppc64::sprg6, 162},
-         {ppc64::sprg6_ro, 162},
-         {ppc64::sprg7, 163},
-         {ppc64::sprg7_ro, 163}
+         {ppc64::cr, 159}
    };
    }
    return *mrmap;
