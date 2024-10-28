@@ -68,19 +68,6 @@ _dyninst_dead = [
   "sdr1",   # 4.5.2 Storage Description Register 1
   "srr0",   # 2.2.1 Machine Status Save/Restore Register 0
   "srr0",   # 2.2.2 Machine Status Save/Restore Register 1
-  "sprg0",  # 3.3.3 Software-Use SPRs
-  "sprg1",
-  "sprg2",
-  "sprg3",
-  "sprg4",
-  "sprg5",
-  "sprg6",
-  "sprg7",
-  "sprg3_ro",
-  "sprg4_ro",
-  "sprg5_ro",
-  "sprg6_ro",
-  "sprg7_ro",
   "tbl_wo",   # 6.2.1 Writing the Time Base
   "tbl_ro",
   "tbu_wo",

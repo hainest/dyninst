@@ -158,20 +158,6 @@ namespace Dyninst { namespace ppc64 {
   DEF_REGISTER(      srr0,  26 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(      srr1,  27 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(    vrsave, 256 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     sprg0, 272 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     sprg1, 273 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     sprg2, 274 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     sprg3, 275 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     sprg4, 276 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     sprg5, 277 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     sprg6, 278 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     sprg7, 279 | SPR | Arch_ppc64, "ppc64");
-
-  DEF_REGISTER(  sprg3_ro, 259 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(  sprg4_ro, 260 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(  sprg5_ro, 261 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(  sprg6_ro, 262 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(  sprg7_ro, 263 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(    tbl_wo, 284 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(    tbl_ro, 268 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(    tbu_wo, 285 | SPR | Arch_ppc64, "ppc64");
