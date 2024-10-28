@@ -160,15 +160,6 @@ namespace Dyninst { namespace ppc64 {
   DEF_REGISTER(    vrsave, 256 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(       pvr, 287 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(        pc, 600 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     fpscw, 601 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(    fpscw0, 602 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(    fpscw1, 603 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(    fpscw2, 604 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(    fpscw3, 605 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(    fpscw4, 606 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(    fpscw5, 607 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(    fpscw6, 608 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(    fpscw7, 609 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(       msr, 610 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(      ivpr, 611 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(     ivor8, 612 | SPR | Arch_ppc64, "ppc64");

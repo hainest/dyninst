@@ -58,8 +58,9 @@ _capstone_ignore = [
     "RM",         # rounding mode, bits 30 and 31 of FPSCR
 ]
 _dyninst_special = [
-  "CR",   # the whole condition register; cr0..7
-  "PC",   # Power has no Program Counter
+  "CR",     # the whole condition register; cr0..7
+  "PC",     # Power has no Program Counter
+  "FPSCR",  # Floating-Point Status and Control Register; implicitly used by instructions like mtfsb0; part of ABI
 ]
 _dyninst_dead = [
   # Not directly addressable. Implicitly read/written via m{f,t}spr instructions (ISA v2.01)
@@ -69,15 +70,6 @@ _dyninst_dead = [
   "srr0",   # 2.2.1 Machine Status Save/Restore Register 0
   "srr0",   # 2.2.2 Machine Status Save/Restore Register 1
   "pvr",      # 3.3.5 Processor Version Register
-  "fpscw",    # Table 2.23 Floating-Point Status and Control Register,  ABI v1.5
-  "fpscw0",
-  "fpscw1",
-  "fpscw2",
-  "fpscw3",
-  "fpscw4",
-  "fpscw5",
-  "fpscw6",
-  "fpscw7",
   "msr",      # 2.2.3 Machine State Register
   "ivpr",     # 5.2.8 Interrupt Vector Prefix Register, ISA v2.03 (only in v2.0{3,4,5,6,7})
   "ivor8",    # 5.2.10 Interrupt Vector Offset Registers, ISA v2.03 (only in v2.0{3,4,5,6,7})
