@@ -68,10 +68,6 @@ _dyninst_dead = [
   "sdr1",   # 4.5.2 Storage Description Register 1
   "srr0",   # 2.2.1 Machine Status Save/Restore Register 0
   "srr0",   # 2.2.2 Machine Status Save/Restore Register 1
-  "tbl_wo",   # 6.2.1 Writing the Time Base
-  "tbl_ro",
-  "tbu_wo",
-  "tbu_ro",
   "pvr",      # 3.3.5 Processor Version Register
   "fpscw",    # Table 2.23 Floating-Point Status and Control Register,  ABI v1.5
   "fpscw0",
