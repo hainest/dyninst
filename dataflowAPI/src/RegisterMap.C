@@ -601,7 +601,6 @@ RegisterMap &machRegIndex_ppc_64() {
          {ppc64::xer, 97},
          {ppc64::lr, 98},
          {ppc64::ctr, 99},
-         {ppc64::dsisr, 100},
          {ppc64::dar, 101},
          {ppc64::sdr1, 103},
          {ppc64::srr0, 104},
