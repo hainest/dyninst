@@ -110,28 +110,6 @@ _dyninst_dead = [
   "seg5",
   "seg6",
   "seg7",
-
-  # Never used, not in ISA docs
-  "dec",
-  "ear",
-  "ibat0u",
-  "ibat0l",
-  "ibat1u",
-  "ibat1l",
-  "ibat2u",
-  "ibat2l",
-  "ibat3u",
-  "ibat3l",
-  "dbat0u",
-  "dbat0l",
-  "dbat1u",
-  "dbat1l",
-  "dbat2u",
-  "dbat2l",
-  "dbat3u",
-  "dbat3l",
-  "or3",
-  "trap",
   
   # Not in PowerPC arch
   "mq",     # E.30 Deleted Instructions (footnote)
