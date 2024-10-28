@@ -451,9 +451,6 @@ Dyninst::Absloc SymEvalSemantics::RegisterStateASTPPC64::convert(const RegisterD
 		case powerpc_spr_dar:
 		    mreg = Dyninst::ppc64::dar;
 		    break;
-		case powerpc_spr_dec:
-		    mreg = Dyninst::ppc64::dec;
-		    break;
 		default:
 		    throw RoseException("not implemented special register", nullptr);
 	    }

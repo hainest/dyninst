@@ -2177,13 +2177,11 @@ static void init_dynreg_to_user()
    dynreg_to_user[ppc64::r31]        = make_pair(cur+=8, 8);
    dynreg_to_user[ppc64::pc]        = make_pair(cur+=8, 8);
    dynreg_to_user[ppc64::msr]        = make_pair(cur+=8, 8);
-   dynreg_to_user[ppc64::or3]        = make_pair(cur+=8, 8);
    dynreg_to_user[ppc64::ctr]        = make_pair(cur+=8, 8);
    dynreg_to_user[ppc64::lr]        = make_pair(cur+=8, 8);
    dynreg_to_user[ppc64::xer]        = make_pair(cur+=8, 8);
    dynreg_to_user[ppc64::cr]        = make_pair(cur+=8, 8);
    dynreg_to_user[ppc64::mq]         = make_pair(cur+=8, 8);
-   dynreg_to_user[ppc64::trap]       = make_pair(cur+=8, 8);
    dynreg_to_user[ppc64::dar]        = make_pair(cur+=8, 8);
    dynreg_to_user[ppc64::dsisr]      = make_pair(cur+=8, 8);
 
