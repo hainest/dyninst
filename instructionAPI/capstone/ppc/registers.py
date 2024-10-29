@@ -64,7 +64,6 @@ _dyninst_special = [
 ]
 _dyninst_dead = [
   # Not directly addressable. Implicitly read/written via m{f,t}spr instructions (ISA v2.01)
-  "sdr1",   # 4.5.2 Storage Description Register 1
   "srr0",   # 2.2.1 Machine Status Save/Restore Register 0
   "srr0",   # 2.2.2 Machine Status Save/Restore Register 1
   "pvr",      # 3.3.5 Processor Version Register
