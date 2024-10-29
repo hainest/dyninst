@@ -453,10 +453,6 @@ Dyninst::Absloc SymEvalSemantics::RegisterStateASTPPC64::convert(const RegisterD
 	case powerpc_regclass_tbr:
 	    throw RoseException("not implemented regclass tbr", nullptr);
 	    break;
-	
-	case powerpc_regclass_msr:
-	    mreg = Dyninst::ppc64::msr;
-	    break;
 	    
 	case powerpc_regclass_sr:
 	    throw RoseException("not implemented regclass sr", nullptr);

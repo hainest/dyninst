@@ -64,7 +64,6 @@ _dyninst_special = [
 ]
 _dyninst_dead = [
   # Not directly addressable. Implicitly read/written via m{f,t}spr instructions (ISA v2.01)
-  "msr",      # 2.2.3 Machine State Register
   "ivpr",     # 5.2.8 Interrupt Vector Prefix Register, ISA v2.03 (only in v2.0{3,4,5,6,7})
   "ivor8",    # 5.2.10 Interrupt Vector Offset Registers, ISA v2.03 (only in v2.0{3,4,5,6,7})
   "ppr",      # 3.2.3 Program Priority Register
