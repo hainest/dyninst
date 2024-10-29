@@ -466,9 +466,6 @@ Dyninst::Absloc SymEvalSemantics::RegisterStateASTPPC64::convert(const RegisterD
             mreg = Dyninst::ppc64::pc;
             break;
 	    
-	case powerpc_regclass_pvr:
-	    mreg = Dyninst::ppc64::pvr;
-	    break;
         default:
             ASSERT_always_forbid("Unexpected register major type.");
     }
