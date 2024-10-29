@@ -195,8 +195,6 @@ namespace Dyninst { namespace ppc64 {
   DEF_REGISTER(      cr7g, 729 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(      cr7e, 730 | SPR | Arch_ppc64, "ppc64");
   DEF_REGISTER(      cr7s, 731 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(       ppr, 896 | SPR | Arch_ppc64, "ppc64");
-  DEF_REGISTER(     ppr32, 898 | SPR | Arch_ppc64, "ppc64");
 
   DEF_REGISTER(      vsr0,   0 | VSR | Arch_ppc64, "ppc64");
   DEF_REGISTER(      vsr1,   1 | VSR | Arch_ppc64, "ppc64");
