@@ -62,11 +62,6 @@ _dyninst_special = [
   "PC",     # Power has no Program Counter
   "FPSCR",  # Floating-Point Status and Control Register; implicitly used by instructions like mtfsb0; part of ABI
 ]
-_dyninst_dead = [
-  # Not directly addressable. Implicitly read/written via m{f,t}spr instructions (ISA v2.01)
-  "ppr",      # 3.2.3 Program Priority Register
-  "ppr32",    # 3.2.3 Program Priority Register (upper 32 bits of PPR)
-]
 _capstone_to_dyninst = {
   # F0..31     -> fpr0..31
   # S0..31     -> fsr0..31
