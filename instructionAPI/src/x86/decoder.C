@@ -115,7 +115,13 @@ namespace Dyninst { namespace InstructionAPI {
     buf.start += dis.insn->size;
   }
 
-  bool x86_decoder::decodeOperands(Instruction const*) { return true; }
+  bool x86_decoder::decodeOperands(Instruction const* ins) {
+    // We need the full-detail decode to get the operands
+    if(!dis_with_detail.insn) {
+      this->doDelayedDecode(ins);
+    }
+    return true;
+  }
 
   Instruction x86_decoder::decode(InstructionDecoder::buffer& b) {
     const unsigned char* start = b.start;
