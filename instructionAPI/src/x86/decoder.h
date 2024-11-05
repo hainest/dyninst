@@ -34,6 +34,7 @@
 #include "InstructionDecoderImpl.h"
 #include "Result.h"
 #include "capstone/capstone.h"
+#include "capstone/x86.h"
 
 namespace Dyninst { namespace InstructionAPI {
 
@@ -68,6 +69,7 @@ namespace Dyninst { namespace InstructionAPI {
     Result_Type makeSizeType(unsigned int) override { return {}; }
 
     void decode_operands(Instruction const*, disassem);
+    void decode_reg(Instruction const*, cs_x86_op const&);
   };
 
 }}

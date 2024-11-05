@@ -1,5 +1,5 @@
 #include "dyn_regs.h"
-#include "register_xlat.h"
+#include "x86/register_xlat.h"
 
 namespace Dyninst { namespace InstructionAPI { namespace x86 {
 
