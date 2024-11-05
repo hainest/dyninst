@@ -34,6 +34,8 @@
 #include "debug.h"
 #include "entryIDs.h"
 #include "opcode_xlat.h"
+#include "registers/x86_64_regs.h"
+#include "registers/x86_regs.h"
 #include "syscalls.h"
 #include "x86/decoder.h"
 
@@ -154,6 +156,33 @@ namespace Dyninst { namespace InstructionAPI {
     // Categories must be decoded before anything else since they are used
     // in the other decoding steps.
     insn->categories = x86::decode_categories(insn, dis);
+
+    if(insn->isReturn()) {
+      addReturnExpression(insn);
+    }
+  }
+
+  void x86_decoder::addReturnExpression(Instruction const* insn) {
+    /************************************************************************
+     *  RET - return from procedure
+     *
+     *  Transfers program control to a return address located on the top of
+     *  the stack. An optional source operand specifies the number of stack
+     *  bytes to be released after the return address is popped; the default
+     *  is none.
+     *
+     *  RET (Far) also pops the Code Segment (CS) register from the stack.
+     *  We don't account for that here since the CS is neither a control flow
+     *  target nor an operand of `RETF`.
+     *
+     *  The immediate (if present) has already been decoded in
+     *  `decode_operands`, so we just add the stack dereference here.
+     ************************************************************************/
+    const auto is64 = this->mode == CS_MODE_64;
+    auto sp = is64 ? Dyninst::x86_64::rsp : Dyninst::x86::esp;
+    auto type = is64 ? u64 : u32;
+    auto action = makeDereferenceExpression(makeRegisterExpression(sp), type);
+    insn->addSuccessor(action, false, true, false, false, true);
   }
 
 }}

@@ -68,6 +68,8 @@ namespace Dyninst { namespace InstructionAPI {
     Result_Type makeSizeType(unsigned int) override { return {}; }
 
     void decode_operands(Instruction const*, disassem);
+
+    void addReturnExpression(Instruction const*);
   };
 
 }}
