@@ -62,6 +62,28 @@ namespace Dyninst { namespace InstructionAPI {
       default: return invalid_type;
     }
   }
+  inline Result_Type size_to_type_memory(uint8_t cap_size) {
+    switch (cap_size) {
+      case 10: return m80;
+      case 12: return m96;
+      case 14: return m14;
+      case 16: return m128;
+      case 20: return m160;
+      case 24: return m192;
+      case 28: return m224;
+      case 32: return m256;
+      case 36: return m288;
+      case 40: return m320;
+      case 44: return m352;
+      case 48: return m384;
+      case 52: return m416;
+      case 56: return m448;
+      case 60: return m480;
+      case 64: return m512;
+      default: return invalid_type;
+    }
+  }
+
   // clang-format on
 
 }}
