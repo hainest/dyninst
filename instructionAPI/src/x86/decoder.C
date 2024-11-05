@@ -31,6 +31,7 @@
 #include "capstone/capstone.h"
 #include "capstone/x86.h"
 #include "debug.h"
+#include "entryIDs.h"
 #include "opcode_xlat.h"
 #include "x86/decoder.h"
 
@@ -86,8 +87,6 @@ namespace Dyninst { namespace InstructionAPI {
     cs_close(&dis_without_detail.handle);
   }
 
-  void x86_decoder::doDelayedDecode(Instruction const*) {}
-
   void x86_decoder::decodeOpcode(InstructionDecoder::buffer& buf) {
     auto* code = buf.start;
     size_t codeSize = buf.end - buf.start;
@@ -115,6 +114,25 @@ namespace Dyninst { namespace InstructionAPI {
     buf.start += dis.insn->size;
   }
 
+  void x86_decoder::doDelayedDecode(Instruction const* insn) {
+    auto* code = static_cast<unsigned char const*>(insn->ptr());
+    size_t codeSize = insn->size();
+    uint64_t cap_addr = 0;
+
+    // We need all of the instruction details in order to unpack the operands
+    auto& dis = dis_with_detail;
+
+    // The iterator form of disassembly allows reuse of the instruction object, reducing
+    // the number of memory allocations.
+    if(!cs_disasm_iter(dis.handle, &code, &codeSize, &cap_addr, dis.insn)) {
+      decode_printf("Failed to disassemble instruction at %p: %s\n", code,
+                    cs_strerror(cs_errno(dis.handle)));
+      m_Operation = Operation(e_No_Entry, "INVALID", m_Arch);
+      return;
+    }
+    decode_operands(insn, dis);
+  }
+
   bool x86_decoder::decodeOperands(Instruction const* ins) {
     // We need the full-detail decode to get the operands
     if(!dis_with_detail.insn) {
@@ -129,5 +147,7 @@ namespace Dyninst { namespace InstructionAPI {
     unsigned int decodedSize = b.start - start;
     return Instruction(m_Operation, decodedSize, start, m_Arch);
   }
+
+  void x86_decoder::decode_operands(Instruction const*, disassem) {}
 
 }}
