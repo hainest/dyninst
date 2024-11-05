@@ -34,6 +34,7 @@
 #include "debug.h"
 #include "entryIDs.h"
 #include "opcode_xlat.h"
+#include "register_xlat.h"
 #include "registers/x86_64_regs.h"
 #include "registers/x86_regs.h"
 #include "syscalls.h"
@@ -166,6 +167,51 @@ namespace Dyninst { namespace InstructionAPI {
       insn->m_Operands.clear();
       return;
     }
+
+    /* Decode _explicit_ operands
+     *
+     * There are three types:
+     *
+     *   add r1, r2       ; r1, r2 are both X86_OP_REG
+     *   jmp -64          ; -64 is X86_OP_IMM
+     *   mov r1, [0x33]   ; r1 is X86_OP_REG, 0x33 is X86_OP_MEM
+     */
+    auto* d = dis.insn->detail;
+    for(uint8_t i = 0; i < d->x86.op_count; ++i) {
+      cs_x86_op const& operand = d->x86.operands[i];
+      switch(operand.type) {
+        case X86_OP_REG:
+          decode_reg(insn, operand);
+          break;
+        case X86_OP_IMM:
+          break;
+        case X86_OP_MEM:
+          break;
+        case X86_OP_INVALID:
+          decode_printf("[0x%lx %s %s] has an invalid operand.\n", dis.insn->address,
+                        dis.insn->mnemonic, dis.insn->op_str);
+          break;
+      }
+    }
+  }
+
+  void x86_decoder::decode_reg(Instruction const* insn, cs_x86_op const& operand) {
+    auto regAST = makeRegisterExpression(x86::translate_register(operand.reg, mode));
+
+    const bool isCall = insn->isCall();
+    if(insn->isBranch() || isCall) {
+      insn->addSuccessor(regAST, isCall, true, false, false);
+      return;
+    }
+
+    // It's an error if an operand is neither read nor written.
+    // In this case, we mark it as both read and written to be conservative.
+    bool isRead = ((operand.access & CS_AC_READ) != 0);
+    bool isWritten = ((operand.access & CS_AC_WRITE) != 0);
+    if(!isRead && !isWritten) {
+      isRead = isWritten = true;
+    }
+    insn->appendOperand(regAST, isRead, isWritten, false);
   }
 
   void x86_decoder::addReturnExpression(Instruction const* insn) {
