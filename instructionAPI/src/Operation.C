@@ -148,20 +148,20 @@ namespace Dyninst { namespace InstructionAPI {
   }
 
   const Operation::registerSet& Operation::implicitReads() {
-    SetUpNonOperandData();
+//    SetUpNonOperandData();
 
     return otherRead;
   }
 
   const Operation::registerSet& Operation::implicitWrites() {
-    SetUpNonOperandData();
+//    SetUpNonOperandData();
 
     return otherWritten;
   }
 
   bool Operation::isRead(Expression::Ptr candidate) {
 
-    SetUpNonOperandData();
+//    SetUpNonOperandData();
 
     for(registerSet::const_iterator r = otherRead.begin(); r != otherRead.end(); ++r) {
       if(*candidate == *(*r)) {
@@ -177,18 +177,18 @@ namespace Dyninst { namespace InstructionAPI {
   }
 
   const Operation::VCSet& Operation::getImplicitMemReads() {
-    SetUpNonOperandData();
+//    SetUpNonOperandData();
     return otherEffAddrsRead;
   }
 
   const Operation::VCSet& Operation::getImplicitMemWrites() {
-    SetUpNonOperandData();
+//    SetUpNonOperandData();
     return otherEffAddrsWritten;
   }
 
   bool Operation::isWritten(Expression::Ptr candidate) {
 
-    SetUpNonOperandData();
+//    SetUpNonOperandData();
 
     for(registerSet::const_iterator r = otherWritten.begin(); r != otherWritten.end(); ++r) {
       if(*candidate == *(*r)) {
@@ -246,17 +246,17 @@ namespace Dyninst { namespace InstructionAPI {
       si_and_di.insert(RegisterAST::Ptr(new RegisterAST(arch == Arch_x86_64 ? x86_64::rsi : x86::esi)));
       si_and_di.insert(RegisterAST::Ptr(new RegisterAST(arch == Arch_x86_64 ? x86_64::rdi : x86::edi)));
 
-      nonOperandRegisterReads.insert(make_pair(e_call, pcAndSP));
-      nonOperandRegisterReads.insert(make_pair(e_ret_near, stackPointer));
-      nonOperandRegisterReads.insert(make_pair(e_ret_far, stackPointer));
-      nonOperandRegisterReads.insert(make_pair(e_leave, framePointer));
-      nonOperandRegisterReads.insert(make_pair(e_enter, spAndBP));
+//      nonOperandRegisterReads.insert(make_pair(e_call, pcAndSP));
+//      nonOperandRegisterReads.insert(make_pair(e_ret_near, stackPointer));
+//      nonOperandRegisterReads.insert(make_pair(e_ret_far, stackPointer));
+//      nonOperandRegisterReads.insert(make_pair(e_leave, framePointer));
+//      nonOperandRegisterReads.insert(make_pair(e_enter, spAndBP));
 
-      nonOperandRegisterWrites.insert(make_pair(e_call, pcAndSP));
-      nonOperandRegisterWrites.insert(make_pair(e_ret_near, pcAndSP));
-      nonOperandRegisterWrites.insert(make_pair(e_ret_far, pcAndSP));
-      nonOperandRegisterWrites.insert(make_pair(e_leave, spAndBP));
-      nonOperandRegisterWrites.insert(make_pair(e_enter, spAndBP));
+//      nonOperandRegisterWrites.insert(make_pair(e_call, pcAndSP));
+//      nonOperandRegisterWrites.insert(make_pair(e_ret_near, pcAndSP));
+//      nonOperandRegisterWrites.insert(make_pair(e_ret_far, pcAndSP));
+//      nonOperandRegisterWrites.insert(make_pair(e_leave, spAndBP));
+//      nonOperandRegisterWrites.insert(make_pair(e_enter, spAndBP));
 
       nonOperandRegisterWrites.insert(make_pair(e_loop, thePC));
       nonOperandRegisterWrites.insert(make_pair(e_loope, thePC));
@@ -288,10 +288,10 @@ namespace Dyninst { namespace InstructionAPI {
       nonOperandMemoryReads.insert(make_pair(e_popaw, stackPointerAsExpr));
       nonOperandMemoryWrites.insert(make_pair(e_push, stackPointerAsExpr));
       nonOperandMemoryWrites.insert(make_pair(e_pushal, stackPointerAsExpr));
-      nonOperandMemoryWrites.insert(make_pair(e_call, stackPointerAsExpr));
-      nonOperandMemoryReads.insert(make_pair(e_ret_near, stackPointerAsExpr));
-      nonOperandMemoryReads.insert(make_pair(e_ret_far, stackPointerAsExpr));
-      nonOperandMemoryReads.insert(make_pair(e_leave, stackPointerAsExpr));
+//      nonOperandMemoryWrites.insert(make_pair(e_call, stackPointerAsExpr));
+//      nonOperandMemoryReads.insert(make_pair(e_ret_near, stackPointerAsExpr));
+//      nonOperandMemoryReads.insert(make_pair(e_ret_far, stackPointerAsExpr));
+//      nonOperandMemoryReads.insert(make_pair(e_leave, stackPointerAsExpr));
 
       nonOperandRegisterWrites.insert(make_pair(e_cmpsb, si_and_di));
       nonOperandRegisterWrites.insert(make_pair(e_cmpsd, si_and_di));
