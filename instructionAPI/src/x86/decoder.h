@@ -31,6 +31,7 @@
 #ifndef INSTRUCTIONAPI_X86_DECODER_H
 #define INSTRUCTIONAPI_X86_DECODER_H
 
+#include "Expression.h"
 #include "InstructionDecoderImpl.h"
 #include "Result.h"
 #include "capstone/capstone.h"
@@ -71,6 +72,7 @@ namespace Dyninst { namespace InstructionAPI {
     void decode_operands(Instruction const*, disassem);
     void decode_reg(Instruction const*, cs_x86_op const&);
     void decode_imm(Instruction const*, cs_x86_op const&, disassem);
+    void decode_mem(Instruction const*, cs_x86_op const&, disassem);
   };
 
 }}
