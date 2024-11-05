@@ -36,6 +36,7 @@
 #include "registers/x86_64_regs.h"
 #include "registers/x86_regs.h"
 #include "syscalls.h"
+#include "type_conversion.h"
 #include "x86/decoder.h"
 #include "x86/opcode_xlat.h"
 #include "x86/register_xlat.h"
@@ -55,98 +56,148 @@
  *
  ***************************************************************************/
 
+namespace di = Dyninst::InstructionAPI;
+
+namespace {
+
+  bool is_cft(di::Instruction const *insn) {
+    return insn->isBranch() || insn->isCall();
+  }
+
+}
+
 namespace Dyninst { namespace InstructionAPI {
 
-  x86_decoder::x86_decoder(Dyninst::Architecture a) : InstructionDecoderImpl(a) {
+    x86_decoder::x86_decoder(Dyninst::Architecture a) : InstructionDecoderImpl(a) {
 
-    mode = (a == Dyninst::Arch_x86_64) ? CS_MODE_64 : CS_MODE_32;
+      mode = (a == Dyninst::Arch_x86_64) ? CS_MODE_64 : CS_MODE_32;
 
-    cs_open(CS_ARCH_X86, this->mode, &disassembler.handle);
-    cs_option(disassembler.handle, CS_OPT_DETAIL, CS_OPT_ON);
-    disassembler.insn = cs_malloc(disassembler.handle);
-  }
-
-  x86_decoder::~x86_decoder() {
-    cs_free(disassembler.insn, 1);
-    cs_close(&disassembler.handle);
-  }
-
-  Instruction x86_decoder::decode(InstructionDecoder::buffer &buf) {
-    auto *code = buf.start;
-    size_t codeSize = buf.end - buf.start;
-    uint64_t cap_addr = 0;
-
-    // The iterator form of disassembly allows reuse of the instruction object, reducing
-    // the number of memory allocations.
-    if(!cs_disasm_iter(disassembler.handle, &code, &codeSize, &cap_addr, disassembler.insn)) {
-      // Gap parsing can trigger this case. In particular, when it encounters prefixes in an invalid
-      // order. Notably, if a REX prefix (0x40-0x48) appears followed by another prefix (0x66, 0x67,
-      // etc) we'll reject the instruction as invalid and send it back with no entry.  Since this is
-      // a common byte sequence to see in, for example, ASCII strings, we want to simply accept this
-      // and move on.
-      decode_printf("Failed to disassemble instruction at %p: %s\n", code, cs_strerror(cs_errno(disassembler.handle)));
-      m_Operation = Operation(e_No_Entry, "INVALID", m_Arch);
-      return {};
+      cs_open(CS_ARCH_X86, this->mode, &disassembler.handle);
+      cs_option(disassembler.handle, CS_OPT_DETAIL, CS_OPT_ON);
+      disassembler.insn = cs_malloc(disassembler.handle);
     }
 
-    entryID e = x86::translate_opcode(static_cast<x86_insn>(disassembler.insn->id));
-    m_Operation = Operation(e, disassembler.insn->mnemonic, m_Arch);
-    buf.start += disassembler.insn->size;
-    unsigned int decodedSize = buf.start - code;
-    Instruction insn(m_Operation, decodedSize, code, m_Arch);
-    decode_operands(&insn);
-    return insn;
-  }
+    x86_decoder::~x86_decoder() {
+      cs_free(disassembler.insn, 1);
+      cs_close(&disassembler.handle);
+    }
 
-  void x86_decoder::decode_operands(Instruction const *insn) {
-    // Categories must be decoded before anything else since they are used
-    // in the other decoding steps.
-    insn->categories = x86::decode_categories(insn, disassembler);
+    Instruction x86_decoder::decode(InstructionDecoder::buffer &buf) {
+      auto *code = buf.start;
+      size_t codeSize = buf.end - buf.start;
+      uint64_t cap_addr = 0;
 
-    /* Decode _explicit_ operands
-     *
-     * There are three types:
-     *
-     *   add r1, r2       ; r1, r2 are both X86_OP_REG
-     *   jmp -64          ; -64 is X86_OP_IMM
-     *   mov r1, [0x33]   ; r1 is X86_OP_REG, 0x33 is X86_OP_MEM
-     */
-    auto *d = disassembler.insn->detail;
-    for(uint8_t i = 0; i < d->x86.op_count; ++i) {
-      cs_x86_op const &operand = d->x86.operands[i];
-      switch(operand.type) {
-        case X86_OP_REG:
-          decode_reg(insn, operand);
-          break;
-        case X86_OP_IMM:
-          break;
-        case X86_OP_MEM:
-          break;
-        case X86_OP_INVALID:
-          decode_printf("[0x%lx %s %s] has an invalid operand.\n", disassembler.insn->address,
-                        disassembler.insn->mnemonic, disassembler.insn->op_str);
-          break;
+      // The iterator form of disassembly allows reuse of the instruction object, reducing
+      // the number of memory allocations.
+      if(!cs_disasm_iter(disassembler.handle, &code, &codeSize, &cap_addr, disassembler.insn)) {
+        // Gap parsing can trigger this case. In particular, when it encounters prefixes in an invalid
+        // order. Notably, if a REX prefix (0x40-0x48) appears followed by another prefix (0x66, 0x67,
+        // etc) we'll reject the instruction as invalid and send it back with no entry.  Since this is
+        // a common byte sequence to see in, for example, ASCII strings, we want to simply accept this
+        // and move on.
+        decode_printf("Failed to disassemble instruction at %p: %s\n", code,
+                      cs_strerror(cs_errno(disassembler.handle)));
+        m_Operation = Operation(e_No_Entry, "INVALID", m_Arch);
+        return {};
+      }
+
+      entryID e = x86::translate_opcode(static_cast<x86_insn>(disassembler.insn->id));
+      m_Operation = Operation(e, disassembler.insn->mnemonic, m_Arch);
+      buf.start += disassembler.insn->size;
+      unsigned int decodedSize = buf.start - code;
+      Instruction insn(m_Operation, decodedSize, code, m_Arch);
+      decode_operands(&insn);
+      return insn;
+    }
+
+    void x86_decoder::decode_operands(Instruction const *insn) {
+      // Categories must be decoded before anything else since they are used
+      // in the other decoding steps.
+      insn->categories = x86::decode_categories(insn, disassembler);
+
+      /* Decode _explicit_ operands
+       *
+       * There are three types:
+       *
+       *   add r1, r2       ; r1, r2 are both X86_OP_REG
+       *   jmp -64          ; -64 is X86_OP_IMM
+       *   mov r1, [0x33]   ; r1 is X86_OP_REG, 0x33 is X86_OP_MEM
+       */
+      auto *d = disassembler.insn->detail;
+      for(uint8_t i = 0; i < d->x86.op_count; ++i) {
+        cs_x86_op const &operand = d->x86.operands[i];
+        switch(operand.type) {
+          case X86_OP_REG:
+            decode_reg(insn, operand);
+            break;
+          case X86_OP_IMM:
+            decode_imm(insn, operand);
+            break;
+          case X86_OP_MEM:
+            break;
+          case X86_OP_INVALID:
+            decode_printf("[0x%lx %s %s] has an invalid operand.\n", disassembler.insn->address,
+                          disassembler.insn->mnemonic, disassembler.insn->op_str);
+            break;
+        }
       }
     }
-  }
 
-  void x86_decoder::decode_reg(Instruction const *insn, cs_x86_op const &operand) {
-    auto regAST = makeRegisterExpression(x86::translate_register(operand.reg, mode));
+    void x86_decoder::decode_reg(Instruction const *insn, cs_x86_op const &operand) {
+      auto regAST = makeRegisterExpression(x86::translate_register(operand.reg, mode));
 
-    const bool isCall = insn->isCall();
-    if(insn->isBranch() || isCall) {
-      insn->addSuccessor(regAST, isCall, true, false, false);
-      return;
+      const bool isCall = insn->isCall();
+      if(insn->isBranch() || isCall) {
+        insn->addSuccessor(regAST, isCall, true, false, false);
+        return;
+      }
+
+      // It's an error if an operand is neither read nor written.
+      // In this case, we mark it as both read and written to be conservative.
+      bool isRead = ((operand.access & CS_AC_READ) != 0);
+      bool isWritten = ((operand.access & CS_AC_WRITE) != 0);
+      if(!isRead && !isWritten) {
+        isRead = isWritten = true;
+      }
+      insn->appendOperand(regAST, isRead, isWritten, false);
     }
 
-    // It's an error if an operand is neither read nor written.
-    // In this case, we mark it as both read and written to be conservative.
-    bool isRead = ((operand.access & CS_AC_READ) != 0);
-    bool isWritten = ((operand.access & CS_AC_WRITE) != 0);
-    if(!isRead && !isWritten) {
-      isRead = isWritten = true;
+    void x86_decoder::decode_imm(Instruction const *insn, cs_x86_op const &operand) {
+      auto const type = size_to_type_signed(operand.size);
+      auto imm = Immediate::makeImmediate(Result(type, operand.imm));
+
+      constexpr bool isRead = true;
+      constexpr bool isWritten = true;
+      constexpr bool isImplicit = true;
+      constexpr bool isIndirect = true;
+
+      if(!is_cft(insn)) {
+        insn->appendOperand(std::move(imm), !isRead, !isWritten, !isImplicit);
+        return;
+      }
+
+      auto IP(makeRegisterExpression(MachRegister::getPC(m_Arch)));
+
+      auto const isCall = insn->isCall();
+      auto const isConditional = insn->isConditional();
+      auto const usesRelativeAddressing = cs_insn_group(disassembler.handle, disassembler.insn, CS_GRP_BRANCH_RELATIVE);
+      bool const isFallthrough = insn->allowsFallThrough();
+
+      if(usesRelativeAddressing) {
+        insn->appendOperand(imm, isRead, !isWritten, !isImplicit);
+        insn->appendOperand(IP, isRead, isWritten, isImplicit);
+        // Capstone adjusts the offset to account for the current instruction's length, so we can
+        // just create an addition AST expression here.
+        auto target(makeAddExpression(IP, imm, s64));
+        insn->addSuccessor(std::move(target), isCall, !isIndirect, isConditional, isFallthrough);
+      } else {
+        insn->addSuccessor(std::move(imm), isCall, !isIndirect, isConditional, isFallthrough);
+      }
+      if(isConditional) {
+        constexpr bool is_call = true;
+        constexpr bool is_conditional = true;
+        insn->addSuccessor(std::move(IP), !is_call, !isIndirect, is_conditional, isFallthrough);
+      }
     }
-    insn->appendOperand(regAST, isRead, isWritten, false);
-  }
 
 }}

@@ -28,54 +28,40 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef INSTRUCTIONAPI_X86_DECODER_H
-#define INSTRUCTIONAPI_X86_DECODER_H
-
-#include "capstone/capstone.h"
-#include "capstone/x86.h"
-#include "InstructionDecoderImpl.h"
 #include "Result.h"
 
 namespace Dyninst { namespace InstructionAPI {
 
-  class x86_decoder final : public InstructionDecoderImpl {
-  public:
-    struct disassem final {
-      csh handle{};
-      cs_insn *insn{};
-    };
-
-  private:
-    cs_mode mode{};
-    disassem disassembler{};
-
-  public:
-    x86_decoder(Dyninst::Architecture a);
-    x86_decoder() = delete;
-    x86_decoder(x86_decoder const &) = delete;
-    x86_decoder &operator=(x86_decoder const &) = delete;
-    x86_decoder(x86_decoder &&) = delete;
-    x86_decoder &operator=(x86_decoder &&) = delete;
-    ~x86_decoder();
-
-    void doDelayedDecode(Instruction const *) override {}
-
-    bool decodeOperands(Instruction const *) override {
-      return true;
+  // clang-format off
+  inline Result_Type size_to_type_unsigned(uint8_t cap_size) {
+    switch (cap_size) {
+      case 1:  return u8;
+      case 2:  return u16;
+      case 3:  return u24;
+      case 4:  return u32;
+      case 6:  return u48;
+      case 8:  return u64;
+      default: return invalid_type;
     }
-
-    Instruction decode(InstructionDecoder::buffer &) override;
-
-  private:
-    Result_Type makeSizeType(unsigned int) override {
-      return {};
+  }
+  inline Result_Type size_to_type_signed(uint8_t cap_size) {
+    switch (cap_size) {
+      case 1:  return s8;
+      case 2:  return s16;
+      case 4:  return s32;
+      case 6:  return s48;
+      case 8:  return s64;
+      default: return invalid_type;
     }
-
-    void decode_operands(Instruction const *);
-    void decode_reg(Instruction const *, cs_x86_op const &);
-    void decode_imm(Instruction const *, cs_x86_op const &);
-  };
+  }
+  inline Result_Type size_to_type_float(uint8_t cap_size) {
+    switch (cap_size) {
+      case 4:  return sp_float;
+      case 8:  return dp_float;
+      case 16: return dbl128;
+      default: return invalid_type;
+    }
+  }
+  // clang-format on
 
 }}
-
-#endif
