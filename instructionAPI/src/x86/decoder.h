@@ -74,6 +74,7 @@ namespace Dyninst { namespace InstructionAPI {
     void decode_operands(Instruction const *);
     void decode_reg(Instruction const *, cs_x86_op const &);
     void decode_imm(Instruction const *, cs_x86_op const &);
+    void decode_mem(Instruction const *, cs_x86_op const &);
   };
 
 }}
