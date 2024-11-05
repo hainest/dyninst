@@ -55,6 +55,14 @@
  *
  ***************************************************************************/
 
+namespace di = Dyninst::InstructionAPI;
+
+namespace {
+
+  bool is_cft(di::Instruction const* insn) { return insn->isBranch() || insn->isCall(); }
+
+}
+
 namespace Dyninst { namespace InstructionAPI {
 
   x86_decoder::x86_decoder(Dyninst::Architecture a) : InstructionDecoderImpl(a) {
@@ -184,6 +192,7 @@ namespace Dyninst { namespace InstructionAPI {
           decode_reg(insn, operand);
           break;
         case X86_OP_IMM:
+          decode_imm(insn, operand, dis);
           break;
         case X86_OP_MEM:
           break;
@@ -237,4 +246,32 @@ namespace Dyninst { namespace InstructionAPI {
     insn->addSuccessor(action, false, true, false, false, true);
   }
 
+  void x86_decoder::decode_imm(Instruction const* insn, cs_x86_op const& operand, disassem dis) {
+    auto const size = dis.insn->detail->x86.encoding.imm_size;
+    auto const type = size_to_type_signed(size);
+    auto imm = Immediate::makeImmediate(Result(type, operand.imm));
+
+    if(!is_cft(insn)) {
+      insn->appendOperand(std::move(imm), false, false, false);
+      return;
+    }
+
+    auto IP(makeRegisterExpression(MachRegister::getPC(m_Arch)));
+
+    auto const isCall = insn->isCall();
+    auto const isConditional = insn->isConditional();
+    auto const usesRelativeAddressing = cs_insn_group(dis.handle, dis.insn, CS_GRP_BRANCH_RELATIVE);
+
+    if(usesRelativeAddressing) {
+      // Capstone adjusts the offset to account for the current instruction's length, so we can
+      // just create an addition AST expression here.
+      auto target(makeAddExpression(IP, imm, s64));
+      insn->addSuccessor(std::move(target), isCall, false, isConditional, false);
+    } else {
+      insn->addSuccessor(std::move(imm), isCall, false, isConditional, false);
+    }
+    if(isConditional) {
+      insn->addSuccessor(std::move(IP), false, false, true, true);
+    }
+  }
 }}
