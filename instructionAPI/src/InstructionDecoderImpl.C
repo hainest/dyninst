@@ -88,12 +88,6 @@ namespace Dyninst
             }
         }
 
-        Expression::Ptr InstructionDecoderImpl::makeRightArithmeticShiftExpression(Expression::Ptr lhs, Expression::Ptr rhs,
-                Result_Type resultType)
-        {
-            BinaryFunction::funcT::Ptr rightArithmeticShifter(new BinaryFunction::rightArithmeticShiftResult());
-            return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, rightArithmeticShifter);
-        }
         Expression::Ptr InstructionDecoderImpl::makeRightLogicalShiftExpression(Expression::Ptr lhs, Expression::Ptr rhs,
                 Result_Type resultType)
         {
