@@ -31,6 +31,7 @@
 #include "Immediate.h"
 #include "InstructionDecoderImpl.h"
 #include "registers/ppc32_regs.h"
+#include "ExpressionFactories.h"
 
 #include <iostream>
 #include <stddef.h>

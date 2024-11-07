@@ -32,6 +32,7 @@
 #include "registers/ppc32_regs.h"
 #include "registers/ppc64_regs.h"
 #include "unaligned_memory_access.h"
+#include "ExpressionFactories.h"
 
 #include <boost/assign/list_of.hpp>
 #include <mutex>

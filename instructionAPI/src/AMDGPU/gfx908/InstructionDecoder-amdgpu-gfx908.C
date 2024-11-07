@@ -32,6 +32,7 @@
 #include "InstructionDecoder-amdgpu-gfx908.h"
 #include <array>
 #include "registers/AMDGPU/amdgpu_gfx908_regs.h"
+#include "ExpressionFactories.h"
 
 namespace Dyninst {
 	namespace InstructionAPI {

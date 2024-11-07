@@ -32,6 +32,7 @@
 #include "InstructionDecoder-amdgpu-gfx940.h"
 #include <array>
 #include "registers/AMDGPU/amdgpu_gfx940_regs.h"
+#include "ExpressionFactories.h"
 
 namespace Dyninst {
     namespace InstructionAPI {

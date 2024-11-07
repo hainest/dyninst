@@ -31,6 +31,7 @@
 #include "BinaryFunction.h"
 #include "Dereference.h"
 #include "Expression.h"
+#include "ExpressionFactories.h"
 #include "Immediate.h"
 #include "InstructionDecoder-x86.h"
 #include "Register.h"

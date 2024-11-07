@@ -87,13 +87,7 @@ namespace Dyninst
                     return Ptr();
             }
         }
-        Expression::Ptr InstructionDecoderImpl::makeAddExpression(Expression::Ptr lhs,
-                Expression::Ptr rhs, Result_Type resultType)
-        {
-            BinaryFunction::funcT::Ptr adder(new BinaryFunction::addResult());
 
-            return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, adder);
-        }
         Expression::Ptr InstructionDecoderImpl::makeMultiplyExpression(Expression::Ptr lhs, Expression::Ptr rhs,
                 Result_Type resultType)
         {

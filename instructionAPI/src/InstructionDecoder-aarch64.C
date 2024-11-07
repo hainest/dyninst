@@ -28,6 +28,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include "ExpressionFactories.h"
 #include "InstructionDecoder-aarch64.h"
 #include "Register.h"
 #include "registers/aarch64_regs.h"
