@@ -45,6 +45,12 @@ namespace Dyninst { namespace InstructionAPI {
     return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, expr_t::Ptr{});
   }
 
+  inline Expression::Ptr makeMultiplyExpression(Expression::Ptr lhs, Expression::Ptr rhs,
+                                                Result_Type resultType) {
+    using expr_t = BinaryFunction::multResult;
+    return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, expr_t::Ptr{});
+  }
+
 }}
 
 #endif
