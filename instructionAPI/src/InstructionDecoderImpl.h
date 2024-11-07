@@ -54,8 +54,6 @@ class InstructionDecoderImpl
 
     protected:
       
-        virtual Expression::Ptr makeAddExpression(Expression::Ptr lhs, Expression::Ptr rhs, Result_Type resultType);
-        virtual Expression::Ptr makeMultiplyExpression(Expression::Ptr lhs, Expression::Ptr rhs, Result_Type resultType);
         virtual Expression::Ptr makeLeftShiftExpression(Expression::Ptr lhs, Expression::Ptr rhs, Result_Type resultType);
         virtual Expression::Ptr makeRightArithmeticShiftExpression(Expression::Ptr lhs, Expression::Ptr rhs, Result_Type resultType);
         virtual Expression::Ptr makeRightLogicalShiftExpression(Expression::Ptr lhs, Expression::Ptr rhs, Result_Type resultType);

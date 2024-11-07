@@ -88,12 +88,6 @@ namespace Dyninst
             }
         }
 
-        Expression::Ptr InstructionDecoderImpl::makeMultiplyExpression(Expression::Ptr lhs, Expression::Ptr rhs,
-                Result_Type resultType)
-        {
-            BinaryFunction::funcT::Ptr multiplier(new BinaryFunction::multResult());
-            return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, multiplier);
-        }
         Expression::Ptr InstructionDecoderImpl::makeLeftShiftExpression(Expression::Ptr lhs, Expression::Ptr rhs,
                 Result_Type resultType)
         {
