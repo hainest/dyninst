@@ -34,6 +34,7 @@
 #include "BinaryFunction.h"
 #include "Expression.h"
 #include "Result.h"
+#include "Ternary.h"
 
 #include <boost/make_shared.hpp>
 
@@ -74,6 +75,11 @@ namespace Dyninst { namespace InstructionAPI {
                                                    Result_Type resultType) {
     using expr_t = BinaryFunction::rightRotateResult;
     return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, expr_t::Ptr{});
+  }
+
+  inline Expression::Ptr makeTernaryExpression(Expression::Ptr cond, Expression::Ptr first,
+                                               Expression::Ptr second, Result_Type result_type) {
+    return boost::make_shared<TernaryAST>(cond, first, second, result_type);
   }
 
 }}
