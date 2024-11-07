@@ -88,18 +88,7 @@ namespace Dyninst
             }
         }
 
-        Expression::Ptr InstructionDecoderImpl::makeRightLogicalShiftExpression(Expression::Ptr lhs, Expression::Ptr rhs,
-                Result_Type resultType)
-        {
-            BinaryFunction::funcT::Ptr rightLogicalShifter(new BinaryFunction::rightLogicalShiftResult());
-            return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, rightLogicalShifter);
-        }
-        Expression::Ptr InstructionDecoderImpl::makeRightRotateExpression(Expression::Ptr lhs, Expression::Ptr rhs,
-                Result_Type resultType)
-        {
-            BinaryFunction::funcT::Ptr rightRotator(new BinaryFunction::rightRotateResult());
-            return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, rightRotator);
-        }
+
 
         Expression::Ptr InstructionDecoderImpl::makeTernaryExpression(Expression::Ptr cond, Expression::Ptr first, Expression::Ptr second,Result_Type result_type){
             return boost::make_shared<TernaryAST>(cond,first,second,result_type);
