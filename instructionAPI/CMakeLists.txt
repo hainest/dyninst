@@ -63,6 +63,7 @@ set(_private_headers
     src/AMDGPU/gfx940/InstructionDecoder-amdgpu-gfx940.h
     src/AMDGPU/gfx90a/InstructionDecoder-amdgpu-gfx90a.h
     src/AMDGPU/gfx908/InstructionDecoder-amdgpu-gfx908.h
+    src/ExpressionFactories.h
     src/InstructionDecoder-aarch64.h
     src/InstructionDecoderImpl.h
     src/InstructionDecoder-power.h

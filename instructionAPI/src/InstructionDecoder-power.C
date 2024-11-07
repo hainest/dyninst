@@ -34,6 +34,7 @@
 #include "unaligned_memory_access.h"
 #include "registers/ppc32_regs.h"
 #include "registers/ppc64_regs.h"
+#include "ExpressionFactories.h"
 
 namespace Dyninst
 {

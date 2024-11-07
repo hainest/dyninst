@@ -30,6 +30,7 @@
 
 
 #include "InstructionDecoderImpl.h"
+#include "ExpressionFactories.h"
 #include <iostream>
 #include <stddef.h>
 #include <string>

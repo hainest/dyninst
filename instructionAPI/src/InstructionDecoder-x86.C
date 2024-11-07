@@ -40,6 +40,7 @@
 #include "registers/x86_64_regs.h"
 #include "registers/abstract_regs.h"
 #include <boost/make_shared.hpp>
+#include "ExpressionFactories.h"
 
 // #define VEX_DEBUG
 
