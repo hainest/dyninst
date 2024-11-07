@@ -91,11 +91,7 @@ namespace Dyninst
 
 
 
-        Expression::Ptr InstructionDecoderImpl::makeDereferenceExpression(Expression::Ptr addrToDereference,
-                Result_Type resultType)
-        {
-            return boost::make_shared<Dereference>(addrToDereference, resultType);
-        }
+
         Expression::Ptr InstructionDecoderImpl::makeRegisterExpression(MachRegister registerID, uint32_t num_elements )
         {
             int newID = registerID.val();

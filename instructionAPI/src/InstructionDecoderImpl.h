@@ -54,8 +54,6 @@ class InstructionDecoderImpl
 
     protected:
       
-        virtual Expression::Ptr makeDereferenceExpression(Expression::Ptr addrToDereference, Result_Type resultType);
-
 
 
         virtual Expression::Ptr makeMultiRegisterExpression(MachRegister reg, uint32_t num_elements);
