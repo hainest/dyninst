@@ -34,6 +34,7 @@
 #include "BinaryFunction.h"
 #include "Dereference.h"
 #include "Expression.h"
+#include "MultiRegister.h"
 #include "Result.h"
 #include "Ternary.h"
 
@@ -86,6 +87,11 @@ namespace Dyninst { namespace InstructionAPI {
   inline Expression::Ptr makeDereferenceExpression(Expression::Ptr addrToDereference,
                                                    Result_Type resultType) {
     return boost::make_shared<Dereference>(addrToDereference, resultType);
+  }
+
+  inline Expression::Ptr makeMultiRegisterExpression(MachRegister registerID,
+                                                     uint32_t num_elements) {
+    return boost::make_shared<MultiRegisterAST>(registerID, num_elements);
   }
 
 }}
