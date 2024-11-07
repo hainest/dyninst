@@ -57,6 +57,13 @@ namespace Dyninst { namespace InstructionAPI {
     return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, expr_t::Ptr{});
   }
 
+  inline Expression::Ptr makeRightArithmeticShiftExpression(Expression::Ptr lhs,
+                                                            Expression::Ptr rhs,
+                                                            Result_Type resultType) {
+    using expr_t = BinaryFunction::rightArithmeticShiftResult;
+    return boost::make_shared<BinaryFunction>(lhs, rhs, resultType, expr_t::Ptr{});
+  }
+
 }}
 
 #endif
