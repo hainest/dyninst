@@ -56,7 +56,6 @@ class InstructionDecoderImpl
       
 
 
-        virtual Expression::Ptr makeMultiRegisterExpression(MachRegister reg, uint32_t num_elements);
         virtual Expression::Ptr makeRegisterExpression(MachRegister reg, uint32_t num_elements = 1);
         // added version to support loading partial values out of register
         virtual Expression::Ptr makeRegisterExpression(MachRegister reg, unsigned int start , unsigned int end);

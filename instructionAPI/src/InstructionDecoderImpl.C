@@ -101,13 +101,6 @@ namespace Dyninst
             return boost::make_shared<RegisterAST>(converted, 0, registerID.size() * 8,num_elements);
         }
         
-        Expression::Ptr InstructionDecoderImpl::makeMultiRegisterExpression(MachRegister registerID, uint32_t num_elements )
-        {
-            return boost::make_shared<MultiRegisterAST>(registerID, num_elements);
-        }
-        
-       
-
         Expression::Ptr InstructionDecoderImpl::makeRegisterExpression(MachRegister registerID, unsigned int start , unsigned int end)
         {
             int newID = registerID.val();

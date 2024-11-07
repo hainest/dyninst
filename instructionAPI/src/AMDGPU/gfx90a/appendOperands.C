@@ -1,5 +1,6 @@
 #include <memory>
 #include "InstructionDecoder-amdgpu-gfx90a.h"
+#include "ExpressionFactories.h"
 
 namespace Dyninst {
 namespace InstructionAPI {
