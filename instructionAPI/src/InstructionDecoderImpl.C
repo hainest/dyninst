@@ -90,9 +90,6 @@ namespace Dyninst
 
 
 
-        Expression::Ptr InstructionDecoderImpl::makeTernaryExpression(Expression::Ptr cond, Expression::Ptr first, Expression::Ptr second,Result_Type result_type){
-            return boost::make_shared<TernaryAST>(cond,first,second,result_type);
-        }
 
         Expression::Ptr InstructionDecoderImpl::makeDereferenceExpression(Expression::Ptr addrToDereference,
                 Result_Type resultType)
