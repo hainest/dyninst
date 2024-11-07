@@ -61,8 +61,6 @@ class InstructionDecoderImpl
         virtual bool decodeOperands(const Instruction* insn_to_complete) = 0;
 
         virtual void decodeOpcode(InstructionDecoder::buffer&) = 0;
-      
-        virtual Expression::Ptr makeDereferenceExpression(Expression::Ptr addrToDereference, Result_Type resultType);
 
 
 

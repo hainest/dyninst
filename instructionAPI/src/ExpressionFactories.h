@@ -32,6 +32,7 @@
 #define INSTRUCTIONAPI_EXPRESSIONFACTORIES_H
 
 #include "BinaryFunction.h"
+#include "Dereference.h"
 #include "Expression.h"
 #include "Result.h"
 #include "Ternary.h"
@@ -80,6 +81,11 @@ namespace Dyninst { namespace InstructionAPI {
   inline Expression::Ptr makeTernaryExpression(Expression::Ptr cond, Expression::Ptr first,
                                                Expression::Ptr second, Result_Type result_type) {
     return boost::make_shared<TernaryAST>(cond, first, second, result_type);
+  }
+
+  inline Expression::Ptr makeDereferenceExpression(Expression::Ptr addrToDereference,
+                                                   Result_Type resultType) {
+    return boost::make_shared<Dereference>(addrToDereference, resultType);
   }
 
 }}
