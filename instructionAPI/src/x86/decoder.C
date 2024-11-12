@@ -250,6 +250,12 @@ namespace Dyninst { namespace InstructionAPI {
         insn->appendOperand(regAST, s.read, s.written, is_implicit);
       }
     }
+
+    // include stuff from Operation::OperationMaps and Operation::SetUpNonOperandData()
+    // segment register example: call DWORD PTR gs:[0x10] ('65 66 ff 1c 25 10 00 00 00')
+    // rep example: rep lodsb al, byte ptr [rsi] ('F3 AC')
+    // call dword ptr gs:[eax + 0x10] ('65ff5010')
+    // avx-512 masks (k0-k7)
   }
 
   void x86_decoder::decode_reg(Instruction const* insn, cs_x86_op const& operand) {
