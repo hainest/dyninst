@@ -162,6 +162,7 @@ namespace Dyninst { namespace InstructionAPI {
     }
 
     m_Successors = o.m_Successors;
+    categories = o.categories;
   }
 
   DYNINST_EXPORT const Instruction& Instruction::operator=(const Instruction& rhs) {
@@ -185,6 +186,7 @@ namespace Dyninst { namespace InstructionAPI {
     formatter = rhs.formatter;
     arch_decoded_from = rhs.arch_decoded_from;
     m_Successors = rhs.m_Successors;
+    categories = rhs.categories;
     return *this;
   }
 
@@ -479,6 +481,12 @@ namespace Dyninst { namespace InstructionAPI {
   DYNINST_EXPORT Architecture Instruction::getArch() const { return arch_decoded_from; }
 
   DYNINST_EXPORT InsnCategory Instruction::getCategory() const {
+    if(arch_decoded_from == Arch_x86 || arch_decoded_from == Arch_x86_64) {
+      if(categories.categories.size()) {
+        return categories.categories[0];
+      }
+      return c_NoCategory;
+    }
     if(m_InsnOp.isVectorInsn)
       return c_VectorInsn;
     InsnCategory c = entryToCategory(m_InsnOp.getID());
