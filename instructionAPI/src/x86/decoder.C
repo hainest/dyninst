@@ -226,6 +226,8 @@ namespace Dyninst { namespace InstructionAPI {
         implicit_state s = r.second;
         insn->appendOperand(regAST, s.read, s.written, is_implicit);
       }
+      // include stuff from Operation::OperationMaps and Operation::SetUpNonOperandData()
+      // avx-512 masks (k0-k7)
     }
 
     void x86_decoder::decode_reg(Instruction const *insn, cs_x86_op const &operand) {
