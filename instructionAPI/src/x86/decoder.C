@@ -160,6 +160,12 @@ namespace Dyninst { namespace InstructionAPI {
     if(insn->isReturn()) {
       addReturnExpression(insn);
     }
+
+    auto const id = insn->getOperation().getID();
+    if(id == e_endbr32 || id == e_endbr64) {
+      insn->m_Operands.clear();
+      return;
+    }
   }
 
   void x86_decoder::addReturnExpression(Instruction const* insn) {
