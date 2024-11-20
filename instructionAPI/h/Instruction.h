@@ -117,6 +117,7 @@ namespace Dyninst { namespace InstructionAPI {
 
     DYNINST_EXPORT DYNINST_DEPRECATED("Use getallOperands()")
     void getOperands(std::vector<Operand>& operands) const;
+
     DYNINST_EXPORT Operand getOperand(int index) const;
 
     DYNINST_EXPORT std::vector<Operand> getDisplayOrderedOperands() const;
