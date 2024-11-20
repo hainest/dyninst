@@ -30,7 +30,10 @@
 
 #include "capstone/capstone.h"
 #include "capstone/x86.h"
+#include "categories.h"
 #include "debug.h"
+#include "entryIDs.h"
+#include "syscalls.h"
 #include "x86/decoder.h"
 #include "x86/opcode_xlat.h"
 
@@ -92,6 +95,10 @@ namespace Dyninst { namespace InstructionAPI {
     return insn;
   }
 
-  void x86_decoder::decode_operands(Instruction const *) {}
+  void x86_decoder::decode_operands(Instruction const *insn) {
+    // Categories must be decoded before anything else since they are used
+    // in the other decoding steps.
+    insn->categories = x86::decode_categories(insn, disassembler);
+  }
 
 }}
