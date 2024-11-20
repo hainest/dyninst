@@ -102,9 +102,11 @@ namespace Dyninst { namespace InstructionAPI {
     DYNINST_EXPORT Instruction(Operation what, size_t size, const unsigned char* raw,
                                Dyninst::Architecture arch);
     DYNINST_EXPORT Instruction();
-    DYNINST_EXPORT virtual ~Instruction();
+    DYNINST_EXPORT ~Instruction();
     DYNINST_EXPORT Instruction(const Instruction& o);
     DYNINST_EXPORT const Instruction& operator=(const Instruction& rhs);
+    DYNINST_EXPORT Instruction(Instruction&&) = default;
+    DYNINST_EXPORT Instruction& operator=(Instruction&&) = default;
 
     DYNINST_EXPORT Operation& getOperation();
     DYNINST_EXPORT const Operation& getOperation() const;
