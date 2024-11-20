@@ -134,6 +134,7 @@ namespace Dyninst { namespace InstructionAPI {
     }
 
     m_Successors = o.m_Successors;
+    categories = o.categories;
   }
 
   DYNINST_EXPORT const Instruction& Instruction::operator=(const Instruction& rhs) {
@@ -157,6 +158,7 @@ namespace Dyninst { namespace InstructionAPI {
     formatter = rhs.formatter;
     arch_decoded_from = rhs.arch_decoded_from;
     m_Successors = rhs.m_Successors;
+    categories = rhs.categories;
     return *this;
   }
 
