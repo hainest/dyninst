@@ -181,8 +181,7 @@ BPatch_memoryAccess* BPatch_memoryAccessAdapter::convert(Instruction insn,
   assert(nac < 3);
   return bmap;
 #elif defined arch_power
-    std::vector<Operand> operands;
-    insn.getOperands(operands);
+    auto operands = insn.getAllOperands();
     for(std::vector<Operand>::iterator op = operands.begin();
         op != operands.end();
        ++op)
@@ -221,8 +220,7 @@ BPatch_memoryAccess* BPatch_memoryAccessAdapter::convert(Instruction insn,
     }
     return NULL;
 #elif defined(arch_aarch64) 
-    std::vector<Operand> operands;
-    insn.getOperands(operands);
+    auto operands = insn.getAllOperands();
     for(std::vector<Operand>::iterator op = operands.begin();
         op != operands.end();
        ++op)

@@ -2810,8 +2810,7 @@ Expression::Ptr InstructionDecoder_aarch64::makeMemRefExPair2(){
 
         void InstructionDecoder_aarch64::reorderOperands() {
             if (oprRotateAmt) {
-                std::vector<Operand> curOperands;
-                insn_in_progress->getOperands(curOperands);
+                auto curOperands = insn_in_progress->getAllOperands();
 
                 if (curOperands.empty())
                     assert(!"empty operand list found while re-ordering operands");
@@ -2824,14 +2823,12 @@ Expression::Ptr InstructionDecoder_aarch64::makeMemRefExPair2(){
                 insn_in_progress->m_Operands.assign(curOperands.begin(), curOperands.end());
             }
             else if (IS_INSN_LDST_POST(insn) || IS_INSN_LDST_PAIR_POST(insn)) {
-                std::vector<Operand> curOperands;
-                insn_in_progress->getOperands(curOperands);
+                auto curOperands = insn_in_progress->getAllOperands();
                 std::iter_swap(curOperands.begin(), curOperands.end() - 1);
                 insn_in_progress->m_Operands.assign(curOperands.begin(), curOperands.end());
             }
             else if (IS_INSN_LDST_PAIR(insn)) {
-                std::vector<Operand> curOperands;
-                insn_in_progress->getOperands(curOperands);
+                auto curOperands = insn_in_progress->getAllOperands();
                 assert(curOperands.size() == 4 || curOperands.size() == 3);
                 if (curOperands.size() == 3) {
                     curOperands.insert(curOperands.begin(), curOperands.back());
@@ -2842,8 +2839,7 @@ Expression::Ptr InstructionDecoder_aarch64::makeMemRefExPair2(){
                 insn_in_progress->m_Operands.assign(curOperands.begin(), curOperands.end());
             }
             else if (IS_INSN_LDST_EX_PAIR(insn)) {
-                std::vector<Operand> curOperands;
-                insn_in_progress->getOperands(curOperands);
+                auto curOperands = insn_in_progress->getAllOperands();
                 if (curOperands.size() == 3) {
                     curOperands.insert(curOperands.begin(), curOperands.back());
                     curOperands.pop_back();
@@ -2855,8 +2851,7 @@ Expression::Ptr InstructionDecoder_aarch64::makeMemRefExPair2(){
                 insn_in_progress->m_Operands.assign(curOperands.begin(), curOperands.end());
             }
             else if (IS_INSN_ST_EX(insn)) {
-                std::vector<Operand> curOperands;
-                insn_in_progress->getOperands(curOperands);
+                auto curOperands = insn_in_progress->getAllOperands();
                 if (curOperands.size() == 3) {
                     curOperands.insert(curOperands.begin() + 1, curOperands.back());
                     curOperands.pop_back();
