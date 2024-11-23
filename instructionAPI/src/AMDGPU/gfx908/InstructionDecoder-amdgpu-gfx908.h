@@ -62,8 +62,6 @@ namespace Dyninst {
             // will advance b.start whenver a instruction is successfully decoded
             virtual Instruction decode(InstructionDecoder::buffer &b);
 
-            virtual void setMode(bool)  { }
-
             virtual bool decodeOperands(const Instruction *insn_to_complete);
 
             bool decodeOperands(const amdgpu_gfx908_insn_entry & insn_entry);
