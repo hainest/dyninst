@@ -64,8 +64,6 @@ namespace Dyninst {
 
             virtual Instruction decode(InstructionDecoder::buffer &b);
 
-            virtual void setMode(bool) { }
-
             virtual bool decodeOperands(const Instruction *insn_to_complete);
 
             virtual void doDelayedDecode(const Instruction *insn_to_complete);
