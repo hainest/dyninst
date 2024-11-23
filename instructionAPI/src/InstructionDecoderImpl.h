@@ -53,7 +53,6 @@ class InstructionDecoderImpl
         virtual ~InstructionDecoderImpl() {}
         virtual Instruction decode(InstructionDecoder::buffer& b) = 0;
         virtual void doDelayedDecode(const Instruction* insn_to_complete) = 0;
-        virtual void setMode(bool is64) = 0;
         static Ptr makeDecoderImpl(Architecture a);
 
     protected:
