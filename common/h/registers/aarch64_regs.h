@@ -168,15 +168,13 @@ namespace Dyninst { namespace aarch64 {
    **/
 
   //          (                name,  ID |  alias |        cat |         arch,      arch)
-  DEF_REGISTER(                  fp,   0 |   FULL |        SPR | Arch_aarch64, "aarch64");
-  DEF_REGISTER(                fpcr,   1 |  D_REG |        SPR | Arch_aarch64, "aarch64");
-  DEF_REGISTER(                  lr,   2 |   FULL |        SPR | Arch_aarch64, "aarch64");
+  DEF_REGISTER(                fpcr,   0 |  D_REG |        SPR | Arch_aarch64, "aarch64");
   DEF_REGISTER(                nzcv,   0 |    BIT |        SPR | Arch_aarch64, "aarch64");
-  DEF_REGISTER(                  pc,   3 |   FULL |        SPR | Arch_aarch64, "aarch64");
-  DEF_REGISTER(                  sp,   4 |   FULL |        SPR | Arch_aarch64, "aarch64");
-  DEF_REGISTER(                 wsp,   5 |  D_REG |        SPR | Arch_aarch64, "aarch64");
-  DEF_REGISTER(                 wzr,   6 |  D_REG |        SPR | Arch_aarch64, "aarch64");
-  DEF_REGISTER(                 xzr,   7 |   FULL |        SPR | Arch_aarch64, "aarch64");
+  DEF_REGISTER(                  pc,   1 |   FULL |        SPR | Arch_aarch64, "aarch64");
+  DEF_REGISTER(                  sp,   2 |   FULL |        SPR | Arch_aarch64, "aarch64");
+  DEF_REGISTER(                 wsp,   3 |  D_REG |        SPR | Arch_aarch64, "aarch64");
+  DEF_REGISTER(                 wzr,   4 |  D_REG |        SPR | Arch_aarch64, "aarch64");
+  DEF_REGISTER(                 xzr,   5 |   FULL |        SPR | Arch_aarch64, "aarch64");
 
   DEF_REGISTER(                  w0,   0 |  D_REG |        GPR | Arch_aarch64, "aarch64");
   DEF_REGISTER(                  w1,   1 |  D_REG |        GPR | Arch_aarch64, "aarch64");
@@ -238,6 +236,8 @@ namespace Dyninst { namespace aarch64 {
   DEF_REGISTER(                 x26,  57 |   FULL |        GPR | Arch_aarch64, "aarch64");
   DEF_REGISTER(                 x27,  58 |   FULL |        GPR | Arch_aarch64, "aarch64");
   DEF_REGISTER(                 x28,  59 |   FULL |        GPR | Arch_aarch64, "aarch64");
+  DEF_REGISTER(                 x29,  60 |   FULL |        GPR | Arch_aarch64, "aarch64");
+  DEF_REGISTER(                 x30,  61 |   FULL |        GPR | Arch_aarch64, "aarch64");
 
   DEF_REGISTER(                  b0,   0 |  B_REG |        FPR | Arch_aarch64, "aarch64");
   DEF_REGISTER(                  b1,   1 |  B_REG |        FPR | Arch_aarch64, "aarch64");
@@ -1540,8 +1540,8 @@ namespace Dyninst { namespace aarch64 {
    *  implicit names of the variables associated with the p{0,1} SVE predicate
    *  registers (see the definition of DEF_REGISTER for details).
    */
-  DEF_REGISTER_ALIAS(x29, fp, "aarch64");
-  DEF_REGISTER_ALIAS(x30, lr, "aarch64");
+  DEF_REGISTER_ALIAS( fp, x29, "aarch64");
+  DEF_REGISTER_ALIAS( lr, x30, "aarch64");
   DEF_REGISTER_ALIAS(Ip0, x16, "aarch64");  // Intra-procedure-call scratch registers
   DEF_REGISTER_ALIAS(Ip1, x17, "aarch64");
 

@@ -45,8 +45,8 @@ class registers:
     
     
     _aliases = {
-      "x29": "fp",    # Frame Pointer
-      "x30": "lr",    # Link Register
+      "fp": "x29",    # Frame Pointer
+      "lr": "x30",    # Link Register
       "Ip0": "x16",   # First intra-procedure-call scratch register (capitalized to avoid conflict with DEF_REGISTER(p0))
       "Ip1": "x17"    # Second intra-procedure-call scratch register
     }
