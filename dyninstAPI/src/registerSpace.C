@@ -239,43 +239,43 @@ void registerSpace::createRegisterSpace64(std::vector<registerSlot *> &registers
 
 }
 
-void registerSpace::createRegSpaceInt(std::vector<registerSlot *> &registers,
-                                      registerSpace *rs) {
-    for (unsigned i = 0; i < registers.size(); i++) {
-        Register reg = registers[i]->number;
+void registerSpace::createRegSpaceInt(std::vector<registerSlot*> &registers, registerSpace *rs) {
+  for (unsigned i = 0; i < registers.size(); i++) {
+    Register reg = registers[i]->number;
 
-        rs->registers_[reg] = registers[i];
+    rs->registers_[reg] = registers[i];
 
-        rs->registersByName[registers[i]->name] = registers[i]->number;
+    rs->registersByName[registers[i]->name] = registers[i]->number;
 
-        switch (registers[i]->type) {
-        case registerSlot::GPR: {
-	  bool physical = true;
+    switch (registers[i]->type) {
+      case registerSlot::GPR: {
+        bool physical = true;
 #if defined(DYNINST_HOST_ARCH_X86) || defined(DYNINST_HOST_ARCH_X86_64)
 	  if (rs->addr_width == 4)
 	    physical = false;
 #endif
-	  if (physical) rs->physicalRegisters_[reg] = registers[i];
+        if (physical)
+          rs->physicalRegisters_[reg] = registers[i];
 
-	  rs->GPRs_.push_back(registers[i]);
-	  break;
-	}
-        case registerSlot::FPR:
-	  rs->FPRs_.push_back(registers[i]);
-	  break;
-        case registerSlot::SPR:
-	  rs->SPRs_.push_back(registers[i]);
-	  break;
-        case registerSlot::realReg:
-	  rs->physicalRegisters_[reg] = registers[i];
-	  rs->realRegisters_.push_back(registers[i]);
-	  break;
-        default:
-            fprintf(stderr, "Error: no match for %d\n", registers[i]->type);
-            assert(0);
-            break;
-        }
+        rs->GPRs_.push_back(registers[i]);
+        break;
+      }
+      case registerSlot::FPR:
+        rs->FPRs_.push_back(registers[i]);
+        break;
+      case registerSlot::SPR:
+        rs->SPRs_.push_back(registers[i]);
+        break;
+      case registerSlot::realReg:
+        rs->physicalRegisters_[reg] = registers[i];
+        rs->realRegisters_.push_back(registers[i]);
+        break;
+      default:
+        fprintf(stderr, "Error: no match for %d\n", registers[i]->type);
+        assert(0);
+        break;
     }
+  }
 
 }
 

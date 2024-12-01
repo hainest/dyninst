@@ -57,6 +57,7 @@
 #include "addressSpace.h"
 #include "function.h"
 #include "baseTramp.h"
+#include "RegisterConversion.h"
 
 //#warning "This file is not implemented yet!"
 using namespace Dyninst::SymtabAPI;
@@ -133,7 +134,7 @@ void parse_func::calcUsedRegs()
                 ++curReg)
         {
             MachRegister r = (*curReg)->getID();
-            if((r & aarch64::GPR) && (r <= aarch64::w30))
+            if(r.regClass() == aarch64::GPR)
             {
                 usedRegisters->generalPurposeRegisters.insert(r & 0xFF);
             }
