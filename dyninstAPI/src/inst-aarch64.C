@@ -1120,7 +1120,7 @@ void EmitterAARCH64::emitStoreRelative(Register source, Address offset, Register
 bool EmitterAARCH64::emitMoveRegToReg(registerSlot *,
                                       registerSlot *,
                                       codeGen &) {
-    assert(0); //Not implemented
+    insnCodeGen::generateMove(gen, dest, src);
     return true;
 }
 
