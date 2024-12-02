@@ -136,11 +136,12 @@ void parse_func::calcUsedRegs()
             MachRegister r = (*curReg)->getID();
             if(r.regClass() == aarch64::GPR)
             {
-                usedRegisters->generalPurposeRegisters.insert(r & 0xFF);
+                // else if(((r & aarch64::FPR) && (r <= aarch64::s31)))
+                usedRegisters->generalPurposeRegisters.insert(convertRegID(r.getBaseRegister()));
             }
-            else if(((r & aarch64::FPR) && (r <= aarch64::s31)))
+            else if(r.regClass() == aarch64::FPR)
             {
-                usedRegisters->floatingPointRegisters.insert(r & 0xFFFF);
+                usedRegisters->floatingPointRegisters.insert(convertRegID(r.getBaseRegister()));
             }
         }
     }
