@@ -547,18 +547,24 @@ bool EmitterAARCH64::clobberAllFuncCall(registerSpace *rs,
     stats_codegen.startTimer(CODEGEN_LIVENESS_TIMER);
 
     if(callee->ifunc()->isLeafFunc()) {
-        std::set<Register> *gpRegs = callee->ifunc()->usedGPRs();
-        for(std::set<Register>::iterator itr = gpRegs->begin(); itr != gpRegs->end(); itr++)
-            rs->GPRs()[*itr]->beenUsed = true;
-
-        std::set<Register> *fpRegs = callee->ifunc()->usedFPRs();
-        for(std::set<Register>::iterator itr = fpRegs->begin(); itr != fpRegs->end(); itr++) {
-            if (*itr <= rs->FPRs().size())
-              rs->FPRs()[*itr]->beenUsed = true;
-            else
-              // parse_func::calcUsedRegs includes the subtype; we only want the regno
-              rs->FPRs()[*itr & 0xff]->beenUsed = true;
+        auto& all_gprs = rs->GPRs();
+        for(auto gpr : *callee->ifunc()->usedGPRs()) {
+            all_gprs[gpr]->beenUsed = true;
         }
+
+        auto& all_fprs = rs->FPRs();
+        for(auto fpr : *callee->ifunc()->usedFPRs()) {
+          all_fprs[fpr]->beenUsed = true;
+        }
+
+//        std::set<Register> *fpRegs = callee->ifunc()->usedFPRs();
+//        for(std::set<Register>::iterator itr = fpRegs->begin(); itr != fpRegs->end(); itr++) {
+//            if (*itr <= rs->FPRs().size())
+//              rs->FPRs()[*itr]->beenUsed = true;
+//            else
+//              // parse_func::calcUsedRegs includes the subtype; we only want the regno
+//              rs->FPRs()[*itr & 0xff]->beenUsed = true;
+//        }
     } else {
         for(int idx = 0; idx < rs->numGPRs(); idx++)
             rs->GPRs()[idx]->beenUsed = true;

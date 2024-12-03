@@ -141,6 +141,7 @@ void parse_func::calcUsedRegs()
             }
             else if(r.regClass() == aarch64::FPR)
             {
+                // else if(((r & aarch64::FPR) && (r <= aarch64::s31)))
                 usedRegisters->floatingPointRegisters.insert(convertRegID(r.getBaseRegister()));
             }
         }

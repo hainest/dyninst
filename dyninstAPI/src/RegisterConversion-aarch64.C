@@ -191,18 +191,14 @@ map<MachRegister, Register> reverseRegisterMap = map_list_of
 
 Register convertRegID(MachRegister reg) {
 
-    MachRegister baseReg = MachRegister((reg.getBaseRegister().val() & ~reg.getArchitecture()) | Arch_aarch64);
-//    RegisterAST::Ptr debug(new RegisterAST(baseReg));
-//    fprintf(stderr, "DEBUG: converting %s", toBeConverted->format().c_str());
-//    fprintf(stderr, " to %s\n", debug->format().c_str());
-    map<MachRegister, Register>::const_iterator found =
-      reverseRegisterMap.find(baseReg);
-    if(found == reverseRegisterMap.end()) {
-      // Yeah, this happens when we analyze trash code. Oops...
+    auto itr = reverseRegisterMap.find(reg.getBaseRegister());
+    bool const found = itr != reverseRegisterMap.end();
+    if(found) {
+      // This happens when we analyze trash code.
       return registerSpace::ignored;
     }
 
-    return found->second;
+    return itr->second;
 }
 
 
