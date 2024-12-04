@@ -105,48 +105,36 @@ void parse_func::parseOMPFunc(bool /*hasLoop*/)
    It returns true or false based on whether the function is a leaf function,
    since if it is not the function could call out to another function that
    clobbers more registers so more analysis would be needed */
-void parse_func::calcUsedRegs()
-{
-    if (!usedRegisters)
-    {
-        usedRegisters = new parse_func_registers();
-        using namespace Dyninst::InstructionAPI;
-        std::set<RegisterAST::Ptr> writtenRegs;
+void parse_func::calcUsedRegs() {
+    if (usedRegisters) {
+      return;
+    }
 
-        auto bl = blocks();
-        auto curBlock = bl.begin();
-        for( ; curBlock != bl.end(); ++curBlock)
-        {
-            InstructionDecoder d(getPtrToInstruction((*curBlock)->start()),
-                    (*curBlock)->size(),
-                    isrc()->getArch());
-            Instruction i;
+    usedRegisters = new parse_func_registers();
+    using namespace Dyninst::InstructionAPI;
+    std::set<RegisterAST::Ptr> writtenRegs;
+
+    for(auto&& blk : blocks()) {
+        InstructionDecoder d(getPtrToInstruction(blk->start()),
+                             blk->size(), isrc()->getArch());
+        Instruction i = d.decode();
+        while(i.isValid()) {
+            i.getWriteSet(writtenRegs);
             i = d.decode();
-            while(i.isValid())
-            {
-                i.getWriteSet(writtenRegs);
-                i = d.decode();
-            }
-        }
-        
-        for(std::set<RegisterAST::Ptr>::const_iterator curReg = writtenRegs.begin();
-                curReg != writtenRegs.end();
-                ++curReg)
-        {
-            MachRegister r = (*curReg)->getID();
-            if(r.regClass() == aarch64::GPR)
-            {
-                // else if(((r & aarch64::FPR) && (r <= aarch64::s31)))
-                usedRegisters->generalPurposeRegisters.insert(convertRegID(r.getBaseRegister()));
-            }
-            else if(r.regClass() == aarch64::FPR)
-            {
-                // else if(((r & aarch64::FPR) && (r <= aarch64::s31)))
-                usedRegisters->floatingPointRegisters.insert(convertRegID(r.getBaseRegister()));
-            }
         }
     }
-    return;
+
+    for(auto&& reg : writtenRegs) {
+        MachRegister r = reg->getID();
+        if(r.regClass() == aarch64::GPR) {
+            // else if(((r & aarch64::FPR) && (r <= aarch64::s31)))
+            usedRegisters->generalPurposeRegisters.insert(convertRegID(r.getBaseRegister()));
+        }
+        else if(r.regClass() == aarch64::FPR) {
+            // else if(((r & aarch64::FPR) && (r <= aarch64::s31)))
+            usedRegisters->floatingPointRegisters.insert(convertRegID(r.getBaseRegister()));
+        }
+    }
 }
 
 static void add_handler(instPoint* pt, func_instance* add_me)
