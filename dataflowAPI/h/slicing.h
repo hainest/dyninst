@@ -307,26 +307,12 @@ class Slicer {
     DYNINST_EXPORT virtual ~Predicates() {}
 
     // Callback function when adding a new node to the slice.
-<<<<<<< HEAD
-    // Return true if we want to continue slicing
     DYNINST_EXPORT virtual bool addNodeCallback(AssignmentPtr,
                                                  std::set<ParseAPI::Edge*> &) { return true;}
-    // Callback function after we have added new a node and corresponding new edges to the slice.
-    // This function allows users to inspect the current slice graph and determine which abslocs
-    // need further slicing and which abslocs are no longer interesting, by modifying the current
-    // SliceFrame.
+    // Callback function after adding a new node and corresponding new edges to the slice.
     DYNINST_EXPORT virtual bool modifyCurrentFrame(SliceFrame &, GraphPtr, Slicer*) {return true;} 						
     DYNINST_EXPORT virtual bool ignoreEdge(ParseAPI::Edge*) { return false;}
     DYNINST_EXPORT Predicates() : clearCache(false), controlFlowDep(false) {}						
-=======
-    DATAFLOW_EXPORT virtual bool addNodeCallback(AssignmentPtr,
-                                                 std::set<ParseAPI::Edge*> &) { return true;}
-    // Callback function after adding a new node and corresponding new edges to the slice.
-    DATAFLOW_EXPORT virtual bool modifyCurrentFrame(SliceFrame &, GraphPtr, Slicer*) {return true;} 						
-    DATAFLOW_EXPORT virtual bool ignoreEdge(ParseAPI::Edge*) { return false;}
-    DATAFLOW_EXPORT Predicates() : clearCache(false), controlFlowDep(false) {}						
->>>>>>> 5855eea5c9 (Add dataflowAPI/slicing.h)
-
   };
 
   DYNINST_EXPORT GraphPtr forwardSlice(Predicates &predicates);
