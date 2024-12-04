@@ -58,6 +58,7 @@
 #include "function.h"
 #include "baseTramp.h"
 #include "RegisterConversion.h"
+#include "RegisterSpace.h"
 
 //#warning "This file is not implemented yet!"
 using namespace Dyninst::SymtabAPI;
@@ -132,7 +133,10 @@ void parse_func::calcUsedRegs() {
         }
         else if(r.regClass() == aarch64::FPR) {
             // else if(((r & aarch64::FPR) && (r <= aarch64::s31)))
-            usedRegisters->floatingPointRegisters.insert(convertRegID(r.getBaseRegister()));
+            auto regID = convertRegID(r.getBaseRegister());
+            if(regID != registerSpace::ignored) {
+              usedRegisters->floatingPointRegisters.insert(regID);
+            }
         }
     }
 }
