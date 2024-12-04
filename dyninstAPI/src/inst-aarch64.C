@@ -556,15 +556,6 @@ bool EmitterAARCH64::clobberAllFuncCall(registerSpace *rs,
         for(auto fpr : *callee->ifunc()->usedFPRs()) {
           all_fprs[fpr]->beenUsed = true;
         }
-
-//        std::set<Register> *fpRegs = callee->ifunc()->usedFPRs();
-//        for(std::set<Register>::iterator itr = fpRegs->begin(); itr != fpRegs->end(); itr++) {
-//            if (*itr <= rs->FPRs().size())
-//              rs->FPRs()[*itr]->beenUsed = true;
-//            else
-//              // parse_func::calcUsedRegs includes the subtype; we only want the regno
-//              rs->FPRs()[*itr & 0xff]->beenUsed = true;
-//        }
     } else {
         for(int idx = 0; idx < rs->numGPRs(); idx++)
             rs->GPRs()[idx]->beenUsed = true;

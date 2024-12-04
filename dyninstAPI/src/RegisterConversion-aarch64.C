@@ -193,7 +193,7 @@ Register convertRegID(MachRegister reg) {
 
     auto itr = reverseRegisterMap.find(reg.getBaseRegister());
     bool const found = itr != reverseRegisterMap.end();
-    if(found) {
+    if(!found) {
       // This happens when we analyze trash code.
       return registerSpace::ignored;
     }
