@@ -554,7 +554,7 @@ bool EmitterAARCH64::clobberAllFuncCall(registerSpace *rs,
 
         auto& all_fprs = rs->FPRs();
         for(auto fpr : *callee->ifunc()->usedFPRs()) {
-          all_fprs[fpr]->beenUsed = true;
+          all_fprs[registerSpace::FPR(fpr)]->beenUsed = true;
         }
     } else {
         for(int idx = 0; idx < rs->numGPRs(); idx++)
