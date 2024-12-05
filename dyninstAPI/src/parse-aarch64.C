@@ -126,19 +126,18 @@ void parse_func::calcUsedRegs() {
     }
 
     for(auto const& reg : writtenRegs) {
-        MachRegister r = reg->getID();
-        if(r.regClass() == aarch64::GPR) {
-          auto regID = convertRegID(r.getBaseRegister());
-          if(regID != registerSpace::ignored) {
-            usedRegisters->generalPurposeRegisters.insert(regID);
-          }
-        }
-        else if(r.regClass() == aarch64::FPR) {
-          auto regID = convertRegID(r.getBaseRegister());
-          if(regID != registerSpace::ignored) {
-            usedRegisters->floatingPointRegisters.insert(regID);
-          }
-        }
+      MachRegister r = reg->getID();
+      auto regID = convertRegID(r.getBaseRegister());
+      if(regID == registerSpace::ignored) {
+        logLine("parse_func::calcUsedRegs: unknown written register\n");
+        continue;
+      }
+      if(r.regClass() == aarch64::GPR) {
+        usedRegisters->generalPurposeRegisters.insert(regID);
+      }
+      else if(r.regClass() == aarch64::FPR) {
+        usedRegisters->floatingPointRegisters.insert(regID);
+      }
     }
 }
 
