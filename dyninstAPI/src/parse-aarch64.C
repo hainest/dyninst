@@ -58,7 +58,7 @@
 #include "function.h"
 #include "baseTramp.h"
 #include "RegisterConversion.h"
-#include "RegisterSpace.h"
+#include "registerSpace.h"
 
 //#warning "This file is not implemented yet!"
 using namespace Dyninst::SymtabAPI;
