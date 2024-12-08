@@ -211,6 +211,15 @@ namespace Dyninst { namespace InstructionAPI {
       }
     }
 
+    auto is_sp = [&](x86_reg r) {
+      for(auto sp : {X86_REG_SP, X86_REG_ESP, X86_REG_RSP}) {
+        if(sp == r) {
+          return true;
+        }
+      }
+      return false;
+    };
+
     /* Decode _implicit_ operands
      *
      * These are operands which are not part of the opcode. Some opcodes
@@ -233,6 +242,17 @@ namespace Dyninst { namespace InstructionAPI {
           auto regAST = makeRegisterExpression(fr.reg);
           insn->appendOperand(regAST, fr.state.read, fr.state.written, is_implicit);
         }
+      } else if(is_sp(reg)) {
+        // cs_reg_* only count _IMPLICIT_ registers
+        bool const is_written = cs_reg_write(dis.handle, dis.insn, reg);
+        bool const is_read = cs_reg_read(dis.handle, dis.insn, reg);
+
+        // Capstone doesn't track implicit writes to the stack pointer
+        auto const sp_reg = x86::translate_register(reg, this->mode);
+        auto const type = size_to_type_unsigned(dis.insn->detail->x86.addr_size);
+        auto sp_ast = makeRegisterExpression(sp_reg);
+        auto expr = makeDereferenceExpression(std::move(sp_ast), type);
+        insn->appendOperand(std::move(expr), is_read, is_written, is_implicit);
       } else {
         MachRegister mreg = x86::translate_register(reg, this->mode);
         auto regAST = makeRegisterExpression(mreg);
