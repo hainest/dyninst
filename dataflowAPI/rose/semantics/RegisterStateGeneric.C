@@ -5,10 +5,6 @@
 #include <iomanip>
 #include "RegisterStateGeneric.h"
 
-// Define this if you want extra consistency checking before and after each mutator.  This slows things down considerably but
-// can be useful for narrowing down logic errors in the implementation.
-//#define RegisterStateGeneric_ExtraAssertions
-
 // Define this if you want the readRegister behavior as it existed before 2015-09-24. This behavior was wrong in certain ways
 // because it didn't always cause registers to spring into existence the first time they were read.
 //#define RegisterStateGeneric_20150924
@@ -79,51 +75,6 @@ has_null_value(const RegisterStateGeneric::RegPair &rp)
     return rp.value == NULL;
 }
 
-void
-RegisterStateGeneric::assertStorageConditions(const std::string &when, const RegisterDescriptor &reg) const {
-#if !defined(NDEBUG) && defined(RegisterStateGeneric_ExtraAssertions)
-#if 1 // DEBUGGING [Robb P. Matzke 2015-09-28]
-    static volatile size_t ncalls = 0;
-    ++ncalls;
-#endif
-    std::ostringstream error;
-    BOOST_FOREACH (const Registers::Node &rnode, registers_.nodes()) {
-        Sawyer::Container::IntervalSet<BitRange> foundLocations;
-        BOOST_FOREACH (const RegPair &regpair, rnode.value()) {
-            if (!regpair.desc.is_valid()) {
-                error <<"invalid register descriptor";
-            } else if (regpair.desc.get_major() != rnode.key().majr || regpair.desc.get_minor() != rnode.key().minr) {
-                error <<"register is in wrong list; register=" <<regpair.desc.get_major() <<"." <<regpair.desc.get_minor()
-                      <<", list=" <<rnode.key().majr <<"." <<rnode.key().minr;
-            } else if (regpair.value == NULL) {
-                error <<"value is null for register " <<regpair.desc;
-            } else if (regpair.value->get_width() != regpair.desc.get_nbits()) {
-                error <<"value width (" <<regpair.value->get_width() <<") is incorrect for register " <<regpair.desc;
-            } else if (foundLocations.isOverlapping(regpair.location())) {
-                error <<"register " <<regpair.desc <<" is stored multiple times in the list";
-            }
-            foundLocations.insert(regpair.location());
-            if (!error.str().empty())
-                break;
-        }
-
-        if (!error.str().empty()) {
-            //FIXME
-            /*mlog[FATAL] <<when <<" register " <<reg <<":\n";
-            mlog[FATAL] <<"  " <<error.str() <<"\n";
-            mlog[FATAL] <<"  related registers:\n";
-            BOOST_FOREACH (const RegPair &regpair, rnode.value()) {
-                mlog[FATAL] <<"    " <<regpair.desc;
-                if (regpair.value == NULL)
-                    mlog[FATAL] <<"\tnull value";
-                mlog[FATAL] <<"\n";
-            }*/
-            abort();
-        }
-    }
-#endif
-}
-
 RegisterStateGeneric::RegPairs&
 RegisterStateGeneric::scanAccessedLocations(const RegisterDescriptor &reg, RiscOperators *ops, bool markOverlapping,
                                             RegPairs &accessedParts /*out*/, RegPairs &preservedParts /*out*/) {
@@ -174,7 +125,6 @@ RegisterStateGeneric::readRegister(const RegisterDescriptor &reg, const SValuePt
     ASSERT_not_null(dflt);
     ASSERT_require(reg.get_nbits() == dflt->get_width());
     ASSERT_not_null(ops);
-    assertStorageConditions("at start of read", reg);
     BitRange accessedLocation = BitRange::baseSize(reg.get_offset(), reg.get_nbits());
 #ifdef RegisterStateGeneric_20150924
     const bool adjustLocations = false;
@@ -191,7 +141,6 @@ RegisterStateGeneric::readRegister(const RegisterDescriptor &reg, const SValuePt
         if (!regname.empty() && newval->get_comment().empty())
             newval->set_comment(regname + "_0");
         registers_.insertMaybeDefault(reg).push_back(RegPair(reg, newval));
-        assertStorageConditions("at end of read", reg);
         return newval;
     }
 
@@ -255,7 +204,6 @@ RegisterStateGeneric::readRegister(const RegisterDescriptor &reg, const SValuePt
         pairList.insert(pairList.end(), newParts.begin(), newParts.end());
     }
 
-    assertStorageConditions("at end of read", reg);
     return retval;
 }
 
@@ -265,7 +213,6 @@ RegisterStateGeneric::writeRegister(const RegisterDescriptor &reg, const SValueP
     ASSERT_not_null(value);
     ASSERT_require2(reg.get_nbits()==value->get_width(), "value written to register must be the same width as the register");
     ASSERT_not_null(ops);
-    assertStorageConditions("at start of write", reg);
     BitRange accessedLocation = BitRange::baseSize(reg.get_offset(), reg.get_nbits());
 
     // Fast case: the state does not store this register or any register that might overlap with this register.
@@ -273,7 +220,6 @@ RegisterStateGeneric::writeRegister(const RegisterDescriptor &reg, const SValueP
         if (!accessCreatesLocations_)
             throw RegisterNotPresent(reg);
         registers_.insertMaybeDefault(reg).push_back(RegPair(reg, value));
-        assertStorageConditions("at end of write", reg);
         return;
     }
 
@@ -349,7 +295,6 @@ RegisterStateGeneric::writeRegister(const RegisterDescriptor &reg, const SValueP
             pairList.push_back(RegPair(subreg, valueToWrite));
         }
     }
-    assertStorageConditions("at end of write", reg);
 }
 
 void
@@ -380,7 +325,6 @@ RegisterStateGeneric::erase_register(const RegisterDescriptor &reg, RiscOperator
 {
     ASSERT_require(reg.is_valid());
     ASSERT_not_null(ops);
-    assertStorageConditions("at start of erase", reg);
     BitRange accessedLocation = BitRange::baseSize(reg.get_offset(), reg.get_nbits());
 
     // Fast case: the state does not store this register or any register that might overlap with this register
@@ -413,7 +357,6 @@ RegisterStateGeneric::erase_register(const RegisterDescriptor &reg, RiscOperator
     // Remove marked pairs, then add the non-overlapping parts.
     pairList.erase(std::remove_if(pairList.begin(), pairList.end(), has_null_value), pairList.end());
     pairList.insert(pairList.end(), nonoverlaps.begin(), nonoverlaps.end());
-    assertStorageConditions("at end of erase", reg);
 }
 
 RegisterStateGeneric::RegPairs
