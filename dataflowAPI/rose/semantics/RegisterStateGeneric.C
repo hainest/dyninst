@@ -5,10 +5,6 @@
 #include <iomanip>
 #include "RegisterStateGeneric.h"
 
-// Define this if you want the readRegister behavior as it existed before 2015-09-24. This behavior was wrong in certain ways
-// because it didn't always cause registers to spring into existence the first time they were read.
-//#define RegisterStateGeneric_20150924
-
 namespace rose {
 namespace BinaryAnalysis {
 namespace InstructionSemantics2 {
@@ -126,11 +122,7 @@ RegisterStateGeneric::readRegister(const RegisterDescriptor &reg, const SValuePt
     ASSERT_require(reg.get_nbits() == dflt->get_width());
     ASSERT_not_null(ops);
     BitRange accessedLocation = BitRange::baseSize(reg.get_offset(), reg.get_nbits());
-#ifdef RegisterStateGeneric_20150924
-    const bool adjustLocations = false;
-#else
     const bool adjustLocations = accessModifiesExistingLocations_;
-#endif
 
     // Fast case: the state does not store this register or any register that might overlap with this register.
     if (!registers_.exists(reg)) {
