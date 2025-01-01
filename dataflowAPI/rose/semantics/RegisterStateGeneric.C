@@ -1,7 +1,5 @@
 #include "../util/StringUtility.h"
 #include "../util/IntervalSet.h"
-//#include <sage3basic.h>
-//#include <Diagnostics.h>
 #include <iomanip>
 #include "RegisterStateGeneric.h"
 
@@ -9,8 +7,6 @@ namespace rose {
 namespace BinaryAnalysis {
 namespace InstructionSemantics2 {
 namespace BaseSemantics {
-
-//using namespace rose::Diagnostics;
 
 static bool
 sortByOffset(const RegisterStateGeneric::RegPair &a, const RegisterStateGeneric::RegPair &b) {
@@ -771,7 +767,4 @@ RegisterStateGeneric::print(std::ostream &stream, Formatter &fmt) const
 
 
 
-} // namespace
-} // namespace
-} // namespace
-} // namespace
+}}}}
