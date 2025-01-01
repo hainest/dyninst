@@ -376,86 +376,80 @@ namespace rose {
                 };
 
 
-                /***************************************************************************************************/
-                /*                                                State                                            */
-                /***************************************************************************************************/
+        /***************************************************************************************************/
+        /*                                                State                                            */
+        /***************************************************************************************************/
 
-                typedef boost::shared_ptr<class StateAST> StateASTPtr;
+        typedef boost::shared_ptr<class StateAST> StateASTPtr;
 
-                class StateAST : public BaseSemantics::State {
-                public:
-                    StateAST(Dyninst::DataflowAPI::Result_t &r,
-                               Dyninst::Address a,
-                               Dyninst::Architecture ac,
-                               Dyninst::InstructionAPI::Instruction insn_,
-                               const BaseSemantics::RegisterStatePtr &registers,
-                               const BaseSemantics::MemoryStatePtr &memory): BaseSemantics::State(registers, memory), res(r), arch(ac), addr(a), insn(insn_) {
-                        for (Dyninst::DataflowAPI::Result_t::iterator iter = r.begin();
-                             iter != r.end(); ++iter) {
-                            Dyninst::Assignment::Ptr ap = iter->first;
-                            // For a different instruction...
-                            if (ap->addr() != addr)
-                                continue;
-                            Dyninst::AbsRegion &o = ap->out();
+        class StateAST: public BaseSemantics::State {
+        public:
+          StateAST(Dyninst::DataflowAPI::Result_t &r, Dyninst::Address a, Dyninst::Architecture ac,
+              Dyninst::InstructionAPI::Instruction insn_, const BaseSemantics::RegisterStatePtr &registers,
+              const BaseSemantics::MemoryStatePtr &memory) :
+              BaseSemantics::State(registers, memory), res(r), arch(ac), addr(a), insn(insn_) {
 
-                            if (o.containsOfType(Dyninst::Absloc::Register)) {
-                                // We're assuming this is a single register...
-                                //std::cerr << "Marking register " << ap << std::endl;
-                                aaMap[o.absloc()] = ap;
-                            }
-                            else {
-                                // Use sufficiently-unique (Heap,0) Absloc
-                                // to represent a definition to a memory absloc
-                                aaMap[Dyninst::Absloc(0)] = ap;
-                            }
-                        }
-                    }
+            for (Dyninst::DataflowAPI::Result_t::iterator iter = r.begin(); iter != r.end(); ++iter) {
+              Dyninst::Assignment::Ptr ap = iter->first;
+              // For a different instruction...
+              if (ap->addr() != addr)
+                continue;
+              Dyninst::AbsRegion &o = ap->out();
 
-                public:
-                    static StateASTPtr instance(Dyninst::DataflowAPI::Result_t &r,
-                                                  Dyninst::Address a,
-                                                  Dyninst::Architecture ac,
-                                                  Dyninst::InstructionAPI::Instruction insn_,
-                                                  const BaseSemantics::RegisterStatePtr &registers,
-                                                  const BaseSemantics::MemoryStatePtr &memory) {
-                        return StateASTPtr(new StateAST(r, a, ac, insn_, registers, memory));
-                    }
+              if (o.containsOfType(Dyninst::Absloc::Register)) {
+                // We're assuming this is a single register...
+                //std::cerr << "Marking register " << ap << std::endl;
+                aaMap[o.absloc()] = ap;
+              } else {
+                // Use sufficiently-unique (Heap,0) Absloc
+                // to represent a definition to a memory absloc
+                aaMap[Dyninst::Absloc(0)] = ap;
+              }
+            }
+          }
 
-                    using BaseSemantics::State::create;
-                    virtual BaseSemantics::StatePtr create(Dyninst::DataflowAPI::Result_t &r,
-                                                 Dyninst::Address a,
-                                                 Dyninst::Architecture ac,
-                                                 Dyninst::InstructionAPI::Instruction insn_,
-                                                 const BaseSemantics::RegisterStatePtr &registers,
-                                                 const BaseSemantics::MemoryStatePtr &memory) const {
-                        return instance(r, a, ac, insn_, registers, memory);
-                    }
+        public:
+          static StateASTPtr instance(Dyninst::DataflowAPI::Result_t &r, Dyninst::Address a, Dyninst::Architecture ac,
+              Dyninst::InstructionAPI::Instruction insn_, const BaseSemantics::RegisterStatePtr &registers,
+              const BaseSemantics::MemoryStatePtr &memory) {
+            return StateASTPtr(new StateAST(r, a, ac, insn_, registers, memory));
+          }
 
-                    static StateASTPtr promote(const BaseSemantics::StatePtr &from) {
-                        StateASTPtr retval = boost::dynamic_pointer_cast<StateAST>(from);
-                        ASSERT_not_null(retval);
-                        return retval;
-                    }
+          using BaseSemantics::State::create;
+          virtual BaseSemantics::StatePtr create(Dyninst::DataflowAPI::Result_t &r, Dyninst::Address a,
+              Dyninst::Architecture ac, Dyninst::InstructionAPI::Instruction insn_,
+              const BaseSemantics::RegisterStatePtr &registers, const BaseSemantics::MemoryStatePtr &memory) const {
+            return instance(r, a, ac, insn_, registers, memory);
+          }
 
-                public:
-                    virtual BaseSemantics::SValuePtr readRegister(const RegisterDescriptor &reg, const BaseSemantics::SValuePtr &dflt, BaseSemantics::RiscOperators *ops);
-                    virtual void writeRegister(const RegisterDescriptor &reg, const BaseSemantics::SValuePtr &value, BaseSemantics::RiscOperators *ops);
-                    using BaseSemantics::State::readMemory;
-                    virtual BaseSemantics::SValuePtr readMemory(const BaseSemantics::SValuePtr &address, const BaseSemantics::SValuePtr &dflt,
-                                                                BaseSemantics::RiscOperators *addrOps, BaseSemantics::RiscOperators *valOps, size_t readSize = 0);
-                    virtual void writeMemory(const BaseSemantics::SValuePtr &addr, const BaseSemantics::SValuePtr &value, BaseSemantics::RiscOperators *addrOps,
-                                             BaseSemantics::RiscOperators *valOps, size_t writeSize);
-                    virtual void writeMemory(const BaseSemantics::SValuePtr &addr, const BaseSemantics::SValuePtr &value, BaseSemantics::RiscOperators *addrOps,
-                                             BaseSemantics::RiscOperators *valOps);
+          static StateASTPtr promote(const BaseSemantics::StatePtr &from) {
+            StateASTPtr retval = boost::dynamic_pointer_cast<StateAST>(from);
+            ASSERT_not_null(retval);
+            return retval;
+          }
 
-                protected:
-                    Dyninst::DataflowAPI::Result_t &res;
-                    Dyninst::Architecture arch;
-                    Dyninst::Address addr;
-                    Dyninst::InstructionAPI::Instruction insn;
+        public:
+          virtual BaseSemantics::SValuePtr readRegister(const RegisterDescriptor &reg,
+              const BaseSemantics::SValuePtr &dflt, BaseSemantics::RiscOperators *ops);
+          virtual void writeRegister(const RegisterDescriptor &reg, const BaseSemantics::SValuePtr &value,
+              BaseSemantics::RiscOperators *ops);
+          using BaseSemantics::State::readMemory;
+          virtual BaseSemantics::SValuePtr readMemory(const BaseSemantics::SValuePtr &address,
+              const BaseSemantics::SValuePtr &dflt, BaseSemantics::RiscOperators *addrOps,
+              BaseSemantics::RiscOperators *valOps, size_t readSize = 0);
+          virtual void writeMemory(const BaseSemantics::SValuePtr &addr, const BaseSemantics::SValuePtr &value,
+              BaseSemantics::RiscOperators *addrOps, BaseSemantics::RiscOperators *valOps, size_t writeSize);
+          virtual void writeMemory(const BaseSemantics::SValuePtr &addr, const BaseSemantics::SValuePtr &value,
+              BaseSemantics::RiscOperators *addrOps, BaseSemantics::RiscOperators *valOps);
 
-                    std::map<Dyninst::Absloc, Dyninst::Assignment::Ptr> aaMap;
-                };
+        protected:
+          Dyninst::DataflowAPI::Result_t &res;
+          Dyninst::Architecture arch;
+          Dyninst::Address addr;
+          Dyninst::InstructionAPI::Instruction insn;
+
+          std::map<Dyninst::Absloc, Dyninst::Assignment::Ptr> aaMap;
+        };
 
 
                 /***************************************************************************************************/
