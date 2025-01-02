@@ -257,82 +257,83 @@ Dyninst::Absloc SymEvalSemantics::RegisterStateAST_amdgpu_gfx940::convert(const 
 
 
 Dyninst::Absloc SymEvalSemantics::RegisterStateASTARM64::convert(const RegisterDescriptor &reg) {
-    Dyninst::MachRegister mreg;
-
-    unsigned int major = reg.get_major();
-    unsigned int size = reg.get_nbits();
-
-    switch (major) {
-        case armv8_regclass_gpr: {
-            unsigned int minor = reg.get_minor();
-
-            if (minor == armv8_gpr_zr) {
-                mreg = Dyninst::MachRegister((size == 32) ? Dyninst::aarch64::wzr : Dyninst::aarch64::xzr);
-            } else {
-                Dyninst::MachRegister base = (size == 32) ? Dyninst::aarch64::w0 : Dyninst::aarch64::x0;
-                mreg = Dyninst::MachRegister(base.val() + (minor - armv8_gpr_r0));
-            }
-        }
-            break;
-        case armv8_regclass_simd_fpr: {
-            Dyninst::MachRegister base;
-            unsigned int minor = reg.get_minor();
-
-            switch(size) {
-                case 8: base = Dyninst::aarch64::b0;
-                    break;
-                case 16: base = Dyninst::aarch64::h0;
-                    break;
-                case 32: base = Dyninst::aarch64::s0;
-                    break;
-                case 64:
-                    if (reg.get_offset() == 64) {
-                        base = Dyninst::aarch64::hq0;
-                    } else {
-                        base = Dyninst::aarch64::d0;
-                    }
-                    break;
-                case 128: base = Dyninst::aarch64::q0;
-                    break;
-                default:
-                    throw RoseException("invalid size of RegisterDescriptor!", nullptr);
-                    break;
-            }
-            mreg = Dyninst::MachRegister(base.val() + (minor - armv8_simdfpr_v0));
-        }
-            break;
-        case armv8_regclass_pc:
-            mreg = Dyninst::MachRegister(Dyninst::aarch64::pc);
-            break;
-        case armv8_regclass_sp:
-            mreg = Dyninst::MachRegister((size == 32) ? Dyninst::aarch64::wsp : Dyninst::aarch64::sp);
-            break;
-        case armv8_regclass_pstate: {
-            unsigned int offset = reg.get_offset();
-            switch (offset) {
-                case armv8_pstatefield_n:
-                    mreg = Dyninst::MachRegister(Dyninst::aarch64::n);
-                    break;
-                case armv8_pstatefield_z:
-                    mreg = Dyninst::MachRegister(Dyninst::aarch64::z);
-                    break;
-                case armv8_pstatefield_c:
-                    mreg = Dyninst::MachRegister(Dyninst::aarch64::c);
-                    break;
-                case armv8_pstatefield_v:
-                    mreg = Dyninst::MachRegister(Dyninst::aarch64::v);
-                    break;
-                default:
-                    ASSERT_always_forbid("No part of the PSTATE register other than NZCV should be used.");
-                    break;
-            }
-        }
-            break;
-        default:
-            ASSERT_always_forbid("Unexpected register major type.");
-    }
-
-    return Dyninst::Absloc(mreg);
+  return reg.get_machine_register();
+//    Dyninst::MachRegister mreg;
+//
+//    unsigned int major = reg.get_major();
+//    unsigned int size = reg.get_nbits();
+//
+//    switch (major) {
+//        case armv8_regclass_gpr: {
+//            unsigned int minor = reg.get_minor();
+//
+//            if (minor == armv8_gpr_zr) {
+//                mreg = Dyninst::MachRegister((size == 32) ? Dyninst::aarch64::wzr : Dyninst::aarch64::xzr);
+//            } else {
+//                Dyninst::MachRegister base = (size == 32) ? Dyninst::aarch64::w0 : Dyninst::aarch64::x0;
+//                mreg = Dyninst::MachRegister(base.val() + (minor - armv8_gpr_r0));
+//            }
+//        }
+//            break;
+//        case armv8_regclass_simd_fpr: {
+//            Dyninst::MachRegister base;
+//            unsigned int minor = reg.get_minor();
+//
+//            switch(size) {
+//                case 8: base = Dyninst::aarch64::b0;
+//                    break;
+//                case 16: base = Dyninst::aarch64::h0;
+//                    break;
+//                case 32: base = Dyninst::aarch64::s0;
+//                    break;
+//                case 64:
+//                    if (reg.get_offset() == 64) {
+//                        base = Dyninst::aarch64::hq0;
+//                    } else {
+//                        base = Dyninst::aarch64::d0;
+//                    }
+//                    break;
+//                case 128: base = Dyninst::aarch64::q0;
+//                    break;
+//                default:
+//                    throw RoseException("invalid size of RegisterDescriptor!", nullptr);
+//                    break;
+//            }
+//            mreg = Dyninst::MachRegister(base.val() + (minor - armv8_simdfpr_v0));
+//        }
+//            break;
+//        case armv8_regclass_pc:
+//            mreg = Dyninst::MachRegister(Dyninst::aarch64::pc);
+//            break;
+//        case armv8_regclass_sp:
+//            mreg = Dyninst::MachRegister((size == 32) ? Dyninst::aarch64::wsp : Dyninst::aarch64::sp);
+//            break;
+//        case armv8_regclass_pstate: {
+//            unsigned int offset = reg.get_offset();
+//            switch (offset) {
+//                case armv8_pstatefield_n:
+//                    mreg = Dyninst::MachRegister(Dyninst::aarch64::n);
+//                    break;
+//                case armv8_pstatefield_z:
+//                    mreg = Dyninst::MachRegister(Dyninst::aarch64::z);
+//                    break;
+//                case armv8_pstatefield_c:
+//                    mreg = Dyninst::MachRegister(Dyninst::aarch64::c);
+//                    break;
+//                case armv8_pstatefield_v:
+//                    mreg = Dyninst::MachRegister(Dyninst::aarch64::v);
+//                    break;
+//                default:
+//                    ASSERT_always_forbid("No part of the PSTATE register other than NZCV should be used.");
+//                    break;
+//            }
+//        }
+//            break;
+//        default:
+//            ASSERT_always_forbid("Unexpected register major type.");
+//    }
+//
+//    return Dyninst::Absloc(mreg);
 }
 
 Dyninst::Absloc SymEvalSemantics::RegisterStateASTPPC32::convert(const RegisterDescriptor &reg) {
