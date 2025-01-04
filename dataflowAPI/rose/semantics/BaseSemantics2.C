@@ -486,7 +486,6 @@ void
 Dispatcher::iproc_set(int key, InsnProcessor *iproc)
 {
     ASSERT_require(key>=0);
-    std::cerr << "Adding iproc key " << key << '\n';
     if ((size_t)key>=iproc_table.size())
         iproc_table.resize(key+1, NULL);
     iproc_table[key] = iproc;
