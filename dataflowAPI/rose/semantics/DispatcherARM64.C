@@ -4900,7 +4900,6 @@ namespace rose {
 
                     }
                 };
-
     struct IP_ret: P {
       void p(D d, Ops ops, I insn, A args, B) {
           BaseSemantics::SValue::Ptr targetVa;

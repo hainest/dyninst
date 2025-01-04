@@ -108,7 +108,7 @@ bool SymbolicExpansion::expandPPC64(SgAsmInstruction *rose_insn,
     return true;
 }
 
-bool SymbolicExpansion::expandAarch64(SgAsmInstruction *rose_insn, BaseSemantics::RiscOperatorsPtr ops, const std::string &/*insn_dump*/) {
+bool SymbolicExpansion::expandAarch64(SgAsmInstruction *rose_insn, BaseSemantics::RiscOperatorsPtr ops, const std::string &) {
     SgAsmArmv8Instruction *insn = static_cast<SgAsmArmv8Instruction *>(rose_insn);
 
     BaseSemantics::DispatcherPtr cpu = DispatcherARM64::instance(ops, 64);

@@ -82,10 +82,27 @@ void SymEvalSemantics::RegisterStateAST::writeRegister(const RegisterDescriptor 
                                                          const BaseSemantics::SValuePtr &value,
                                                          Dyninst::DataflowAPI::Result_t &res,
                                                          std::map<Dyninst::Absloc, Dyninst::Assignment::Ptr> &aaMap) {
-    std::map<Dyninst::Absloc, Dyninst::Assignment::Ptr>::iterator i = aaMap.find(convert(reg));
+
+  auto const converted = convert(reg);
+  auto i = aaMap.find(converted);
+
+    std::cout << "RegisterStateAST::writeRegister: reg='" << reg << ", converted=" << converted
+              << ", Value width: " << value->get_width() << '\n';
+
+    std::cerr << "writeRegister: aaMap = ";
+    for(auto&& r : aaMap) {
+      auto absloc = r.first;
+      auto assignment = r.second;
+      std::cerr << assignment->format() << " at " << absloc.format() << "\n";
+    }
+    std::cerr << "\n";
+
     if (i != aaMap.end()) {
         SymEvalSemantics::SValuePtr value_ = SymEvalSemantics::SValue::promote(value);
         res[i->second] = value_->get_expression();
+        std::cerr << "Saved value '";
+        value->print(std::cerr);
+        std::cerr << "'\n";
     }
 }
 
