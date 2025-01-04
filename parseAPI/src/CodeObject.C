@@ -102,7 +102,7 @@ CodeObject::process_hints()
             f = parser->factory()._mkfunc(
                 hints[i]._addr,HINT,hints[i]._name,this,cr,cr);
         if(f) {
-            parsing_printf("[%s] adding hint %lx\n",FILE__,f->addr());
+            parsing_printf("[%s] adding hint '%s' at %lx\n",FILE__,hints[i]._name.c_str(),f->addr());
             parser->add_hint(f);
         }
     }

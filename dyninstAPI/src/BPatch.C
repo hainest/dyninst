@@ -571,10 +571,10 @@ void defaultErrorFunc(BPatchErrorLevel level, int num, const char * const *param
 {
     char line[256];
 
-    if ((level == BPatchWarning) || (level == BPatchInfo)) {
-         // ignore low level errors/warnings in the default reporter
-         return;
-    }
+//    if ((level == BPatchWarning) || (level == BPatchInfo)) {
+//         // ignore low level errors/warnings in the default reporter
+//         return;
+//    }
 
     const char *msg = BPatch::bpatch->getEnglishErrorString(num);
     BPatch::bpatch->formatErrorString(line, sizeof(line), msg, params);

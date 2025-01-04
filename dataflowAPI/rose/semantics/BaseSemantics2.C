@@ -472,6 +472,7 @@ Dispatcher::iproc_lookup(SgAsmInstruction *insn)
 {
     int key = iproc_key(insn);
     ASSERT_require(key>=0);
+    std::cerr << "Looking for iproc key " << key << '\n';
     return iproc_get(key);
 }
 
