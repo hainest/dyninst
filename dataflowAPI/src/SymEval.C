@@ -74,8 +74,28 @@ std::pair<AST::Ptr, bool> SymEval::expand(const Assignment::Ptr &assignment, boo
     Result_t res;
     // Fill it in to mark it as existing
     res[assignment] = AST::Ptr();
+
+    std::cerr << "SymEval::expand 'res' before:";
+    for(auto&& r : res) {
+      std::cerr << r.first->format() << ", ";
+    }
+    std::cerr << '\n';
+
     std::set<Instruction> ignored;
     bool succ = expand(res, ignored, applyVisitors);
+
+    std::cerr << "SymEval::expand found bad instructions:";
+    for(auto&& insn : ignored) {
+      std::cerr << insn.format() << ", ";
+    }
+    std::cerr << '\n';
+
+    std::cerr << "SymEval::expand 'res' after:";
+    for(auto&& r : res) {
+      std::cerr << r.first->format() << ", ";
+    }
+    std::cerr << '\n';
+
     return std::make_pair(res[assignment], succ);
 }
 

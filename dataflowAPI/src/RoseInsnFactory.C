@@ -92,9 +92,14 @@ SgAsmInstruction *RoseInsnFactory::convert(const Instruction &insn, uint64_t add
        opi != operands.end();
        ++opi, ++i) {
       InstructionAPI::Operand &currOperand = *opi;
-    //std::cerr << "Converting operand " << currOperand.format(arch(), addr) << std::endl;
+      std::cerr << "Converting operand " << currOperand.format(arch(), addr) << '\n';
       SgAsmExpression *converted = convertOperand(currOperand.getValue(), addr, insn.size());
-      if (converted == NULL) return NULL;
+      if (converted == NULL) {
+        std::cerr << "No ROSE conversion found for '" << currOperand.format(arch(), addr) << "'\n";
+        return NULL;
+      }
+      std::cerr << "Found ROSE conversion '" << converted->variantT()
+                << "'for '" << currOperand.format(arch(), addr) << "'\n";
       roperands->append_operand(converted);
   }  
   rinsn->set_operandList(roperands);
