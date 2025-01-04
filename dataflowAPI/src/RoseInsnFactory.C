@@ -44,6 +44,8 @@
 
 #include "ExpressionConversionVisitor.h"
 
+#include "debug_dataflow.h"
+
 // Assume Windows/MSVC is little-endian
 
 #if defined(_MSC_VER)
@@ -74,28 +76,25 @@ SgAsmInstruction *RoseInsnFactory::convert(const Instruction &insn, uint64_t add
   // operand list
   SgAsmOperandList *roperands = new SgAsmOperandList;
   
-   //std::cerr << "Converting " << insn.format(addr) << " @" << std::hex << addr << std::dec << std::endl;
-  
-   //std::cerr << "checking instruction: " << insn.format(addr) << " for special handling" << std::endl;
   if (handleSpecialCases(insn.getOperation().getID(), rinsn, roperands)) {
       rinsn->set_operandList(roperands);
       return rinsn;
   }
 
-   //std::cerr << "no special handling by opcode, checking if we should mangle operands..." << std::endl;
   auto operands = insn.getAllOperands();
   massageOperands(insn, operands);
-  int i = 0;
-  //std::cerr << "converting insn " << insn.format(addr) << std::endl;
-  //std::cerr << "\t " << operands.size() << " operands" << std::endl;
-  for (std::vector<InstructionAPI::Operand>::iterator opi = operands.begin();
-       opi != operands.end();
-       ++opi, ++i) {
-      InstructionAPI::Operand &currOperand = *opi;
-    //std::cerr << "Converting operand " << currOperand.format(arch(), addr) << std::endl;
-      SgAsmExpression *converted = convertOperand(currOperand.getValue(), addr, insn.size());
-      if (converted == NULL) return NULL;
-      roperands->append_operand(converted);
+  for (auto const& currOperand : operands) {
+    SgAsmExpression *converted = convertOperand(currOperand.getValue(), addr, insn.size());
+    if (converted == NULL) {
+      expand_printf(
+        "Failed to convert operand '%s' for instruction [0x%lX] %s\n",
+        currOperand.getValue()->format().c_str(),
+        addr,
+        insn.format().c_str()
+      );
+      return NULL;
+    }
+    roperands->append_operand(converted);
   }  
   rinsn->set_operandList(roperands);
   return rinsn;
@@ -103,6 +102,7 @@ SgAsmInstruction *RoseInsnFactory::convert(const Instruction &insn, uint64_t add
 
 SgAsmExpression *RoseInsnFactory::convertOperand(const Expression::Ptr expression, int64_t addr, size_t insnSize) {
   if(!expression) return NULL;
+  expand_printf("Expanding operand '%s'\n", expression->format().c_str());
   ExpressionConversionVisitor visitor(arch(), addr, insnSize);
   expression->apply(&visitor);
   return visitor.getRoseExpression();

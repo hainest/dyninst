@@ -42,6 +42,8 @@
 #include "../rose/semantics/DispatcherAMDGPU.h"
 #include "../rose/semantics/DispatcherPowerpc.h"
 
+#include "debug_dataflow.h"
+
 using namespace Dyninst;
 using namespace DataflowAPI;
 
@@ -107,10 +109,11 @@ bool SymbolicExpansion::expandAarch64(SgAsmInstruction *rose_insn, BaseSemantics
     try {
         cpu->processInstruction(insn);
     } catch (rose::BinaryAnalysis::InstructionSemantics2::BaseSemantics::Exception &e) {
-        // fprintf(stderr, "Instruction processing threw exception for instruction: %s\n", insn_dump.c_str());
+      expand_printf("Failed to process instruction '%s': %s\n", ops->get_name().c_str(), e.what());
+      return false;
     }
 
-    return false;
+    return true;
 }
 
 
