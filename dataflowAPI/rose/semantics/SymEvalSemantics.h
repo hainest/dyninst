@@ -400,13 +400,14 @@ namespace rose {
 
                             if (o.containsOfType(Dyninst::Absloc::Register)) {
                                 // We're assuming this is a single register...
-                                //std::cerr << "Marking register " << ap << std::endl;
+                                std::cerr << "StateAST: marking '" << ap->format() << "' at region " << o.format() << " as register\n";
                                 aaMap[o.absloc()] = ap;
                             }
                             else {
                                 // Use sufficiently-unique (Heap,0) Absloc
                                 // to represent a definition to a memory absloc
                                 aaMap[Dyninst::Absloc(0)] = ap;
+                                std::cerr << "StateAST: marking " << ap->format() << " as memory\n";
                             }
                         }
                     }

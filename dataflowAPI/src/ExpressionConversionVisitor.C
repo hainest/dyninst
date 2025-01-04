@@ -153,11 +153,19 @@ void ExpressionConversionVisitor::visit(RegisterAST *regast) {
     // has no children
     SgAsmExpression* reg = archSpecificRegisterProc(regast, addr, size);
     if (reg == NULL) {
+        expand_printf("Failed to get arch-specific register for 0x[%lX] %s\n", addr, regast->format().c_str());
         roseExpression = NULL;
         return;
     }
     m_stack.push_front(reg);
     roseExpression = m_stack.front();
+    expand_printf(
+      "Found ROSE expression '%s:%s' for 0x[%lX] %s\n",
+      reg->get_type()->class_name().c_str(),
+      reg->class_name().c_str(),
+      addr,
+      regast->format().c_str()
+    );
     return;
 }
 
@@ -267,6 +275,12 @@ SgAsmExpression* ExpressionConversionVisitor::archSpecificRegisterProc(Instructi
   MachRegister machReg = regast->getID();
 
   auto regDesc = RegisterDescriptor(machReg);
+
+  std::cerr << "archSpecificRegisterProc: found descriptor '"
+            << regDesc << ", from register '" << machReg.name()
+            << "'\n";
+
+
   if(!regDesc.is_valid()) {
     convert_printf("Failed to find ROSE register for %s\n", machReg.name().c_str());
     return nullptr;
