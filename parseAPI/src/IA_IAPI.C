@@ -806,7 +806,7 @@ std::pair<bool, Address> IA_IAPI::getCFT() const
     if (!callTarget) return make_pair(false, 0);
     // FIXME: templated bind(),dammit!
     callTarget->bind(thePC[_isrc->getArch()].get(), Result(s64, current));
-    parsing_printf("%s[%d]: binding PC %s in %s to 0x%lx...", FILE__, __LINE__,
+    parsing_printf("%s[%d]: binding PC '%s' in '%s' to 0x%lx...\n", FILE__, __LINE__,
             thePC[_isrc->getArch()]->format(curInsn().getArch()).c_str(), curInsn().format().c_str(), current);
 
     Result actualTarget = callTarget->eval();
