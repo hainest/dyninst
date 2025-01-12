@@ -166,8 +166,57 @@ namespace Dyninst {
           default: return *this;
         }
 
-      case Arch_ppc32:
-      case Arch_ppc64:
+      case Arch_ppc32: {
+        if(category == ppc32::GPR) {
+          return ppc32::r0;
+        }
+        if(category == ppc32::FPR) {
+          return ppc32::fpr0;
+        }
+        if(category == ppc32::FSR) {
+          return ppc32::fsr0;
+        }
+        auto const id = val() & 0x0000FFFF;
+
+        // Condition register (cr<N>, cr<N><len>)
+        if((id >= 621 && id <= 628) || (id >= 700 && id <= 731)) {
+          return ppc32::cr;
+        }
+
+        // Floating-point Control/Status
+        if(id >= 602 && id <= 609) {
+          return ppc32::fpscw;
+        }
+        return *this;
+      }
+
+      case Arch_ppc64: {
+        if(category == ppc64::VSR) {
+          return ppc64::vsr0;
+        }
+        if(category == ppc64::GPR) {
+          return ppc64::r0;
+        }
+        if(category == ppc64::FPR) {
+          return ppc64::fpr0;
+        }
+        if(category == ppc64::FSR) {
+          return ppc64::fsr0;
+        }
+        auto const id = val() & 0x0000FFFF;
+
+        // Condition register (cr<N>, cr<N><len>)
+        if((id >= 621 && id <= 628) || (id >= 700 && id <= 731)) {
+          return ppc64::cr;
+        }
+
+        // Floating-point Control/Status
+        if(id >= 602 && id <= 609) {
+          return ppc64::fpscw;
+        }
+        return *this;
+      }
+
       case Arch_aarch32:
       case Arch_intelGen9:
       case Arch_cuda:
