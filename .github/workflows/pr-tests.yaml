@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: "src"  # relative to ${GITHUB_WORKSPACE}
-          repository: hainest/dyninst
+          repository: ${{ github.repository }}
 
       - name: Build Dyninst
         uses: ./src/.github/actions/build
