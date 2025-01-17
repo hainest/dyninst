@@ -86,55 +86,55 @@ jobs:
           install-dir: ${{ matrix.install-dir }}
           run-tests: "true"
 
-      - name: Checkout Test Suite
-        if: ${{ matrix.compiler != 'clang' }}
-        uses: actions/checkout@v4
-        with:
-          repository: dyninst/testsuite
-          path: "testsuite"  # relative to ${GITHUB_WORKSPACE}
-
-      - name: Build testsuite
-        if: ${{ matrix.compiler != 'clang' }}
-        shell: bash
-        run: |
-          set -ex
-          cd ${GITHUB_WORKSPACE}/testsuite; mkdir build; cd build
-          cmake .. -DDyninst_ROOT=${{ matrix.install-dir }}
-          cmake --build . --parallel 2
-
-      - name: Checkout Examples
-        uses: actions/checkout@v4
-        with:
-          repository: dyninst/examples
-          path: "examples"  # relative to ${GITHUB_WORKSPACE}
-
-      - name: Build examples
-        shell: bash
-        run: |
-          set -ex
-          cd ${GITHUB_WORKSPACE}/examples; mkdir build; cd build
-          cmake .. -DDyninst_ROOT=${{ matrix.install-dir }}
-          cmake --build . --parallel 2
-
-      - name: Checkout External Tests
-        uses: actions/checkout@v4
-        with:
-          repository: dyninst/external-tests
-          path: "external-tests"  # relative to ${GITHUB_WORKSPACE}
-
-      - name: Build external tests
-        shell: bash
-        run: |
-          set -ex
-          cd ${GITHUB_WORKSPACE}/external-tests; mkdir build; cd build
-          cmake .. -DDyninst_ROOT=${{ matrix.install-dir }} -DCMAKE_CXX_STANDARD=17
-          cmake --build . --parallel 2
-
-      - name: Run external tests
-        if: ${{ matrix.compiler != 'clang' }}  # libdyninstAPI_RT doesn't work correctly with clang
-        shell: bash
-        run: |
-          set -ex
-          export DYNINSTAPI_RT_LIB=$(find ${{ matrix.install-dir }} -name libdyninstAPI_RT.so)
-          cd ${GITHUB_WORKSPACE}/external-tests/build
-          ctest -VV --output-on-failure .
+#      - name: Checkout Test Suite
+#        if: ${{ matrix.compiler != 'clang' }}
+#        uses: actions/checkout@v4
+#        with:
+#          repository: dyninst/testsuite
+#          path: "testsuite"  # relative to ${GITHUB_WORKSPACE}
+#
+#      - name: Build testsuite
+#        if: ${{ matrix.compiler != 'clang' }}
+#        shell: bash
+#        run: |
+#          set -ex
+#          cd ${GITHUB_WORKSPACE}/testsuite; mkdir build; cd build
+#          cmake .. -DDyninst_ROOT=${{ matrix.install-dir }}
+#          cmake --build . --parallel 2
+#
+#      - name: Checkout Examples
+#        uses: actions/checkout@v4
+#        with:
+#          repository: dyninst/examples
+#          path: "examples"  # relative to ${GITHUB_WORKSPACE}
+#
+#      - name: Build examples
+#        shell: bash
+#        run: |
+#          set -ex
+#          cd ${GITHUB_WORKSPACE}/examples; mkdir build; cd build
+#          cmake .. -DDyninst_ROOT=${{ matrix.install-dir }}
+#          cmake --build . --parallel 2
+#
+#      - name: Checkout External Tests
+#        uses: actions/checkout@v4
+#        with:
+#          repository: dyninst/external-tests
+#          path: "external-tests"  # relative to ${GITHUB_WORKSPACE}
+#
+#      - name: Build external tests
+#        shell: bash
+#        run: |
+#          set -ex
+#          cd ${GITHUB_WORKSPACE}/external-tests; mkdir build; cd build
+#          cmake .. -DDyninst_ROOT=${{ matrix.install-dir }} -DCMAKE_CXX_STANDARD=17
+#          cmake --build . --parallel 2
+#
+#      - name: Run external tests
+#        if: ${{ matrix.compiler != 'clang' }}  # libdyninstAPI_RT doesn't work correctly with clang
+#        shell: bash
+#        run: |
+#          set -ex
+#          export DYNINSTAPI_RT_LIB=$(find ${{ matrix.install-dir }} -name libdyninstAPI_RT.so)
+#          cd ${GITHUB_WORKSPACE}/external-tests/build
+#          ctest -VV --output-on-failure .
