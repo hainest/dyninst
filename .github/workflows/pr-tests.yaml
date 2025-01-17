@@ -60,9 +60,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.get-oses.outputs.all) }}
-        compiler: ${{ fromJson(needs.get-compilers.outputs.all) }}
-        install-dir: ["${GITHUB_WORKSPACE}/install", "/usr"]
+        os: ['ubuntu-24.04'] #${{ fromJson(needs.get-oses.outputs.all) }}
+        compiler: ['gcc'] #${{ fromJson(needs.get-compilers.outputs.all) }}
+        install-dir: ["${GITHUB_WORKSPACE}/install"] #, "/usr"]
     permissions:
       packages: read
     container:
