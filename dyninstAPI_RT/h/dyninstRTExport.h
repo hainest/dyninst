@@ -79,8 +79,8 @@ typedef void * dyntid_t;
 #define DYNINST_INITIAL_LOCK_PID ((void *)-129)
 
 typedef struct {
-   volatile int mutex;
-   dyntid_t tid;
+  void *internal_lock;
+  dyntid_t tid;
 } dyninst_lock_t;
 
 /* Return values for 'dyninst_lock' */
@@ -88,7 +88,7 @@ typedef struct {
 #define DYNINST_DEAD_LOCK      -2
 
 /* Declare a lock already initialized */
-#define DECLARE_DYNINST_LOCK(lck) dyninst_lock_t lck = {0, DYNINST_INITIAL_LOCK_PID}
+#define DECLARE_DYNINST_LOCK(lck) dyninst_lock_t lck = {NULL, DYNINST_INITIAL_LOCK_PID}
 
 DLLEXPORT void dyninst_init_lock(dyninst_lock_t *lock);
 DLLEXPORT void dyninst_free_lock(dyninst_lock_t *lock);

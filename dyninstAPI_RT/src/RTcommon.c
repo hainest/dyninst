@@ -584,36 +584,14 @@ int DYNINSTuserMessage(void *msg, unsigned int msg_size) {
     return 0;
 }
 
-int tc_lock_init(tc_lock_t *t)
-{
-  t->mutex = 0;
-  t->tid = (dyntid_t) DYNINST_INITIAL_LOCK_PID;
-  return 0;
-}
-
-int tc_lock_unlock(tc_lock_t *t)
-{
-  t->tid = (dyntid_t) DYNINST_INITIAL_LOCK_PID;
-  t->mutex = 0;
-  return 0;
-}
-
-int tc_lock_destroy(tc_lock_t *t)
-{
-  t->tid = (dyntid_t) DYNINST_INITIAL_LOCK_PID;
-  t->mutex = 0;
-  return 0;
-}
-
 void dyninst_init_lock(dyninst_lock_t *lock)
 {
-   lock->tid = (dyntid_t) DYNINST_INITIAL_LOCK_PID;
-   lock->mutex = 0;
+   tc_lock_init(lock);
 }
 
 void dyninst_free_lock(dyninst_lock_t *lock)
 {
-    (void)lock; /* unused parameter */
+    tc_lock_destroy(lock);
 }
 
 int dyninst_lock(dyninst_lock_t *lock)
