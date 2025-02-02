@@ -33,7 +33,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
-#include <threads.h>
+#include <pthread.h>
 
 #include "RTthread.h"
 #include "RTcommon.h"
@@ -51,9 +51,9 @@ void setNewthrCB(void (*cb)(int)) {
 #define IDX_NONE -1
 
 int tc_lock_init(tc_lock_t *t) {
-  mtx_t *mutex = malloc(sizeof(mtx_t));
-  int status = mtx_init(mutex, mtx_plain);
-  if(status != thrd_success) {
+  pthread_mutex_t *mutex = malloc(sizeof(pthread_mutex_t));
+  int status = pthread_mutex_init(mutex, NULL);
+  if(status != 0) {
     return status;
   }
   t->internal_lock = mutex;
@@ -62,8 +62,11 @@ int tc_lock_init(tc_lock_t *t) {
 }
 
 int tc_lock_destroy(tc_lock_t *t) {
-  mtx_t *mutex = (mtx_t*)(t->internal_lock);
-  mtx_destroy(mutex);
+  pthread_mutex_t *mutex = (pthread_mutex_t*)(t->internal_lock);
+  int status = pthread_mutex_destroy(mutex);
+  if(status != 0) {
+    return status;
+  }
   free(mutex);
   t->internal_lock = NULL;
   t->tid = DYNINST_INITIAL_LOCK_PID;
@@ -71,9 +74,11 @@ int tc_lock_destroy(tc_lock_t *t) {
 }
 
 int tc_lock_lock(tc_lock_t *t) {
-  return mtx_lock((mtx_t*)(t->internal_lock));
+  pthread_mutex_t *mutex = (pthread_mutex_t*)(t->internal_lock);
+  return pthread_mutex_lock(mutex);
 }
 
 int tc_lock_unlock(tc_lock_t *t) {
-  return mtx_unlock((mtx_t*)(t->internal_lock));
+  pthread_mutex_t *mutex = (pthread_mutex_t*)(t->internal_lock);
+  return pthread_mutex_unlock(mutex);
 }
