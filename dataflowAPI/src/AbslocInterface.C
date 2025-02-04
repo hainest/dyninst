@@ -80,91 +80,97 @@ void AbsRegionConverter::convertAll(InstructionAPI::Expression::Ptr expr,
   }
 }
 
-void AbsRegionConverter::convertAll(const InstructionAPI::Instruction &insn,
-				    Address addr,
-				    ParseAPI::Function *func,
-                                    ParseAPI::Block *block,
-				    std::vector<AbsRegion> &used,
-				    std::vector<AbsRegion> &defined) {
-                        
-                        if (!usedCache(addr, func, used)) {
+void AbsRegionConverter::convertAll(const InstructionAPI::Instruction &insn, Address addr, ParseAPI::Function *func,
+    ParseAPI::Block *block, std::vector<AbsRegion> &used, std::vector<AbsRegion> &defined) {
+
+  if (!usedCache(addr, func, used)) {
     std::set<RegisterAST::Ptr> regsRead;
     insn.getReadSet(regsRead);
 
+    for (std::set<RegisterAST::Ptr>::const_iterator i = regsRead.begin(); i != regsRead.end(); ++i) {
+      if (insn.getArch() == Arch_aarch64) {
+        MachRegister machReg = (*i)->getID();
+        std::vector<MachRegister> flagRegs = { aarch64::n, aarch64::z, aarch64::c, aarch64::v };
 
-    for (std::set<RegisterAST::Ptr>::const_iterator i = regsRead.begin();
-	 i != regsRead.end(); ++i) {
-        if(insn.getArch() == Arch_aarch64) {
-            MachRegister machReg = (*i)->getID();
-            std::vector<MachRegister> flagRegs = {aarch64::n, aarch64::z, aarch64::c, aarch64::v};
-
-            if(machReg == aarch64::nzcv) {
-                for(std::vector<MachRegister>::iterator itr = flagRegs.begin(); itr != flagRegs.end(); itr++) {
-                    used.push_back(AbsRegionConverter::convert(RegisterAST::Ptr(new RegisterAST(*itr))));
-                }
-            } else {
-                used.push_back(AbsRegionConverter::convert(*i));
-            }
+        if (machReg == aarch64::nzcv) {
+          for (std::vector<MachRegister>::iterator itr = flagRegs.begin(); itr != flagRegs.end(); itr++) {
+            used.push_back(AbsRegionConverter::convert(RegisterAST::Ptr(new RegisterAST(*itr))));
+          }
         } else {
-            used.push_back(AbsRegionConverter::convert(*i));
+          used.push_back(AbsRegionConverter::convert(*i));
         }
+      } else {
+        used.push_back(AbsRegionConverter::convert(*i));
+      }
     }
-    
+
     if (insn.readsMemory()) {
       std::set<Expression::Ptr> memReads;
       insn.getMemoryReadOperands(memReads);
-      for (std::set<Expression::Ptr>::const_iterator r = memReads.begin();
-	   r != memReads.end();
-	   ++r) {
-         used.push_back(AbsRegionConverter::convert(*r, addr, func, block));
+      for (std::set<Expression::Ptr>::const_iterator r = memReads.begin(); r != memReads.end(); ++r) {
+        used.push_back(AbsRegionConverter::convert(*r, addr, func, block));
       }
     }
   }
+
+  if(insn.getOperation().getID() == aarch64_op_ldp_gen) {
+    std::cerr << "ldp convertAll read: ";
+    for(auto const& reg : used) {
+      std::cerr << reg.format() << ", ";
+    }
+    std::cerr << "\n";
+  }
+
   if (!definedCache(addr, func, defined)) {
     // Defined time
     std::set<RegisterAST::Ptr> regsWritten;
     insn.getWriteSet(regsWritten);
-    for (std::set<RegisterAST::Ptr>::const_iterator i = regsWritten.begin();
-	 i != regsWritten.end(); ++i) {
-      if(insn.getArch() == Arch_aarch64) {
-            MachRegister machReg = (*i)->getID();
-            std::vector<MachRegister> flagRegs = {aarch64::n, aarch64::z, aarch64::c, aarch64::v};
+    for (std::set<RegisterAST::Ptr>::const_iterator i = regsWritten.begin(); i != regsWritten.end(); ++i) {
+      if (insn.getArch() == Arch_aarch64) {
+        MachRegister machReg = (*i)->getID();
+        std::vector<MachRegister> flagRegs = { aarch64::n, aarch64::z, aarch64::c, aarch64::v };
 
-            if(machReg == aarch64::nzcv) {
-                for(std::vector<MachRegister>::iterator itr = flagRegs.begin(); itr != flagRegs.end(); itr++) {
-                    defined.push_back(AbsRegionConverter::convert(RegisterAST::Ptr(new RegisterAST(*itr))));
-                }
-            } else {
-                defined.push_back(AbsRegionConverter::convert(*i));
-            }
-        } else if (insn.getArch() == Arch_cuda && insn.hasPredicateOperand()) {
-            Operand o = insn.getPredicateOperand();
-            defined.push_back(AbsRegionConverter::convertPredicatedRegister(*i, o.getPredicate(), o.isTruePredicate()));
-
+        if (machReg == aarch64::nzcv) {
+          for (std::vector<MachRegister>::iterator itr = flagRegs.begin(); itr != flagRegs.end(); itr++) {
+            defined.push_back(AbsRegionConverter::convert(RegisterAST::Ptr(new RegisterAST(*itr))));
+          }
         } else {
-            defined.push_back(AbsRegionConverter::convert(*i));
+          defined.push_back(AbsRegionConverter::convert(*i));
         }
+      } else if (insn.getArch() == Arch_cuda && insn.hasPredicateOperand()) {
+        Operand o = insn.getPredicateOperand();
+        defined.push_back(AbsRegionConverter::convertPredicatedRegister(*i, o.getPredicate(), o.isTruePredicate()));
+
+      } else {
+        defined.push_back(AbsRegionConverter::convert(*i));
+      }
     }
 
     // special case for repeat-prefixed instructions on x86
     // may disappear if Dyninst's representation of these instructions changes
     if (insn.getArch() == Arch_x86) {
       prefixEntryID insnPrefix = insn.getOperation().getPrefixID();
-      if ( (prefix_rep == insnPrefix) || (prefix_repnz == insnPrefix) ) {
-        defined.push_back(AbsRegionConverter::convert(RegisterAST::Ptr(
-          new RegisterAST(MachRegister::getPC(Arch_x86)))));
+      if ((prefix_rep == insnPrefix) || (prefix_repnz == insnPrefix)) {
+        defined.push_back(
+            AbsRegionConverter::convert(RegisterAST::Ptr(new RegisterAST(MachRegister::getPC(Arch_x86)))));
       }
     }
-    
+
     if (insn.writesMemory()) {
       std::set<Expression::Ptr> memWrites;
       insn.getMemoryWriteOperands(memWrites);
-      for (std::set<Expression::Ptr>::const_iterator r = memWrites.begin();
-	   r != memWrites.end();
-	   ++r) {
-         defined.push_back(AbsRegionConverter::convert(*r, addr, func, block));
+      for (std::set<Expression::Ptr>::const_iterator r = memWrites.begin(); r != memWrites.end(); ++r) {
+        defined.push_back(AbsRegionConverter::convert(*r, addr, func, block));
       }
     }
+  }
+
+  if(insn.getOperation().getID() == aarch64_op_ldp_gen) {
+    std::cerr << "ldp convertAll writes: ";
+    for(auto const& reg : defined) {
+      std::cerr << reg.format() << ", ";
+    }
+    std::cerr << "\n";
   }
 
   if (cacheEnabled_) {
@@ -971,24 +977,19 @@ void AssignmentConverter::convert(const Instruction &I, const Address &addr, Par
     std::vector<AbsRegion> used;
     std::vector<AbsRegion> defined;
 
-    aConverter.convertAll(I,
-			  addr,
-			  func,
-                          block,
-			  used,
-			  defined);
+    aConverter.convertAll(I, addr, func, block, used, defined);
+
     // PC should be regarded as a constant		
     AbsRegion pc(Absloc::makePC(func->isrc()->getArch()));
     for (auto uit = used.begin(); uit != used.end(); ++uit)
-        if (*uit == pc) {
-	    used.erase(uit);			 
-	    break;
-	}
-    for (std::vector<AbsRegion>::const_iterator i = defined.begin();
-	 i != defined.end(); ++i) {
-       Assignment::Ptr a = Assignment::makeAssignment(I, addr, func, block, *i);
-       a->addInputs(used);
-       assignments.push_back(a);
+      if (*uit == pc) {
+        used.erase(uit);
+        break;
+      }
+    for (std::vector<AbsRegion>::const_iterator i = defined.begin(); i != defined.end(); ++i) {
+      Assignment::Ptr a = Assignment::makeAssignment(I, addr, func, block, *i);
+      a->addInputs(used);
+      assignments.push_back(a);
     }
     break;
   }
