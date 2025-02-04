@@ -364,94 +364,94 @@ Slicer::markVisited(
 // elements in the active map. if any are found, graph nodes and edges are
 // created. this function also updates the active map to be contain only the
 // elements that are valid after the above linking (killed defs are removed).
-bool Slicer::updateAndLink(
-    Graph::Ptr g,
-    Direction dir,
-    SliceFrame & cand,
-    DefCache& cache,
-    Predicates &p)
-{
+bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCache &cache, Predicates &p) {
 
-    vector<Assignment::Ptr> assns;
-    vector<bool> killed;
-    vector<Element> matches;
-    vector<Element> newactive;
+  vector<Assignment::Ptr> assns;
+  vector<bool> killed;
+  vector<Element> matches;
+  vector<Element> newactive;
 
-    bool change = false;
+  bool change = false;
 
-    killed.resize(cand.active.size(),false);
+  killed.resize(cand.active.size(), false);
 
-    if(dir == forward)
-        convertInstruction(cand.loc.current->first,cand.addr(),cand.loc.func, cand.loc.block, assns);
-    else
-        convertInstruction(cand.loc.rcurrent->first,cand.addr(),cand.loc.func, cand.loc.block, assns);
+  if (dir == forward)
+    convertInstruction(cand.loc.current->first, cand.addr(), cand.loc.func, cand.loc.block, assns);
+  else
+    convertInstruction(cand.loc.rcurrent->first, cand.addr(), cand.loc.func, cand.loc.block, assns);
 
-    if(cand.addr() == 0x1220) {
-      std::cerr << "ldp updateAndLink: ";
-      for(auto const& reg : assns) {
-        std::cerr << reg->format() << ", ";
-      }
-      std::cerr << "\n";
+  if (cand.addr() == 0x1220) {
+    std::cerr << "ldp updateAndLink: ";
+    for (auto const &reg : assns) {
+      std::cerr << reg->format() << ", ";
     }
+    std::cerr << "\n";
+  }
 
-    // iterate over assignments and link matching elements.
-    for(unsigned i=0; i<assns.size(); ++i) {
-        SliceFrame::ActiveMap::iterator ait = cand.active.begin();
-        unsigned j=0;
-        for( ; ait != cand.active.end(); ++ait,++j) {
-            if (findMatch(g,dir,cand,(*ait).first,assns[i],matches, cache)) { // links	  
-	        if (!p.addNodeCallback(assns[i], visitedEdges)) return false;
-	    }
-	    killed[j] = killed[j] || kills((*ait).first,assns[i]);
-            change = change || killed[j];
-        }
-        // Record the *potential* of this instruction to interact
-        // with all possible abstract regions
-        cachePotential(dir,assns[i],cache);
-    }
-
-    if(!change && matches.empty()) {// no change -- nothing killed, nothing added
-        return true;
-    }
-
-    // update of active set -- matches + anything not killed
+  // iterate over assignments and link matching elements.
+  for (unsigned i = 0; i < assns.size(); ++i) {
     SliceFrame::ActiveMap::iterator ait = cand.active.begin();
-    unsigned j=0;
-    for( ; ait != cand.active.end(); ) {
-        if(killed[j]) {
-            // remove killed nodes from plausible exit set.
-            // this need only be done in the forward case,
-            // because backward slice semantics properly
-            // handle the plausible entry set.
-            if (dir == forward) {
-                for (auto vf = ait->second.begin(), vl = ait->second.end();
-                        vf != vl; ++vf) {
-                    plausibleNodes.erase(createNode(*vf));
-                }
-                
-            }
-            SliceFrame::ActiveMap::iterator del = ait;
-            ++ait;
-            cand.active.erase(del);
-        } else {
-            ++ait;
-        }
-        ++j;
+    unsigned j = 0;
+    for (; ait != cand.active.end(); ++ait, ++j) {
+      if (findMatch(g, dir, cand, (*ait).first, assns[i], matches, cache)) { // links
+        if (!p.addNodeCallback(assns[i], visitedEdges))
+          return false;
+      }
+      killed[j] = killed[j] || kills((*ait).first, assns[i]);
+      change = change || killed[j];
     }
+    // Record the *potential* of this instruction to interact
+    // with all possible abstract regions
+    cachePotential(dir, assns[i], cache);
+  }
 
-    for(unsigned i=0;i<matches.size();++i) {
-       // Check our predicates
-       if (p.widenAtPoint(matches[i].ptr)) {
-          widen(g, dir, matches[i]);
-       }
-       else if (p.endAtPoint(matches[i].ptr)) {
-          // Do nothing...
-       }
-       else {
-          cand.active[matches[i].reg].push_back(matches[i]);
-       }
+  if (cand.addr() == 0x1220) {
+    std::cerr << "ldp updateAndLink/2: ";
+    for (auto const &reg : assns) {
+      std::cerr << reg->format() << ", ";
     }
-    return p.modifyCurrentFrame(cand, g, this);
+    std::cerr << "\n";
+  }
+
+  if (!change && matches.empty()) {        // no change -- nothing killed, nothing added
+    return true;
+  }
+
+  // update of active set -- matches + anything not killed
+  SliceFrame::ActiveMap::iterator ait = cand.active.begin();
+  unsigned j = 0;
+  for (; ait != cand.active.end();) {
+    if (killed[j]) {
+      // remove killed nodes from plausible exit set.
+      // this need only be done in the forward case,
+      // because backward slice semantics properly
+      // handle the plausible entry set.
+      if (dir == forward) {
+        for (auto vf = ait->second.begin(), vl = ait->second.end(); vf != vl; ++vf) {
+          plausibleNodes.erase(createNode(*vf));
+        }
+
+      }
+      SliceFrame::ActiveMap::iterator del = ait;
+      ++ait;
+      cand.active.erase(del);
+    } else {
+      ++ait;
+    }
+    ++j;
+  }
+
+  for (unsigned i = 0; i < matches.size(); ++i) {
+    // Check our predicates
+    if (p.widenAtPoint(matches[i].ptr)) {
+      widen(g, dir, matches[i]);
+    } else if (p.endAtPoint(matches[i].ptr)) {
+      // Do nothing...
+    } else {
+      cand.active[matches[i].reg].push_back(matches[i]);
+    }
+  }
+  return p.modifyCurrentFrame(cand, g, this);
 }
 
 // similar to updateAndLink, but this version only looks at the
