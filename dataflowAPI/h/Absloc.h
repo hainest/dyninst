@@ -264,99 +264,94 @@ class AbsRegion {
 
 
 class Assignment {
- public:
-  typedef boost::shared_ptr<Assignment> Ptr;
-  struct AssignmentPtrHasher {
-    size_t operator() (const Ptr& ap) const noexcept {
-      return (size_t)ap.get();
+  public:
+    typedef boost::shared_ptr<Assignment> Ptr;
+    struct AssignmentPtrHasher {
+      size_t operator()(const Ptr &ap) const noexcept {
+        return (size_t) ap.get();
+      }
+    };
+
+    typedef std::set<AbsRegion> Aliases;
+
+    DYNINST_EXPORT const std::vector<AbsRegion>& inputs() const {
+      return inputs_;
     }
+    DYNINST_EXPORT std::vector<AbsRegion>& inputs() {
+      return inputs_;
+    }
+
+    DYNINST_EXPORT const InstructionAPI::Instruction& insn() const {
+      return insn_;
+    }
+    DYNINST_EXPORT InstructionAPI::Instruction& insn() {
+      return insn_;
+    }
+    DYNINST_EXPORT Address addr() const {
+      return addr_;
+    }
+
+    DYNINST_EXPORT const AbsRegion& out() const {
+      return out_;
+    }
+    DYNINST_EXPORT AbsRegion& out() {
+      return out_;
+    }
+
+    DYNINST_EXPORT const std::string format() const;
+
+    // FIXME
+    Aliases aliases;
+
+    // Factory functions.
+    DYNINST_EXPORT static std::set<Assignment::Ptr> create(InstructionAPI::Instruction insn, Address addr);
+
+    DYNINST_EXPORT Assignment(const InstructionAPI::Instruction &i, const Address a, ParseAPI::Function *f,
+        ParseAPI::Block *b, const std::vector<AbsRegion> &ins, const AbsRegion &o) :
+        insn_(i), addr_(a), func_(f), block_(b), inputs_(ins), out_(o) {
+    }
+
+    DYNINST_EXPORT Assignment(const InstructionAPI::Instruction &i, const Address a, ParseAPI::Function *f,
+        ParseAPI::Block *b, const AbsRegion &o) :
+        insn_(i), addr_(a), func_(f), block_(b), out_(o) {
+    }
+
+    DYNINST_EXPORT static Assignment::Ptr makeAssignment(const InstructionAPI::Instruction &i, const Address a,
+        ParseAPI::Function *f, ParseAPI::Block *b, const std::vector<AbsRegion> &ins, const AbsRegion &o);
+
+    DYNINST_EXPORT static Assignment::Ptr makeAssignment(const InstructionAPI::Instruction &i, const Address a,
+        ParseAPI::Function *f, ParseAPI::Block *b, const AbsRegion &o);
+
+    // Internally used method; add a dependence on
+    // a new abstract region. If this is a new region
+    // we'll add it to the dependence list. Otherwise
+    // we'll join the provided input set to the known
+    // inputs.
+    DYNINST_EXPORT void addInput(const AbsRegion &reg);
+    DYNINST_EXPORT void addInputs(const std::vector<AbsRegion> &regions);
+
+    DYNINST_EXPORT ParseAPI::Function* func() const {
+      return func_;
+    }
+
+    DYNINST_EXPORT ParseAPI::Block* block() const {
+      return block_;
+    }
+    friend std::ostream& operator<<(std::ostream &os, const Assignment::Ptr &a) {
+      os << a->format();
+      return os;
+    }
+
+  private:
+    InstructionAPI::Instruction insn_;
+    Address addr_;
+
+    ParseAPI::Function *func_;
+    ParseAPI::Block *block_;
+
+    std::vector<AbsRegion> inputs_;
+    AbsRegion out_;
   };
-
-  typedef std::set<AbsRegion> Aliases;
-
-  DYNINST_EXPORT const std::vector<AbsRegion> &inputs() const { return inputs_; }
-  DYNINST_EXPORT std::vector<AbsRegion> &inputs() { return inputs_; }
-
-  DYNINST_EXPORT const InstructionAPI::Instruction &insn() const { return insn_; }
-  DYNINST_EXPORT InstructionAPI::Instruction &insn() { return insn_; }
-  DYNINST_EXPORT Address addr() const { return addr_; }
-
-  DYNINST_EXPORT const AbsRegion &out() const { return out_; }
-  DYNINST_EXPORT AbsRegion &out() { return out_; }
-
-  DYNINST_EXPORT const std::string format() const;
-
-  // FIXME
-  Aliases aliases;
-
-  // Factory functions. 
-  DYNINST_EXPORT static std::set<Assignment::Ptr> create(InstructionAPI::Instruction insn,
-					  Address addr);
-
-  DYNINST_EXPORT Assignment(const InstructionAPI::Instruction& i,
-                             const Address a,
-                             ParseAPI::Function *f,
-                             ParseAPI::Block *b,
-                             const std::vector<AbsRegion> &ins,
-                             const AbsRegion &o) : 
-    insn_(i),
-       addr_(a),
-       func_(f),
-       block_(b),
-       inputs_(ins),
-       out_(o) {}
-
-  DYNINST_EXPORT Assignment(const InstructionAPI::Instruction& i,
-                             const Address a,
-                             ParseAPI::Function *f,
-                             ParseAPI::Block *b,
-                             const AbsRegion &o) : 
-    insn_(i),
-       addr_(a),
-       func_(f),
-       block_(b),
-       out_(o) {}
-
-  DYNINST_EXPORT static Assignment::Ptr makeAssignment(const InstructionAPI::Instruction& i,
-                             const Address a,
-                             ParseAPI::Function *f,
-                             ParseAPI::Block *b,
-                             const std::vector<AbsRegion> &ins,
-                             const AbsRegion &o);
-
-  DYNINST_EXPORT static Assignment::Ptr makeAssignment(const InstructionAPI::Instruction& i,
-                             const Address a,
-                             ParseAPI::Function *f,
-                             ParseAPI::Block *b,
-                             const AbsRegion &o);
-
-
-  // Internally used method; add a dependence on 
-  // a new abstract region. If this is a new region
-  // we'll add it to the dependence list. Otherwise 
-  // we'll join the provided input set to the known
-  // inputs.
-  DYNINST_EXPORT void addInput(const AbsRegion &reg);
-  DYNINST_EXPORT void addInputs(const std::vector<AbsRegion> &regions);
-
-  DYNINST_EXPORT ParseAPI::Function *func() const { return func_; }
-
-  DYNINST_EXPORT ParseAPI::Block *block() const { return block_; }
-  friend std::ostream &operator<<(std::ostream &os, const Assignment::Ptr &a) {
-    os << a->format();
-    return os;
-  }
-
- private:
-  InstructionAPI::Instruction insn_;
-  Address addr_;
-
-  ParseAPI::Function *func_;
-  ParseAPI::Block *block_;
-
-  std::vector<AbsRegion> inputs_;
-  AbsRegion out_;
-};
 
 // compare assignments by value.
 // note this is a fast comparison--it checks output and address only.
