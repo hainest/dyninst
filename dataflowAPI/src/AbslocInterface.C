@@ -501,14 +501,16 @@ bool AbsRegionConverter::definedCache(Address addr,
 // Instruction.
 ///////////////////////////////////////////////////////
 
-void AssignmentConverter::convert(const Instruction &I, 
-                                  const Address &addr,
-				  ParseAPI::Function *func,
-                                  ParseAPI::Block *block,
-				  std::vector<Assignment::Ptr> &assignments) {
+void AssignmentConverter::convert(const Instruction &I, const Address &addr, ParseAPI::Function *func,
+    ParseAPI::Block *block, std::vector<Assignment::Ptr> &assignments) {
+
+  if(I.getOperation().getID() == aarch64_op_ldp_gen) {
+    std::cerr << "Converting [0x" << std::hex << addr << "] " << I.format() << "\n";
+  }
+
   assignments.clear();
-  if (cache(func, addr, assignments)){ 
-      return;
+  if (cache(func, addr, assignments)) {
+    return;
   }
 
   // Decompose the instruction into a set of abstract assignments.
@@ -1005,6 +1007,14 @@ void AssignmentConverter::convert(const Instruction &I,
 
   if (cacheEnabled_) {
     cache_[func][addr] = assignments;
+  }
+
+  if(I.getOperation().getID() == aarch64_op_ldp_gen) {
+    std::cerr << "Found ldp assignments ";
+    for(auto const& a : assignments) {
+      std::cerr << a->format() << ", ";
+    }
+    std::cerr << "\n";
   }
 
 }
