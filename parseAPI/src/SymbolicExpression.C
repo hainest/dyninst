@@ -378,40 +378,38 @@ AST::Ptr SymbolicExpression::DeepCopyAnAST(AST::Ptr ast) {
 }
 
 pair<AST::Ptr, bool> SymbolicExpression::ExpandAssignment(Assignment::Ptr assign, bool keepMultiOne) {
-    if (expandCache.find(assign) != expandCache.end()) {
-        AST::Ptr ast = expandCache[assign];
-        if (ast) {
-            if (!keepMultiOne) ast = SimplifyAnAST(ast, 0, keepMultiOne);
-            return make_pair(ast, true);
-        } 
-        else {
-            return make_pair(ast, false);
-        }
+  if (expandCache.find(assign) != expandCache.end()) {
+    AST::Ptr ast = expandCache[assign];
+    if (ast) {
+      if (!keepMultiOne)
+        ast = SimplifyAnAST(ast, 0, keepMultiOne);
+      return make_pair(ast, true);
     } else {
-        parsing_printf("\t\tExpanding instruction @ %lx: %s, assignment %s\n",
-                assign->addr(), assign->insn().format().c_str(), assign->format().c_str());
-        pair<AST::Ptr, bool> expandRet = SymEval::expand(assign, false);
-        if (expandRet.second && expandRet.first) {
-            parsing_printf("Original expand: %s\n", expandRet.first->format().c_str());
-            AST::Ptr calculation = SimplifyAnAST(expandRet.first, 
-                    PCValue(assign->addr(),
-                        assign->insn().size(),
-                        assign->block()->obj()->cs()->getArch()),
-                    true);
-            expandCache[assign] = calculation;
-        } else {
-            if (expandRet.first == NULL) {
-                parsing_printf("\t\t\t expansion returned null ast\n");
-            }
-            if (expandRet.second == false) {
-                parsing_printf("\t\t\t expansion returned false\n");
-            }
-            expandCache[assign] = AST::Ptr();
-        }
-        AST::Ptr ast = expandCache[assign];
-        if (ast && !keepMultiOne) ast = SimplifyAnAST(ast, 0, keepMultiOne);
-        return make_pair( ast, expandRet.second );
+      return make_pair(ast, false);
     }
+  } else {
+    parsing_printf("\t\tExpanding instruction @ %lx: %s, assignment %s\n", assign->addr(),
+        assign->insn().format().c_str(), assign->format().c_str());
+    pair<AST::Ptr, bool> expandRet = SymEval::expand(assign, false);
+    if (expandRet.second && expandRet.first) {
+      parsing_printf("Original expand: %s\n", expandRet.first->format().c_str());
+      AST::Ptr calculation = SimplifyAnAST(expandRet.first,
+          PCValue(assign->addr(), assign->insn().size(), assign->block()->obj()->cs()->getArch()), true);
+      expandCache[assign] = calculation;
+    } else {
+      if (expandRet.first == NULL) {
+        parsing_printf("\t\t\t expansion returned null ast\n");
+      }
+      if (expandRet.second == false) {
+        parsing_printf("\t\t\t expansion returned false\n");
+      }
+      expandCache[assign] = AST::Ptr();
+    }
+    AST::Ptr ast = expandCache[assign];
+    if (ast && !keepMultiOne)
+      ast = SimplifyAnAST(ast, 0, keepMultiOne);
+    return make_pair(ast, expandRet.second);
+  }
 }
 
 AST::Ptr SymbolicExpression::SubstituteAnAST(AST::Ptr ast, const map<AST::Ptr, AST::Ptr> &aliasMap) {
