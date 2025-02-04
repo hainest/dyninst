@@ -867,56 +867,53 @@ namespace rose {
                     }
                 };
 
-                struct IP_ldr_imm_gen_execute : P {
-                    void p(D d, Ops ops, I insn, A args, B raw) {
-                        BaseSemantics::SValuePtr address = d->effectiveAddress(args[1]);
-                        BaseSemantics::SValuePtr data;
-                        bool wb_unknown = false;
-                        bool rt_unknown = false;
+                struct IP_ldr_imm_gen_execute: P {
+                  void p(D d, Ops ops, I insn, A args, B raw) {
+                    BaseSemantics::SValuePtr address = d->effectiveAddress(args[1]);
+                    BaseSemantics::SValuePtr data;
+                    bool wb_unknown = false;
+                    bool rt_unknown = false;
 
-                        /*if (!(EXTR(11, 11) == 0 && EXTR(24, 24) == 0)) {
-                            address = ops->add(address, d->read(args[2]));
-                        }*/
+                    /*if (!(EXTR(11, 11) == 0 && EXTR(24, 24) == 0)) {
+                     address = ops->add(address, d->read(args[2]));
+                     }*/
 
-                        switch ((EXTR(22, 22) ^ EXTR(23, 23))) {
-                            case MemOp_STORE: {
-
-                                if (rt_unknown) {
-                                    data = ops->unspecified_(1);
-                                } else {
-                                    data = d->read(args[0]);
-                                }
-                                d->writeMemory(address, 0x8 << EXTR(30, 31), data);
-                            }
-                                break;
-                            case MemOp_LOAD: {
-                                data = d->readMemory(address, 0x8 << EXTR(30, 31));
-
-                                if ((EXTR(23, 23) == 1)) {
-                                    d->write(args[0], d->SignExtend(data, d->getRegSize(raw)));
-                                } else {
-                                    d->write(args[0], d->ZeroExtend(data, d->getRegSize(raw)));
-                                }
-                            }
-                                break;
+                    switch ((EXTR(22, 22) ^ EXTR(23, 23))) {
+                      case MemOp_STORE: {
+                        if (rt_unknown) {
+                          data = ops->unspecified_(1);
+                        } else {
+                          data = d->read(args[0]);
                         }
+                        d->writeMemory(address, 0x8 << EXTR(30, 31), data);
+                      }
+                        break;
+                      case MemOp_LOAD: {
+                        data = d->readMemory(address, 0x8 << EXTR(30, 31));
 
-                        if (((EXTR(24, 24) == 0) && EXTR(21, 21) == 0)) {
-
-                            if (wb_unknown) {
-                                address = ops->unspecified_(1);
-                            } else if ((EXTR(11, 11) == 0 && EXTR(24, 24) == 0)) {
-                                address = ops->add(address, d->read(args[2]));
-                            }
-
-                            if (EXTR(5, 9) == 31) {
-                                d->writeRegister(d->REG_SP, address);
-                            } else {
-                                d->write(d->getWriteBackTarget(args[1]), address);
-                            }
+                        if ((EXTR(23, 23) == 1)) {
+                          d->write(args[0], d->SignExtend(data, d->getRegSize(raw)));
+                        } else {
+                          d->write(args[0], d->ZeroExtend(data, d->getRegSize(raw)));
                         }
-
+                      }
+                        break;
                     }
+
+                    if (((EXTR(24, 24) == 0) && EXTR(21, 21) == 0)) {
+                      if (wb_unknown) {
+                        address = ops->unspecified_(1);
+                      } else if ((EXTR(11, 11) == 0 && EXTR(24, 24) == 0)) {
+                        address = ops->add(address, d->read(args[2]));
+                      }
+
+                      if (EXTR(5, 9) == 31) {
+                        d->writeRegister(d->REG_SP, address);
+                      } else {
+                        d->write(d->getWriteBackTarget(args[1]), address);
+                      }
+                    }
+                  }
                 };
 
                 struct IP_str_imm_gen_execute : P {

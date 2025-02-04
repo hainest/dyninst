@@ -386,6 +386,15 @@ bool Slicer::updateAndLink(
     else
         convertInstruction(cand.loc.rcurrent->first,cand.addr(),cand.loc.func, cand.loc.block, assns);
 
+
+    if(cand.loc.current->first.getOperation().getID() == aarch64_op_ldp_gen) {
+      std::cerr << "ldp updateAndLink: ";
+      for(auto const& reg : assns) {
+        std::cerr << reg->format() << ", ";
+      }
+      std::cerr << "\n";
+    }
+
     // iterate over assignments and link matching elements.
     for(unsigned i=0; i<assns.size(); ++i) {
         SliceFrame::ActiveMap::iterator ait = cand.active.begin();
