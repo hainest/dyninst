@@ -386,14 +386,12 @@ bool Slicer::updateAndLink(
     else
         convertInstruction(cand.loc.rcurrent->first,cand.addr(),cand.loc.func, cand.loc.block, assns);
 
-    if(cand.loc.current->first.isValid()) {
-      if(cand.loc.current->first.getOperation().getID() == aarch64_op_ldp_gen) {
-        std::cerr << "ldp updateAndLink: ";
-        for(auto const& reg : assns) {
-          std::cerr << reg->format() << ", ";
-        }
-        std::cerr << "\n";
+    if(cand.addr() == 0x1220) {
+      std::cerr << "ldp updateAndLink: ";
+      for(auto const& reg : assns) {
+        std::cerr << reg->format() << ", ";
       }
+      std::cerr << "\n";
     }
 
     // iterate over assignments and link matching elements.
