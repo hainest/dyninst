@@ -990,7 +990,6 @@ void AssignmentConverter::convert(const Instruction &I,
     }
     break;
   }
-    
 
   // Now for flags...
   // According to Matt, the easiest way to represent dependencies for flags on 
