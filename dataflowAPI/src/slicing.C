@@ -1906,13 +1906,13 @@ void Slicer::constructInitialFrame(
         init_instruction = initFrame.loc.rcurrent->first;
     }
 
-    if(a_->addr() >= 0x1214 && a_->addr() <= 0x1224) {
+//    if(a_->addr() >= 0x1214 && a_->addr() <= 0x1224) {
       std::cerr << "before constructInitialFrame/converInstruction: " << init_instruction.getOperation().getID() << '\n';
       for(auto itr = initFrame.loc.rcurrent; itr != initFrame.loc.rend; ++itr) {
         std::cerr << std::get<0>(*itr).format() << ", ";
       }
       std::cerr << "\n";
-    }
+//    }
 
     // reconstruct initial assignment. the initial assignment was created
     // by a different converter, and thus if the instruction is visited
