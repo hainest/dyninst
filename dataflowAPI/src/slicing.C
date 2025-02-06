@@ -381,13 +381,18 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
     convertInstruction(cand.loc.rcurrent->first, cand.addr(), cand.loc.func, cand.loc.block, assns);
 
   if (cand.addr() == 0x1220) {
-    std::cerr << "ldp updateAndLink: ";
+    std::cerr << "updateAndLink/1 assignments: ";
     for (auto const &reg : assns) {
       std::cerr << reg->format() << ", ";
     }
     std::cerr << "\n";
-  }
 
+    std::cerr << "updateAndLink/1 active candidates: ";
+    for (auto const &reg : cand.active) {
+      std::cerr << std::get<0>(reg).format() << ", ";
+    }
+    std::cerr << "\n";
+  }
   // iterate over assignments and link matching elements.
   for (unsigned i = 0; i < assns.size(); ++i) {
     SliceFrame::ActiveMap::iterator ait = cand.active.begin();
