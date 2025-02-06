@@ -820,18 +820,15 @@ Slicer::getPredecessors(
       }
 
       if(cont) {
-        slicing_printf("\t\t\t\t Adding intra-block predecessor %lx\n",
-          nf->loc.addr());
-        slicing_printf("\t\t\t\t Current regions are:\n");
+        slicing_printf("Adding intra-block predecessor %lx\n", nf->loc.addr());
+        slicing_printf("Current regions are:\n");
         if(df_debug_slicing_on()) {
-          for (SliceFrame::ActiveMap::const_iterator ait = cand.active.begin(); ait != cand.active.end(); ++ait) {
-            slicing_printf("\t\t\t\t%s\n",
-              (*ait).first.format().c_str());
-
-            vector<Element> const& eles = (*ait).second;
-            for(unsigned i=0;i<eles.size();++i) {
-              slicing_printf("\t\t\t\t\t [%s] : %s\n",
-                eles[i].reg.format().c_str(),eles[i].ptr->format().c_str());
+          for(auto const& cur_active : cand.active) {
+            auto region = std::get<0>(cur_active);
+            auto const& elems = std::get<1>(cur_active);
+            slicing_printf("%s ", region.format().c_str());
+            for(auto const& elem : elems) {
+              slicing_printf("[%s] : %s\n", elem.reg.format().c_str(), elem.ptr->format().c_str());
             }
           }
         }
