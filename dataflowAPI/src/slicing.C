@@ -821,15 +821,16 @@ Slicer::getPredecessors(
 
       if(cont) {
         slicing_printf("Adding intra-block predecessor %lx\n", nf->loc.addr());
-        slicing_printf("Current regions are:\n");
+        slicing_printf("Current regions: ");
         if(df_debug_slicing_on()) {
           for(auto const& cur_active : cand.active) {
             auto region = std::get<0>(cur_active);
             auto const& elems = std::get<1>(cur_active);
             slicing_printf("%s ", region.format().c_str());
             for(auto const& elem : elems) {
-              slicing_printf("[%s] : %s\n", elem.reg.format().c_str(), elem.ptr->format().c_str());
+              slicing_printf("[%s] : %s; ", elem.reg.format().c_str(),elem.ptr->format().c_str());
             }
+            slicing_printf("\n");
           }
         }
       }
