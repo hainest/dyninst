@@ -411,9 +411,14 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
   }
 
   if (cand.addr() == 0x1220) {
-    std::cerr << "ldp updateAndLink/2: ";
+    std::cerr << "updateAndLink/2 assignments: ";
     for (auto const &reg : assns) {
       std::cerr << reg->format() << ", ";
+    }
+    std::cerr << "\n";
+    std::cerr << "updateAndLink/2 active candidates: ";
+    for (auto const &reg : cand.active) {
+      std::cerr << std::get<0>(reg).format() << ", ";
     }
     std::cerr << "\n";
   }
@@ -1878,6 +1883,14 @@ void Slicer::constructInitialFrame(
         getInsnsBackward(initFrame.loc);
         fastBackward(initFrame.loc, a_->addr());
         init_instruction = initFrame.loc.rcurrent->first;
+    }
+
+    if(init_instruction.getOperation().getID() == aarch64_op_ldp_gen) {
+      std::cerr << "before constructInitialFrame/converInstruction: ";
+      for(auto itr = initFrame.loc.current; itr != initFrame.loc.end; ++itr) {
+        std::cerr << std::get<0>(*itr).format() << ", ";
+      }
+      std::cerr << "\n";
     }
 
     // reconstruct initial assignment. the initial assignment was created
