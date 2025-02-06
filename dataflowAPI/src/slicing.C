@@ -440,6 +440,13 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
     }
     ++j;
   }
+  if (cand.addr() == 0x1220) {
+    std::cerr << "ldp updateAndLink/2: ";
+    for (auto const &reg : assns) {
+      std::cerr << reg->format() << ", ";
+    }
+    std::cerr << "\n";
+  }
 
   for (unsigned i = 0; i < matches.size(); ++i) {
     // Check our predicates
