@@ -1885,9 +1885,9 @@ void Slicer::constructInitialFrame(
         init_instruction = initFrame.loc.rcurrent->first;
     }
 
-    if(init_instruction.format().substr(0,3) == "ldp") {
+    if(a_->addr() == 0x1220) {
       std::cerr << "before constructInitialFrame/converInstruction: " << init_instruction.getOperation().getID() << '\n';
-      for(auto itr = initFrame.loc.current; itr != initFrame.loc.end; ++itr) {
+      for(auto itr = initFrame.loc.rcurrent; itr != initFrame.loc.rend; ++itr) {
         std::cerr << std::get<0>(*itr).format() << ", ";
       }
       std::cerr << "\n";
@@ -1901,8 +1901,8 @@ void Slicer::constructInitialFrame(
     std::vector<Assignment::Ptr> assigns;
     convertInstruction(init_instruction, a_->addr(), f_, b_, assigns);
 
-    if(init_instruction.format().substr(0,3) == "ldp") {
-      std::cerr << "after constructInitialFrame/converInstruction: " << init_instruction.getOperation().getID() << '\n';
+    if(a_->addr() == 0x1220) {
+      std::cerr << "after constructInitialFrame/converInstruction: \n";
       for(auto const& reg : assigns) {
         std::cerr << reg->format() << ", ";
       }
