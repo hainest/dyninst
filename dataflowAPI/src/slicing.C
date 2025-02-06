@@ -1907,7 +1907,7 @@ void Slicer::constructInitialFrame(
     }
 
 //    if(a_->addr() >= 0x1214 && a_->addr() <= 0x1224) {
-      std::cerr << "before constructInitialFrame/converInstruction: " << init_instruction.getOperation().getID() << '\n';
+      std::cerr << "before constructInitialFrame/converInstruction: " << init_instruction.format() << '\n';
       for(auto itr = initFrame.loc.rcurrent; itr != initFrame.loc.rend; ++itr) {
         std::cerr << std::get<0>(*itr).format() << ", ";
       }
