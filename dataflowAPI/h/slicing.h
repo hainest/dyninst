@@ -452,7 +452,6 @@ class Slicer {
         bool defines(AbsRegion const& r) const {
             return defmap.find(r) != defmap.end();
         }
-
         void print() const;
 
       private:
