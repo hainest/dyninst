@@ -228,6 +228,13 @@ void Slicer::sliceInternalAux(
     // `false' otherwise.
 
     if (!skip) {
+      if (cand.addr() == 0x1220) {
+        std::cerr << "sliceInternalAux active candidates: ";
+        for (auto const &reg : cand.active) {
+          std::cerr << std::get<0>(reg).format() << ", ";
+        }
+        std::cerr << "\n";
+      }
         if (!updateAndLink(g,dir,cand, mydefs, p)) return;
 	    slicing_printf("\t\tfinished udpateAndLink, active.size: %lu\n",
                        cand.active.size());
