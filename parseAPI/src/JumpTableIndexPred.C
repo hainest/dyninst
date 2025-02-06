@@ -299,6 +299,24 @@ bool JumpTableIndexPred::modifyCurrentFrame(Slicer::SliceFrame &frame, Graph::Pt
      * As the slicing interface only works with an assignment,
      * we wants to only keep the index AbsRegion in the current active map
      */
+    using map_item = std::pair<const Dyninst::AbsRegion, std::vector<Dyninst::Slicer::Element>>;
+//    auto last = std::remove_if(
+//      frame.active.begin(), frame.active.end(),
+//      [this](map_item const& cur){
+//        auto const& region = std::get<0>(cur);
+//        parsing_printf("active region %s\n", region.format().c_str());
+//        return region != this->index;
+//      }
+//    );
+//    frame.active.erase(last, frame.active.end());
+    parsing_printf("index = %s\n", this->index.format().c_str());
+
+    parsing_printf("Active before: ");
+    for(map_item const& cur : frame.active) {
+      parsing_printf("%s; ", std::get<0>(cur).format().c_str());
+    }
+    parsing_printf("\n");
+
     Slicer::SliceFrame::ActiveMap::iterator it1, it2;
     it1 = frame.active.begin();
     while (it1 != frame.active.end()) {
@@ -312,6 +330,12 @@ bool JumpTableIndexPred::modifyCurrentFrame(Slicer::SliceFrame &frame, Graph::Pt
         it1++;
       }
     }
+
+    parsing_printf("Active after: ");
+    for(map_item const& cur : frame.active) {
+      parsing_printf("%s; ", std::get<0>(cur).format().c_str());
+    }
+    parsing_printf("\n");
   }
   return true;
 }
