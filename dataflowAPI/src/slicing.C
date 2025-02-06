@@ -171,11 +171,13 @@ Slicer::sliceInternal(
     // relevant context
     constructInitialFrame(dir,initFrame);
 
+  if(initFrame.addr() >= 0x1214 && initFrame.addr() <= 0x1224) {
     std::cerr << "sliceInternal/0 active candidates: ";
     for (auto const &reg : initFrame.active) {
       std::cerr << std::get<0>(reg).format() << ", ";
     }
     std::cerr << "\n";
+  }
 
     // note that the AbsRegion in this Element *does not matter*;
     // we just need the block, function and assignment
