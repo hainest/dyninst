@@ -473,41 +473,38 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
 
 // similar to updateAndLink, but this version only looks at the
 // unified cache. it then inserts edges for matching elements.
-void Slicer::updateAndLinkFromCache(
-    Graph::Ptr g,
-    Direction dir,
-    SliceFrame & f, 
-    DefCache & cache)
-{
-    SliceFrame::ActiveMap::iterator ait = f.active.begin();
+void Slicer::updateAndLinkFromCache(Graph::Ptr g, Direction dir, SliceFrame &f, DefCache &cache) {
+//  SliceFrame::ActiveMap::iterator ait = f.active.begin();
 
-    // if the abstract region of interest is in the defcache,
-    // update it and link it
+  // if the abstract region of interest is in the defcache,
+  // update it and link it
 
-    for( ; ait != f.active.end(); ) {
-        AbsRegion const& r = (*ait).first;
-        if(!cache.defines(r)) {
-            ++ait;
-            continue;
-        }
-
-        // Link them up 
-        vector<Element> const& eles = (*ait).second;
-        set<Def> const& defs = cache.get(r);
-        set<Def>::const_iterator dit = defs.begin();
-        for( ; dit != defs.end(); ++dit) {
-            for(unsigned i=0;i<eles.size();++i) {
-                // don't create self-loops on assignments
-                if (eles[i].ptr != (*dit).ele.ptr)
-                    insertPair(g,dir,eles[i],(*dit).ele,(*dit).data);
-            }
-        }
-
-        // Stop caring about this region
-        SliceFrame::ActiveMap::iterator del = ait;
-        ++ait;
-        f.active.erase(del);
+  using active_t = decltype(*(f.active.begin()));
+//  for (; ait != f.active.end();) {
+  for(active_t const& cur_active : f.active) {
+    AbsRegion const &r = std::get<0>(cur_active); //(*ait).first;
+    if (!cache.defines(r)) {
+//      ++ait;
+      continue;
     }
+
+    // Link them up
+    vector<Element> const &eles = std::get<1>(cur_active); //(*ait).second;
+    set<Def> const &defs = cache.get(r);
+    set<Def>::const_iterator dit = defs.begin();
+    for (; dit != defs.end(); ++dit) {
+      for (unsigned i = 0; i < eles.size(); ++i) {
+        // don't create self-loops on assignments
+        if (eles[i].ptr != (*dit).ele.ptr)
+          insertPair(g, dir, eles[i], (*dit).ele, (*dit).data);
+      }
+    }
+
+    // Stop caring about this region
+//    SliceFrame::ActiveMap::iterator del = ait;
+//    ++ait;
+//    f.active.erase(del);
+  }
 }
 
 void
