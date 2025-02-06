@@ -375,6 +375,14 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
 
   killed.resize(cand.active.size(), false);
 
+  if (cand.addr() == 0x1220) {
+    std::cerr << "updateAndLink/0 active candidates: ";
+    for (auto const &reg : cand.active) {
+      std::cerr << std::get<0>(reg).format() << ", ";
+    }
+    std::cerr << "\n";
+  }
+
   if (dir == forward)
     convertInstruction(cand.loc.current->first, cand.addr(), cand.loc.func, cand.loc.block, assns);
   else
