@@ -1997,7 +1997,7 @@ Slicer::DefCache::replace(Slicer::DefCache const& o)
 void
 Slicer::DefCache::print() const {
   if(defmap.empty()) {
-    slicing_printf("empty");
+    slicing_printf("empty\n");
     return;
   }
 
@@ -2011,7 +2011,7 @@ Slicer::DefCache::print() const {
       continue;
     }
     for(auto const& def : defs) {
-      slicing_printf("    {assign=%s, reg=%s}\n", def.ele.ptr->format().c_str(), def.data.format().c_str());
+      slicing_printf("{assign=%s, reg=%s}\n", def.ele.ptr->format().c_str(), def.data.format().c_str());
     }
     slicing_printf("\n");
   }
