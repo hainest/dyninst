@@ -841,8 +841,8 @@ Slicer::getPredecessors(
       }
 
       if(cont) {
-        slicing_printf("Adding intra-block predecessor %lx with regions:\n", nf->loc.addr());
         if(df_debug_slicing_on()) {
+          slicing_printf("Adding intra-block predecessor %lx with active regions:\n", nf->loc.addr());
           for(auto const& cur_active : nf->active) {
             auto region = std::get<0>(cur_active);
             auto const& elems = std::get<1>(cur_active);
