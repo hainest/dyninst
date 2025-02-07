@@ -418,6 +418,7 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
 
     std::cerr << "updateAndLink/1 active cache: ";
     cache.print();
+    std::cerr << "\n";
   }
   // iterate over assignments and link matching elements.
   for (unsigned i = 0; i < assns.size(); ++i) {
@@ -1998,10 +1999,10 @@ void
 Slicer::DefCache::print() const {
   for(auto const& cache : defmap) {
     auto const& region = std::get<0>(cache);
-    slicing_printf("Definitions for region %s\n", region.format().c_str());
+    slicing_printf("Definitions for region %s: ", region.format().c_str());
 
     for(auto const& def : std::get<1>(cache)) {
-      slicing_printf("{%s, %s}, ", def.ele.ptr->format().c_str(), def.data.format().c_str());
+      slicing_printf("{assign=%s, reg=%s}, ", def.ele.ptr->format().c_str(), def.data.format().c_str());
     }
     slicing_printf("\n");
   }
