@@ -2009,6 +2009,8 @@ Slicer::DefCache::print() const {
     if(defs.empty()) {
       slicing_printf("NONE\n");
       continue;
+    } else {
+      slicing_printf("\n");
     }
     for(auto const& def : defs) {
       slicing_printf("{assign=%s, reg=%s}\n", def.ele.ptr->format().c_str(), def.data.format().c_str());
