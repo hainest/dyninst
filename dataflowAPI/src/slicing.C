@@ -1906,14 +1906,12 @@ void Slicer::constructInitialFrame(
         init_instruction = initFrame.loc.rcurrent->first;
     }
 
-//    if(a_->addr() >= 0x1214 && a_->addr() <= 0x1224) {
-      std::cerr << "before constructInitialFrame/converInstruction: " << init_instruction.format() << '\n';
-      for(auto itr = initFrame.loc.rcurrent; itr != initFrame.loc.rend; ++itr) {
-        std::cerr << std::get<0>(*itr).format() << ", ";
-      }
-      std::cerr << "\n";
-//    }
-
+    if(a_->addr() >= 0x1214 && a_->addr() <= 0x1224) {
+      std::cerr << "constructInitialFrame/convertInstruction: "
+                << "[0x" << std::hex << a_->addr() << "] "
+                << init_instruction.format()
+                << "; " << a_->format() << "\n";
+    }
     // reconstruct initial assignment. the initial assignment was created
     // by a different converter, and thus if the instruction is visited
     // more than once by the slicer, the assignment will be recreated
@@ -1923,7 +1921,7 @@ void Slicer::constructInitialFrame(
     convertInstruction(init_instruction, a_->addr(), f_, b_, assigns);
 
     if(a_->addr() >= 0x1214 && a_->addr() <= 0x1224) {
-      std::cerr << "after constructInitialFrame/converInstruction: \n";
+      std::cerr << "constructInitialFrame/converInstruction assignments: ";
       for(auto const& reg : assigns) {
         std::cerr << reg->format() << ", ";
       }
@@ -1946,9 +1944,14 @@ void Slicer::constructInitialFrame(
         }
     }
     if(a_->addr() >= 0x1214 && a_->addr() <= 0x1224) {
-      std::cerr << "ldp constructInitialFrame/end: ";
-      for(auto const& reg : assigns) {
-        std::cerr << reg->format() << ", ";
+      std::cerr << "constructInitialFrame/end active:\n";
+      for(auto const& reg : initFrame.active) {
+        auto const& region = std::get<0>(reg);
+        std::cerr << "  " << region.format() << " {";
+        for(auto const& elem : std::get<1>(reg)) {
+          std::cerr << elem.ptr->format() << ", ";
+        }
+        std::cerr << "}\n";
       }
       std::cerr << "\n";
     }
