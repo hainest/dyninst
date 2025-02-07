@@ -1997,6 +1997,11 @@ Slicer::DefCache::replace(Slicer::DefCache const& o)
 
 void
 Slicer::DefCache::print() const {
+  if(defmap.empty()) {
+    slicing_printf("empty");
+    return;
+  }
+
   for(auto const& cache : defmap) {
     auto const& region = std::get<0>(cache);
     slicing_printf("Definitions for region %s: ", region.format().c_str());
@@ -2006,17 +2011,6 @@ Slicer::DefCache::print() const {
     }
     slicing_printf("\n");
   }
-//    map<AbsRegion, set<Def> >::const_iterator it = defmap.begin();
-//    for( ; it !=defmap.end(); ++it) {
-//        slicing_printf("\t\t%s ->\n",(*it).first.format().c_str());
-//        set<Def> const& defs = (*it).second;
-//        set<Def>::const_iterator dit = defs.begin();
-//        for( ; dit != defs.end(); ++dit) {
-//            slicing_printf("\t\t\t<%s,%s>\n",
-//                (*dit).ele.ptr->format().c_str(),
-//                (*dit).data.format().c_str());
-//        }
-//    }
 }
 
 // merges all single caches that have occured single addr in the
