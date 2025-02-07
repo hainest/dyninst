@@ -474,9 +474,9 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
     ++j;
   }
   if (cand.addr() == 0x1220) {
-    std::cerr << "ldp updateAndLink/2: ";
-    for (auto const &reg : assns) {
-      std::cerr << reg->format() << ", ";
+    std::cerr << "updateAndLink/2 active candidates: ";
+    for (auto const &reg : cand.active) {
+      std::cerr << std::get<0>(reg).format() << ", ";
     }
     std::cerr << "\n";
   }
@@ -490,6 +490,13 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
     } else {
       cand.active[matches[i].reg].push_back(matches[i]);
     }
+  }
+  if (cand.addr() == 0x1220) {
+    std::cerr << "updateAndLink/3 active candidates: ";
+    for (auto const &reg : cand.active) {
+      std::cerr << std::get<0>(reg).format() << ", ";
+    }
+    std::cerr << "\n";
   }
   return p.modifyCurrentFrame(cand, g, this);
 }
