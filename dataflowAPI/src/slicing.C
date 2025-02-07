@@ -1944,7 +1944,7 @@ void Slicer::constructInitialFrame(
         }
     }
     if(a_->addr() >= 0x1214 && a_->addr() <= 0x1224) {
-      std::cerr << "constructInitialFrame/end active:\n";
+      std::cerr << "constructInitialFrame/end active: ";
       for(auto const& reg : initFrame.active) {
         auto const& region = std::get<0>(reg);
         std::cerr << "  " << region.format() << " {";
