@@ -496,41 +496,39 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
 
 // similar to updateAndLink, but this version only looks at the
 // unified cache. it then inserts edges for matching elements.
-void Slicer::updateAndLinkFromCache(
-    Graph::Ptr g,
-    Direction dir,
-    SliceFrame & f, 
-    DefCache & cache)
-{
-    SliceFrame::ActiveMap::iterator ait = f.active.begin();
+void Slicer::updateAndLinkFromCache(Graph::Ptr g, Direction dir, SliceFrame &f, DefCache &cache) {
 
-    // if the abstract region of interest is in the defcache,
-    // update it and link it
 
-    for( ; ait != f.active.end(); ) {
-        AbsRegion const& r = (*ait).first;
-        if(!cache.defines(r)) {
-            ++ait;
-            continue;
-        }
+  // Update and link the abstract region, if it is in the defcache
 
-        // Link them up 
-        vector<Element> const& eles = (*ait).second;
-        set<Def> const& defs = cache.get(r);
-        set<Def>::const_iterator dit = defs.begin();
-        for( ; dit != defs.end(); ++dit) {
-            for(unsigned i=0;i<eles.size();++i) {
-                // don't create self-loops on assignments
-                if (eles[i].ptr != (*dit).ele.ptr)
-                    insertPair(g,dir,eles[i],(*dit).ele,(*dit).data);
-            }
-        }
 
-        // Stop caring about this region
-        SliceFrame::ActiveMap::iterator del = ait;
-        ++ait;
-        f.active.erase(del);
+  SliceFrame::ActiveMap::iterator ait = f.active.begin();
+
+  // Update and link the abstract region, if it is in the defcache
+  for (; ait != f.active.end();) {
+    AbsRegion const &r = (*ait).first;
+    if (!cache.defines(r)) {
+      ++ait;
+      continue;
     }
+
+    // Link them up
+    vector<Element> const &eles = (*ait).second;
+    set<Def> const &defs = cache.get(r);
+    set<Def>::const_iterator dit = defs.begin();
+    for (; dit != defs.end(); ++dit) {
+      for (unsigned i = 0; i < eles.size(); ++i) {
+        // don't create self-loops on assignments
+        if (eles[i].ptr != (*dit).ele.ptr)
+          insertPair(g, dir, eles[i], (*dit).ele, (*dit).data);
+      }
+    }
+
+    // Stop caring about this region
+    SliceFrame::ActiveMap::iterator del = ait;
+    ++ait;
+    f.active.erase(del);
+  }
 }
 
 void
@@ -843,13 +841,12 @@ Slicer::getPredecessors(
       }
 
       if(cont) {
-        slicing_printf("Adding intra-block predecessor %lx\n", nf->loc.addr());
-        slicing_printf("Current regions: ");
+        slicing_printf("Adding intra-block predecessor %lx with regions:\n", nf->loc.addr());
         if(df_debug_slicing_on()) {
-          for(auto const& cur_active : cand.active) {
+          for(auto const& cur_active : nf->active) {
             auto region = std::get<0>(cur_active);
             auto const& elems = std::get<1>(cur_active);
-            slicing_printf("%s ", region.format().c_str());
+            slicing_printf("  %s ", region.format().c_str());
             for(auto const& elem : elems) {
               slicing_printf("[%s] : %s; ", elem.reg.format().c_str(),elem.ptr->format().c_str());
             }
