@@ -416,7 +416,7 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
     }
     std::cerr << "\n";
 
-    std::cerr << "updateAndLink/1 active cache: ";
+    std::cerr << "updateAndLink/1 active: ";
     cache.print();
   }
   // iterate over assignments and link matching elements.
@@ -448,7 +448,7 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
     }
     std::cerr << "\n";
 
-    std::cerr << "updateAndLink/1 active cache: ";
+    std::cerr << "updateAndLink/2 cache: ";
     cache.print();
   }
 
@@ -571,93 +571,85 @@ Slicer::cachePotential(
  * to the elements associated with the region `cur'.
  * Return true if these exists at least a match.
  */
-bool
-Slicer::findMatch(
-    Graph::Ptr g,
-    Direction dir,
-    SliceFrame const& cand,
-    AbsRegion const& reg,
-    Assignment::Ptr assn,
-    vector<Element> & matches,
-    DefCache& cache)
-{
-    bool hadmatch = false;
-    if(dir == forward) {
-		slicing_cerr << "\t\tComparing candidate assignment " << assn->format() << " to input region " << reg.format() << endl;
-        vector<AbsRegion> const& inputs = assn->inputs();
-        for(unsigned i=0;i<inputs.size();++i) {
-            if(reg.contains(inputs[i])) {
-                hadmatch = true;    
-				slicing_cerr << "\t\t\t Match!" << endl;
-                // Link the assignments associated with this
-                // abstract region (may be > 1)
-                Element ne(cand.loc.block,cand.loc.func,reg,assn);
+bool Slicer::findMatch(Graph::Ptr g, Direction dir, SliceFrame const &cand, AbsRegion const &reg, Assignment::Ptr assn,
+    vector<Element> &matches, DefCache &cache) {
+  bool hadmatch = false;
+  if (dir == forward) {
+    slicing_cerr << "\t\tComparing candidate assignment " << assn->format() << " to input region " << reg.format()
+        << endl;
+    vector<AbsRegion> const &inputs = assn->inputs();
+    for (unsigned i = 0; i < inputs.size(); ++i) {
+      if (reg.contains(inputs[i])) {
+        hadmatch = true;
+        slicing_cerr << "\t\t\t Match!" << endl;
+        // Link the assignments associated with this
+        // abstract region (may be > 1)
+        Element ne(cand.loc.block, cand.loc.func, reg, assn);
 
-                // Cache
-                cache.get(reg).insert( Def(ne,inputs[i]) );
-                
-                vector<Element> const& eles = cand.active.find(reg)->second;
-                for(unsigned j=0;j<eles.size();++j) {
-                    insertPair(g,dir,eles[j],ne,inputs[i]);
+        // Cache
+        cache.get(reg).insert(Def(ne, inputs[i]));
 
-                }
-            }
+        vector<Element> const &eles = cand.active.find(reg)->second;
+        for (unsigned j = 0; j < eles.size(); ++j) {
+          insertPair(g, dir, eles[j], ne, inputs[i]);
+
         }
-        if(hadmatch) {
-            // In this case, we are now interested in
-            // the outputs of the assignment
-            matches.push_back(
-                Element(cand.loc.block,cand.loc.func,assn->out(),assn));
-        }
-    } else {
-        slicing_printf("\t\t\t\t\tComparing current %s to candidate %s\n",
-            reg.format().c_str(),assn->out().format().c_str());
-        if(reg.contains(assn->out()) || assn->out().contains(reg)) {
-	    hadmatch = true;
-            slicing_printf("\t\t\t\t\t\tMatch!\n");
-
-            // Link the assignments associated with this
-            // abstract region (may be > 1)
-            Element ne(cand.loc.block,cand.loc.func,reg,assn); 
-
-            // Cache
-            cache.get(reg).insert( Def(ne,reg) );
-            slicing_printf("\t\t\t cached [%s] -> <%s,%s>\n",
-               reg.format().c_str(),
-                ne.ptr->format().c_str(),reg.format().c_str());
-
-            vector<Element> const& eles = cand.active.find(reg)->second;
-            for(unsigned i=0;i<eles.size();++i) {
-                // N.B. using the AbsRegion from the Element, which
-                //      may differ from the `reg' parameter to this
-                //      method because of transformation though
-                //      call or return edges. This `true' AbsRegion
-                //      is used to associate two different AbsRegions
-                //      during symbolic evaluation
-                // if (eles[i].ptr != ne.ptr)
-                if (eles[i].ptr->addr() != ne.ptr->addr())
-                    insertPair(g,dir,eles[i],ne,eles[i].reg);
-            }
-
-            // In this case, we are now interested in the 
-            // _inputs_ to the assignment
-            vector<AbsRegion> const& inputs = assn->inputs();
-            for(unsigned i=0; i< inputs.size(); ++i) {
-                ne.reg = inputs[i];
-                matches.push_back(ne);
-            }
-            if (cand.loc.block->obj()->cs()->getArch() == Arch_cuda) {
-                if (reg.contains(assn->out()) && !assn->out().contains(reg)) {
-                    ne.reg = assn->out();
-                    ne.reg.flipPredicateCondition();
-                    slicing_printf("\t\t\t Handle predicate: search for %s, find %s, generate %s\n", reg.format().c_str(), assn->out().format().c_str(), ne.reg.format().c_str());
-                    matches.push_back(ne);
-                }
-            }
-        }
+      }
     }
+    if (hadmatch) {
+      // In this case, we are now interested in
+      // the outputs of the assignment
+      matches.push_back(Element(cand.loc.block, cand.loc.func, assn->out(), assn));
+    }
+  } else {
+    slicing_printf("\t\t\t\t\tComparing current %s to candidate %s\n", reg.format().c_str(),
+        assn->out().format().c_str());
+    if (reg.contains(assn->out()) || assn->out().contains(reg)) {
+      hadmatch = true;
+      slicing_printf("\t\t\t\t\t\tMatch!\n");
 
-    return hadmatch;
+      // Link the assignments associated with this
+      // abstract region (may be > 1)
+      Element ne(cand.loc.block, cand.loc.func, reg, assn);
+
+      // Cache
+      cache.get(reg).insert(Def(ne, reg));
+      slicing_printf("\t\t\t cached [%s] -> <%s,%s>\n", reg.format().c_str(), ne.ptr->format().c_str(),
+          reg.format().c_str());
+
+      vector<Element> const &eles = cand.active.find(reg)->second;
+      for (unsigned i = 0; i < eles.size(); ++i) {
+        // N.B. using the AbsRegion from the Element, which
+        //      may differ from the `reg' parameter to this
+        //      method because of transformation though
+        //      call or return edges. This `true' AbsRegion
+        //      is used to associate two different AbsRegions
+        //      during symbolic evaluation
+        // if (eles[i].ptr != ne.ptr)
+        if (eles[i].ptr->addr() != ne.ptr->addr())
+          insertPair(g, dir, eles[i], ne, eles[i].reg);
+      }
+
+      // In this case, we are now interested in the
+      // _inputs_ to the assignment
+      vector<AbsRegion> const &inputs = assn->inputs();
+      for (unsigned i = 0; i < inputs.size(); ++i) {
+        ne.reg = inputs[i];
+        matches.push_back(ne);
+      }
+      if (cand.loc.block->obj()->cs()->getArch() == Arch_cuda) {
+        if (reg.contains(assn->out()) && !assn->out().contains(reg)) {
+          ne.reg = assn->out();
+          ne.reg.flipPredicateCondition();
+          slicing_printf("\t\t\t Handle predicate: search for %s, find %s, generate %s\n", reg.format().c_str(),
+              assn->out().format().c_str(), ne.reg.format().c_str());
+          matches.push_back(ne);
+        }
+      }
+    }
+  }
+
+  return hadmatch;
 }
 
 
@@ -2013,7 +2005,7 @@ Slicer::DefCache::print() const {
       slicing_printf("\n");
     }
     for(auto const& def : defs) {
-      slicing_printf("{assign=%s, reg=%s}\n", def.ele.ptr->format().c_str(), def.data.format().c_str());
+      slicing_printf("    {assign=%s, reg=%s}\n", def.ele.ptr->format().c_str(), def.data.format().c_str());
     }
     slicing_printf("\n");
   }
