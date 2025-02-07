@@ -499,8 +499,11 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
 void Slicer::updateAndLinkFromCache(Graph::Ptr g, Direction dir, SliceFrame &f, DefCache &cache) {
 
 
-  // Update and link the abstract region, if it is in the defcache
-
+  std::cerr << "updateAndLinkFromCache active regions: ";
+  for (auto const &reg : f.active) {
+    std::cerr << std::get<0>(reg).format() << ", ";
+  }
+  std::cerr << "\n";
 
   SliceFrame::ActiveMap::iterator ait = f.active.begin();
 
