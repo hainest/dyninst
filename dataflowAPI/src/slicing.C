@@ -415,6 +415,9 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
       std::cerr << std::get<0>(reg).format() << ", ";
     }
     std::cerr << "\n";
+
+    std::cerr << "updateAndLink/1 active cache: ";
+    cache.print();
   }
   // iterate over assignments and link matching elements.
   for (unsigned i = 0; i < assns.size(); ++i) {
@@ -444,6 +447,9 @@ bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCac
       std::cerr << std::get<0>(reg).format() << ", ";
     }
     std::cerr << "\n";
+
+    std::cerr << "updateAndLink/1 active cache: ";
+    cache.print();
   }
 
   if (!change && matches.empty()) {        // no change -- nothing killed, nothing added
