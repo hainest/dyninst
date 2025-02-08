@@ -129,32 +129,31 @@ int StandardParseData::findBlocks(CodeRegion * /* cr */, Address addr,
 }
 
 Function *
-StandardParseData::createAndRecordFunc(CodeRegion * cr, Address entry, FuncSource src)
-{
-    Function * ret = findFunc(NULL, entry);
-    if (ret != NULL) return NULL;
+StandardParseData::createAndRecordFunc(CodeRegion *cr, Address entry, FuncSource src) {
+  Function *ret = findFunc(NULL, entry);
+  if (ret != NULL)
+    return NULL;
 
-    CodeRegion * reg = reglookup(cr,entry);
-    char name[32];
-        if(reg && reg->isCode(entry)) {
-           if (src == MODIFICATION) {
-              snprintf(name,32,"mod%lx",entry);
-           } else {
-              snprintf(name,32,"targ%lx",entry);
-           }
-            parsing_printf("[%s] new function for target %lx\n",FILE__,entry);
-            ret = _parser->factory()._mkfunc(
-               entry,src,name,&_parser->obj(),reg,_parser->obj().cs());
-            if (record_func(ret) == NULL) {
-                // No need to delete this function that is not registered because
-                // CFGFactory has an accounting data structure for it.
-                // Delete the new function here would cause double-free.                
-                return NULL;
-            } else {
-                _parser->record_func(ret);
-            }
-        }
-    return ret;
+  CodeRegion *reg = reglookup(cr, entry);
+  char name[32];
+  if (reg && reg->isCode(entry)) {
+    if (src == MODIFICATION) {
+      snprintf(name, 32, "mod%lx", entry);
+    } else {
+      snprintf(name, 32, "targ%lx", entry);
+    }
+    parsing_printf("[%s] new function for target %lx\n", FILE__, entry);
+    ret = _parser->factory()._mkfunc(entry, src, name, &_parser->obj(), reg, _parser->obj().cs());
+    if (record_func(ret) == NULL) {
+      // No need to delete this function that is not registered because
+      // CFGFactory has an accounting data structure for it.
+      // Delete the new function here would cause double-free.
+      return NULL;
+    } else {
+      _parser->record_func(ret);
+    }
+  }
+  return ret;
 }
 
 void
