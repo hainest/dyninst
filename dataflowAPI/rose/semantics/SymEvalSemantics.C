@@ -100,9 +100,7 @@ void SymEvalSemantics::RegisterStateAST::writeRegister(const RegisterDescriptor 
     if (i != aaMap.end()) {
         SymEvalSemantics::SValuePtr value_ = SymEvalSemantics::SValue::promote(value);
         res[i->second] = value_->get_expression();
-        std::cerr << "Saved value '";
-        value->print(std::cerr);
-        std::cerr << "'\n";
+        std::cerr << "Saved value '" << value_->get_expression()->format() << '\n';
     }
 }
 
