@@ -1062,8 +1062,10 @@ bool Symtab::extractInfo(Object *linkedFile)
 
     vector<relocationEntry >fbt;
     linkedFile->get_func_binding_table(fbt);
-    for(unsigned i=0; i<fbt.size();i++)
+    for(unsigned i=0; i<fbt.size();i++) {
+      parsing_printf("FBT entry %lx %s\n", fbt[i].target_addr(), fbt[i].name().c_str());
         relocation_table_.push_back(fbt[i]);
+    }
     return true;
 }
 
