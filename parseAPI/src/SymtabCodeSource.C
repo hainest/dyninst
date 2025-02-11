@@ -609,6 +609,12 @@ SymtabCodeSource::init_linkage()
         parsing_printf("Found PLT entry %lx %s\n", reloc.target_addr(), reloc.name().c_str());
         _linkage[reloc.target_addr()] = reloc.name();
     }
+
+    parsing_printf("Linkage map:\n");
+    for(auto const& l : _linkage) {
+      parsing_printf("  %lx %s\n", l.first, l.second.c_str());
+    }
+
     if (getArch() != Arch_x86_64) return;
     SymtabAPI::Region * plt_sec = NULL;
     if (_symtab->findRegion(plt_sec, ".plt.sec")) {
