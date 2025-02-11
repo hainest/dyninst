@@ -1373,7 +1373,9 @@ bool Object::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp, Elf_X_Shdr *&dyns
           }
 
           if (fbt_iter == -1) { // Create new relocation entry.
-            parsing_printf("Creating relocation entry [0x%lx]%s at offset 0x%lx\n",next_plt_entry_addr, targ_name.c_str(), offset);
+            parsing_printf("Creating relocation entry [0x%lx]%s at offset 0x%lx\n",
+                static_cast<long unsigned>(next_plt_entry_addr), targ_name.c_str(),
+                static_cast<long unsigned>(offset));
             relocationEntry re(next_plt_entry_addr, offset, targ_name,
             NULL, type);
             if (type == R_X86_64_IRELATIVE) {
