@@ -1011,6 +1011,7 @@ bool Object::get_relocationDyn_entries(unsigned rel_scnp_index, Elf_X_Shdr *&dyn
           }
         }
 
+        parsing_printf("DYNENTRIES %lx", static_cast<long unsigned>(offset));
         relocation_table_.push_back(re);
       }
     } else {
