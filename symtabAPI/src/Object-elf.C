@@ -1319,6 +1319,8 @@ bool Object::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp, Elf_X_Shdr *&dyns
       Elf_X_Rela rela = reldata.get_rela();
       const char *strs = strdata.get_string();
 
+      parsing_printf("next_plt_entry_addr = %x\n", static_cast<unsigned>(next_plt_entry_addr));
+
       if (sym.isValid() && (rel.isValid() || rela.isValid()) && strs) {
 
         // Sometimes, PPC32 Linux may use this loop to update fbt entries.
@@ -1372,6 +1374,8 @@ bool Object::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp, Elf_X_Shdr *&dyns
             }
           }
 
+          parsing_printf("fbt_iter = %d\n", fbt_iter);
+
           if (fbt_iter == -1) { // Create new relocation entry.
             parsing_printf("Creating relocation entry [0x%lx]%s at offset 0x%lx\n",
                 static_cast<long unsigned>(next_plt_entry_addr), targ_name.c_str(),
@@ -1403,6 +1407,7 @@ bool Object::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp, Elf_X_Shdr *&dyns
             fbt_.push_back(re);
 
           } else { // Update existing relocation entry.
+            parsing_printf("Updating existing entry at index %d\n", fbt_iter);
             while ((unsigned) fbt_iter < fbt_.size() && fbt_[fbt_iter].name() == targ_name) {
 
               fbt_[fbt_iter].setRelAddr(offset);
