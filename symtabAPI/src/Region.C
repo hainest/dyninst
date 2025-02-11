@@ -327,6 +327,7 @@ bool Region::addRelocationEntry(Offset ra, Symbol *dynref, unsigned long relType
       Region::RegionType rtype)
 {
     rels_.push_back(relocationEntry(ra, dynref->getMangledName(), dynref, relType, rtype));
+    std::cerr << "REGION " << ra << "\n";
     return true;
 }
 
