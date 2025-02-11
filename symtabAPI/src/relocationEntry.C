@@ -198,7 +198,7 @@ std::ostream& operator<<(std::ostream &os, const relocationEntry &r) {
   os << "\n";
   os << std::hex;
 
-  os << "  Reloc Address: 0x" << r.rel_addr() << '\n'
+  os << "  Offset: 0x" << r.rel_addr() << '\n'
      << "  Target Address: 0x" << r.target_addr() << '\n'
      << "  Addend: 0x" << r.addend() << '\n'
      << "  Region: " << Region::regionType2Str(r.regionType()) << '\n'
