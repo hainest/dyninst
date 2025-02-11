@@ -481,8 +481,10 @@ SymtabCodeSource::init_hints(RegionMap &rmap, hint_filt * filt)
     SeenMap seen;
     dyn_c_vector<Hint> h;
 
-    parsing_printf("[%s:%d] processing %lu symtab hints\n",FILE__,__LINE__,
-        fsyms.size());
+    parsing_printf("[%s:%d] processing %lu symtab hints\n",FILE__,__LINE__, fsyms.size());
+    for(auto const& f : fsyms) {
+      std::cerr << *f << '\n';
+    }
 
     atomic_bool foundEntrySymbol{};
     Address entryOffset = _symtab->getEntryOffset();
