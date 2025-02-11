@@ -1011,7 +1011,7 @@ bool Object::get_relocationDyn_entries(unsigned rel_scnp_index, Elf_X_Shdr *&dyn
           }
         }
 
-        parsing_printf("DYNENTRIES %lx", static_cast<long unsigned>(offset));
+        std::cerr << "DYNENTRIES " << offset << "\n";
         relocation_table_.push_back(re);
       }
     } else {
@@ -2387,7 +2387,7 @@ void Object::getDependencies(std::vector<std::string> &deps) {
 
 bool Object::addRelocationEntry(relocationEntry &re) {
     relocation_table_.push_back(re);
-    parsing_printf("ADDRELOC %lx", static_cast<unsigned long>(re.target_addr()));
+    std::cerr << "ADDRELOC " << re.target_addr() << "\n";
     return true;
 }
 
