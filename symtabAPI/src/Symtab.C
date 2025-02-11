@@ -2195,6 +2195,7 @@ DYNINST_EXPORT bool Symtab::addExternalSymbolReference(Symbol *externalSym, Regi
 
    if( !addSymbol(symRef, externalSym) ) return false;
 
+   std::cerr << "addExternalSymbolReference\n" << localRel << "\n";
    localRegion->addRelocationEntry(localRel);
 
    // Make sure the Symtab holding the external symbol gets linked
