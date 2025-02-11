@@ -1205,6 +1205,9 @@ DYNINST_EXPORT bool Symtab::updateFuncBindingTable(Offset stub_addr, Offset plt_
         relocation_table_[stub_idx].setTargetAddr(stub_addr);
         return true;
     }
+    for(auto const& reloc : relocation_table_) {
+        parsing_printf("UPDATE %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+    }
     return false;
 }
 
@@ -1861,6 +1864,9 @@ DYNINST_EXPORT bool Symtab::fixup_RegionAddr(const char* name, Offset memOffset,
         relref[i].setRelAddr(memOffset + value);
     }
 
+    for(auto const& reloc : relocation_table_) {
+        parsing_printf("FIXUP %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+    }
 #if defined(_MSC_VER)
     regionsByEntryAddr.erase(sec->getMemOffset());
 #endif
