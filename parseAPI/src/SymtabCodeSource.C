@@ -396,8 +396,21 @@ SymtabCodeSource::stopTimer(const std::string & name) const
 void
 SymtabCodeSource::init(hint_filt * filt , bool allLoadedRegions)
 {
+    vector<SymtabAPI::relocationEntry> fbt;
+    _symtab->getFuncBindingTable(fbt);
+    std::cerr << "BEFORE init_regions\n";
+    for(auto const& r : fbt) {
+      std::cerr << r << "\n";
+    }
+
     // regions (and hints)
     init_regions(filt, allLoadedRegions);
+
+    _symtab->getFuncBindingTable(fbt);
+    std::cerr << "AFTER init_regions\n";
+    for(auto const& r : fbt) {
+      std::cerr << r << "\n";
+    }
 
     // external linkage
     init_linkage();
@@ -474,127 +487,114 @@ SymtabCodeSource::init_regions(hint_filt * filt , bool allLoadedRegions)
     init_hints(rmap,filt);
 }
 
-void
-SymtabCodeSource::init_hints(RegionMap &rmap, hint_filt * filt)
-{
-    const vector<SymtabAPI::Function *>& fsyms = _symtab->getAllFunctionsRef();
-    SeenMap seen;
-    dyn_c_vector<Hint> h;
+void SymtabCodeSource::init_hints(RegionMap &rmap, hint_filt *filt) {
+  const vector<SymtabAPI::Function*> &fsyms = _symtab->getAllFunctionsRef();
+  SeenMap seen;
+  dyn_c_vector<Hint> h;
 
-    parsing_printf("[%s:%d] processing %lu symtab hints\n",FILE__,__LINE__, fsyms.size());
-    for(auto const& f : fsyms) {
-      std::cerr << *f << '\n';
-    }
+  parsing_printf("[%s:%d] processing %lu symtab hints\n", FILE__, __LINE__, fsyms.size());
+  for (auto const &f : fsyms) {
+    std::cerr << *f << '\n';
+  }
 
-    atomic_bool foundEntrySymbol{};
-    Address entryOffset = _symtab->getEntryOffset();
+  atomic_bool foundEntrySymbol { };
+  Address entryOffset = _symtab->getEntryOffset();
 
-#pragma omp parallel for schedule(auto)
-    for (unsigned int i = 0; i < fsyms.size(); i++) {
-        SymtabAPI::Function *f = fsyms[i];
-        vector<SymtabAPI::Symbol*> syms;
-        f->getSymbols(syms);
-        string fname_s = syms[0]->getPrettyName();
-        for (size_t j = 1; j < syms.size(); ++j)
-            if (syms[j]->getPrettyName() < fname_s) fname_s = syms[j]->getPrettyName();
-        const char *fname = fname_s.c_str();
-        if(filt && (*filt)(f)) {
-            parsing_printf("[%s:%d}  == filtered hint %s [%lx] ==\n",
-                FILE__,__LINE__,fname, f->getOffset());
-            continue;
-        }
-
-        // Cleaned-up version of a rather ugly series of strcmp's. Is this the
-        // right place to do this? Should these symbols not be filtered by the
-        // loop above?
-        /*Achin added code starts 12/15/2014*/
-        if (std::find(skipped_symbols.begin(), skipped_symbols.end(), fname_s) != skipped_symbols.end()) {
-          continue;
-        }
-        /*Achin added code ends*/
-        Offset offset = f->getOffset();
-        SymtabAPI::Region * sr = f->getRegion();
-
-        bool present = !seen.insert(std::make_pair(RegionOffsetPair(sr, offset), true));
-
-        if (present) {
-           parsing_printf("[%s:%d] duplicate function at address %lx: %s\n",
-                FILE__,__LINE__, f->getOffset(), fname);
-           continue;
-        }
-
-        if (!sr) {
-            parsing_printf("[%s:%d] missing Region in function at %lx\n",
-                FILE__,__LINE__,f->getOffset());
-            continue;
-        }
-
-        CodeRegion * cr = NULL;
-
-        {
-          RegionMap::const_accessor a;
-          present = rmap.find(a, sr);
-          if (present) cr = a->second;
-        }
-
-        if (!present) {
-            parsing_printf("[%s:%d] unrecognized Region %lx in function %lx\n",
-                FILE__,__LINE__,sr->getMemOffset(),f->getOffset());
-            continue;
-        }
-
-        if(!cr->isCode(f->getOffset())) {
-            parsing_printf("\t<%lx> skipped non-code, region [%lx,%lx)\n",
-                           f->getOffset(),
-                           sr->getMemOffset(),
-                           sr->getMemOffset()+sr->getDiskSize());
-        } else {
-          if (entryOffset == offset)  {
-            foundEntrySymbol = true;
-          }
-
-          _hints.push_back(Hint(f->getOffset(), f->getSymbolSize(), cr, fname_s));
-          parsing_printf("\t<%lx,%s,[%lx,%lx)>\n",
-                         f->getOffset(),
-                         fname,
-                         cr->offset(),
-                         cr->offset()+cr->length());
-        }
-    }
-
-    if (!foundEntrySymbol && _symtab->isExecutable())  {
-      // add entry point as this object is an executable
-      // and no symbol referenced the entry point
-      parsing_printf("Adding exectable entry point at %lx\n", entryOffset);
-      SymtabAPI::Region *sr = _symtab->findEnclosingRegion(entryOffset);
-      if (sr)  {
-        CodeRegion *cr = NULL;
-        {
-          RegionMap::const_accessor a;
-          bool found = rmap.find(a, sr);
-          if (found)  {
-            cr = a->second;
-          }
-        }
-
-        if (cr)  {
-	  const char startFuncName[] = "_start";
-	  // use 0 for function length as length is unknown and value unused
-          _hints.push_back(Hint(entryOffset, 0, cr, startFuncName));
-          parsing_printf("\t<%lx,%s,[%lx,%lx)>\n",
-                         entryOffset,
-                         startFuncName,
-                         cr->offset(),
-                         cr->offset() + cr->length());
-        }  else  {
-          parsing_printf("[%s:%d] unrecognized Region %lx entry point function %lx\n",
-              FILE__, __LINE__, sr->getMemOffset(), entryOffset);
-        }
-      }  else  {
-        parsing_printf("[%s:%d] Symtab Region for entry point function %lx not found\n",
-            FILE__, __LINE__, entryOffset);
+  #pragma omp parallel for schedule(auto)
+  for (unsigned int i = 0; i < fsyms.size(); i++) {
+    SymtabAPI::Function *f = fsyms[i];
+    vector<SymtabAPI::Symbol*> syms;
+    f->getSymbols(syms);
+    string fname_s = syms[0]->getPrettyName();
+    for (size_t j = 1; j < syms.size(); ++j) {
+      if (syms[j]->getPrettyName() < fname_s) {
+        fname_s = syms[j]->getPrettyName();
       }
     }
+    const char *fname = fname_s.c_str();
+    if (filt && (*filt)(f)) {
+      parsing_printf("[%s:%d}  == filtered hint %s [%lx] ==\n", FILE__, __LINE__, fname, f->getOffset());
+      continue;
+    }
+
+    // Cleaned-up version of a rather ugly series of strcmp's. Is this the
+    // right place to do this? Should these symbols not be filtered by the
+    // loop above?
+    /*Achin added code starts 12/15/2014*/
+    if (std::find(skipped_symbols.begin(), skipped_symbols.end(), fname_s) != skipped_symbols.end()) {
+      continue;
+    }
+    /*Achin added code ends*/
+    Offset offset = f->getOffset();
+    SymtabAPI::Region *sr = f->getRegion();
+
+    bool present = !seen.insert(std::make_pair(RegionOffsetPair(sr, offset), true));
+
+    if (present) {
+      parsing_printf("[%s:%d] duplicate function at address %lx: %s\n", FILE__, __LINE__, f->getOffset(), fname);
+      continue;
+    }
+
+    if (!sr) {
+      parsing_printf("[%s:%d] missing Region in function at %lx\n", FILE__, __LINE__, f->getOffset());
+      continue;
+    }
+
+    CodeRegion *cr = NULL;
+    {
+      RegionMap::const_accessor a;
+      present = rmap.find(a, sr);
+      if (present)
+        cr = a->second;
+    }
+
+    if (!present) {
+      parsing_printf("[%s:%d] unrecognized Region %lx in function %lx\n", FILE__, __LINE__, sr->getMemOffset(),
+          f->getOffset());
+      continue;
+    }
+
+    if (!cr->isCode(f->getOffset())) {
+      parsing_printf("\t<%lx> skipped non-code, region [%lx,%lx)\n", f->getOffset(), sr->getMemOffset(),
+          sr->getMemOffset() + sr->getDiskSize());
+    } else {
+      if (entryOffset == offset) {
+        foundEntrySymbol = true;
+      }
+
+      _hints.push_back(Hint(f->getOffset(), f->getSymbolSize(), cr, fname_s));
+      parsing_printf("\t<%lx,%s,[%lx,%lx)>\n", f->getOffset(), fname, cr->offset(), cr->offset() + cr->length());
+    }
+  }
+
+  if (!foundEntrySymbol && _symtab->isExecutable()) {
+    // add entry point as this object is an executable
+    // and no symbol referenced the entry point
+    parsing_printf("Adding exectable entry point at %lx\n", entryOffset);
+    SymtabAPI::Region *sr = _symtab->findEnclosingRegion(entryOffset);
+    if (sr) {
+      CodeRegion *cr = NULL;
+      {
+        RegionMap::const_accessor a;
+        bool found = rmap.find(a, sr);
+        if (found) {
+          cr = a->second;
+        }
+      }
+
+      if (cr) {
+        const char startFuncName[] = "_start";
+        // use 0 for function length as length is unknown and value unused
+        _hints.push_back(Hint(entryOffset, 0, cr, startFuncName));
+        parsing_printf("\t<%lx,%s,[%lx,%lx)>\n", entryOffset, startFuncName, cr->offset(), cr->offset() + cr->length());
+      } else {
+        parsing_printf("[%s:%d] unrecognized Region %lx entry point function %lx\n", FILE__, __LINE__,
+            sr->getMemOffset(), entryOffset);
+      }
+    } else {
+      parsing_printf("[%s:%d] Symtab Region for entry point function %lx not found\n", FILE__, __LINE__, entryOffset);
+    }
+  }
 }
 
 void
