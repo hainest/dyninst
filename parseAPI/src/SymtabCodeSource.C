@@ -606,7 +606,7 @@ SymtabCodeSource::init_linkage()
     }
 
     for(auto const& reloc : fbt) {
-        parsing_printf("Found PLT entry %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+        std::cerr << "Found PLT entry " << reloc << "\n";
         _linkage[reloc.target_addr()] = reloc.name();
     }
 
