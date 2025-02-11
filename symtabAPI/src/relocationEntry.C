@@ -202,7 +202,7 @@ std::ostream& operator<<(std::ostream &os, const relocationEntry &r) {
      << "  Target Address: 0x" << r.target_addr() << '\n'
      << "  Addend: 0x" << r.addend() << '\n'
      << "  Region: " << Region::regionType2Str(r.regionType()) << '\n'
-     << "  Type: " << relocationEntry::relType2Str(r.getRelType()) << "(" << std::dec << r.getRelType() << ")";
+     << "  Type: " << relocationEntry::relType2Str(r.getRelType()) << "(" << std::dec << r.getRelType() << ")\n";
 
   if (r.getDynSym() != NULL) {
     os << std::hex;
