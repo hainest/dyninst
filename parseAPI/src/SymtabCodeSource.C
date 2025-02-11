@@ -598,16 +598,15 @@ void
 SymtabCodeSource::init_linkage()
 {
     vector<SymtabAPI::relocationEntry> fbt;
-    vector<SymtabAPI::relocationEntry>::iterator fbtit;
 
     if(!_symtab->getFuncBindingTable(fbt)){
         parsing_printf("Cannot get function binding table. %s\n", _symtab->file().c_str());
         return;
     }
 
-    for(fbtit = fbt.begin(); fbtit != fbt.end(); ++fbtit){
-        //fprintf( stderr, "%lx %s\n", (*fbtit).target_addr(), (*fbtit).name().c_str());
-        _linkage[(*fbtit).target_addr()] = (*fbtit).name(); 
+    for(auto const& reloc : fbt) {
+        parsing_printf("Found PLT entry %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+        _linkage[reloc.target_addr()] = reloc.name();
     }
     if (getArch() != Arch_x86_64) return;
     SymtabAPI::Region * plt_sec = NULL;
