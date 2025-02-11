@@ -3756,179 +3756,186 @@ void Object::insertDynamicEntry(long name, long value) {
 
 // Parses sections with relocations and links these relocations to
 // existing symbols
-bool Object::parse_all_relocations(Elf_X_Shdr *dynsym_scnp,
-                                   Elf_X_Shdr *dynstr_scnp, Elf_X_Shdr *symtab_scnp,
-                                   Elf_X_Shdr *strtab_scnp) {
-    // Setup symbol table access
-    Offset dynsym_offset = 0;
-    Elf_X_Data dynsym_data, dynstr_data;
-    Elf_X_Sym dynsym;
-    const char *dynstr = NULL;
-    if (dynsym_scnp && dynstr_scnp) {
-        dynsym_offset = dynsym_scnp->sh_offset();
-        dynsym_data = dynsym_scnp->get_data();
-        dynstr_data = dynstr_scnp->get_data();
-        if (!(dynsym_data.isValid() && dynstr_data.isValid())) {
-            return false;
+bool Object::parse_all_relocations(Elf_X_Shdr *dynsym_scnp, Elf_X_Shdr *dynstr_scnp, Elf_X_Shdr *symtab_scnp,
+    Elf_X_Shdr *strtab_scnp) {
+  // Setup symbol table access
+  Offset dynsym_offset = 0;
+  Elf_X_Data dynsym_data, dynstr_data;
+  Elf_X_Sym dynsym;
+  const char *dynstr = NULL;
+  if (dynsym_scnp && dynstr_scnp) {
+    dynsym_offset = dynsym_scnp->sh_offset();
+    dynsym_data = dynsym_scnp->get_data();
+    dynstr_data = dynstr_scnp->get_data();
+    if (!(dynsym_data.isValid() && dynstr_data.isValid())) {
+      return false;
+    }
+    dynsym = dynsym_data.get_sym();
+    dynstr = dynstr_data.get_string();
+  }
+
+  Offset symtab_offset = 0;
+  Elf_X_Data symtab_data, strtab_data;
+  Elf_X_Sym symtab;
+  const char *strtab = NULL;
+  if (symtab_scnp && strtab_scnp) {
+    symtab_offset = symtab_scnp->sh_offset();
+    symtab_data = symtab_scnp->get_data();
+    strtab_data = strtab_scnp->get_data();
+    if (!(symtab_data.isValid() && strtab_data.isValid())) {
+      return false;
+    }
+    symtab = symtab_data.get_sym();
+    strtab = strtab_data.get_string();
+  }
+
+  if (dynstr == NULL && strtab == NULL)
+    return false;
+
+  // Symbols are only truly uniquely idenfitied by their index in their
+  // respective symbol table (this really applies to the symbols associated
+  // with sections) So, a map for each symbol table needs to be built so a
+  // relocation can be associated with the correct symbol
+  dyn_hash_map<int, Symbol*> symtabByIndex;
+  dyn_hash_map<int, Symbol*> dynsymByIndex;
+
+  dyn_c_hash_map<std::string, std::vector<Symbol*> >::iterator symVec_it;
+  for (symVec_it = symbols_.begin(); symVec_it != symbols_.end(); ++symVec_it) {
+    std::vector<Symbol*>::iterator sym_it;
+    for (sym_it = symVec_it->second.begin(); sym_it != symVec_it->second.end(); ++sym_it) {
+      // Skip any symbols pointing to the undefined symbol entry
+      if ((*sym_it)->getIndex() == STN_UNDEF) {
+        continue;
+      }
+      if ((*sym_it)->tag() == Symbol::TAG_INTERNAL) {
+        continue;
+      }
+      if ((*sym_it)->isDebug()) {
+        continue;
+      }
+
+      std::pair<dyn_hash_map<int, Symbol*>::iterator, bool> result;
+      if ((*sym_it)->isInDynSymtab()) {
+        result = dynsymByIndex.insert(std::make_pair((*sym_it)->getIndex(), (*sym_it)));
+      } else {
+        result = symtabByIndex.insert(std::make_pair((*sym_it)->getIndex(), (*sym_it)));
+      }
+
+      // A symbol should be uniquely identified by its index in the symbol table
+      if (!result.second)
+        continue;
+    }
+  }
+
+  // Build mapping from section headers to Regions
+  std::vector<Region*>::iterator reg_it;
+  dyn_hash_map<unsigned, Region*> shToRegion;
+  for (reg_it = regions_.begin(); reg_it != regions_.end(); ++reg_it) {
+    std::pair<dyn_hash_map<unsigned, Region*>::iterator, bool> result;
+    result = shToRegion.insert(std::make_pair((*reg_it)->getRegionNumber(), (*reg_it)));
+  }
+
+  for (size_t i = 0; i < allRegionHdrsByShndx.size(); ++i) {
+    auto shdr = allRegionHdrsByShndx[i];
+    if (!shdr)
+      continue;
+    if (shdr->sh_type() != SHT_REL && shdr->sh_type() != SHT_RELA)
+      continue;
+
+    Elf_X_Data reldata = shdr->get_data();
+    Elf_X_Rel rel = reldata.get_rel();
+    Elf_X_Rela rela = reldata.get_rela();
+
+    Elf_X_Shdr *curSymHdr = allRegionHdrsByShndx[shdr->sh_link()];
+
+    // Apparently, relocation entries may not have associated symbols.
+
+    for (unsigned j = 0; j < (shdr->sh_size() / shdr->sh_entsize()); ++j) {
+      // Relocation entry fields - need to be populated
+
+      Offset relOff, addend = 0;
+      std::string name;
+      unsigned long relType;
+      Region::RegionType regType;
+
+      long symbol_index;
+      switch (shdr->sh_type()) {
+        case SHT_REL:
+          relType = rel.R_TYPE(j);
+          relOff = rel.r_offset(j);
+          symbol_index = rel.R_SYM(j);
+          regType = Region::RT_REL;
+          break;
+        case SHT_RELA:
+          relType = rela.R_TYPE(j);
+          relOff = rela.r_offset(j);
+          symbol_index = rela.R_SYM(j);
+          regType = Region::RT_RELA;
+          addend = rela.r_addend(j);
+          break;
+        default:
+          continue;
+      }
+
+      // Determine which symbol table to use
+      Symbol *sym = NULL;
+      // Use dynstr to ensure we've initialized dynsym...
+      if (dynstr && curSymHdr && curSymHdr->sh_offset() == dynsym_offset) {
+        name = string(&dynstr[dynsym.st_name(symbol_index)]);
+        dyn_hash_map<int, Symbol*>::iterator sym_it;
+        sym_it = dynsymByIndex.find(symbol_index);
+        if (sym_it != dynsymByIndex.end()) {
+          sym = sym_it->second;
+          if (sym->getType() == Symbol::ST_SECTION) {
+            name = sym->getRegion()->getRegionName().c_str();
+          }
         }
-        dynsym = dynsym_data.get_sym();
-        dynstr = dynstr_data.get_string();
-    }
-
-    Offset symtab_offset = 0;
-    Elf_X_Data symtab_data, strtab_data;
-    Elf_X_Sym symtab;
-    const char *strtab = NULL;
-    if (symtab_scnp && strtab_scnp) {
-        symtab_offset = symtab_scnp->sh_offset();
-        symtab_data = symtab_scnp->get_data();
-        strtab_data = strtab_scnp->get_data();
-        if (!(symtab_data.isValid() && strtab_data.isValid())) {
-            return false;
+      } else if (strtab && curSymHdr && curSymHdr->sh_offset() == symtab_offset) {
+        name = string(&strtab[symtab.st_name(symbol_index)]);
+        dyn_hash_map<int, Symbol*>::iterator sym_it;
+        sym_it = symtabByIndex.find(symbol_index);
+        if (sym_it != symtabByIndex.end()) {
+          sym = sym_it->second;
+          if (sym->getType() == Symbol::ST_SECTION) {
+            name = sym->getRegion()->getRegionName().c_str();
+          }
         }
-        symtab = symtab_data.get_sym();
-        strtab = strtab_data.get_string();
-    }
+      }
 
-    if (dynstr == NULL && strtab == NULL) return false;
+      Region *region = NULL;
+      dyn_hash_map<unsigned, Region*>::iterator shToReg_it;
+      shToReg_it = shToRegion.find(i);
+      if (shToReg_it != shToRegion.end()) {
+        region = shToReg_it->second;
+      }
 
-    // Symbols are only truly uniquely idenfitied by their index in their
-    // respective symbol table (this really applies to the symbols associated
-    // with sections) So, a map for each symbol table needs to be built so a
-    // relocation can be associated with the correct symbol
-    dyn_hash_map<int, Symbol *> symtabByIndex;
-    dyn_hash_map<int, Symbol *> dynsymByIndex;
-
-    dyn_c_hash_map<std::string, std::vector<Symbol *> >::iterator symVec_it;
-    for (symVec_it = symbols_.begin(); symVec_it != symbols_.end(); ++symVec_it) {
-        std::vector<Symbol *>::iterator sym_it;
-        for (sym_it = symVec_it->second.begin(); sym_it != symVec_it->second.end(); ++sym_it) {
-            // Skip any symbols pointing to the undefined symbol entry
-            if ((*sym_it)->getIndex() == STN_UNDEF) {
-                continue;
-            }
-            if ((*sym_it)->tag() == Symbol::TAG_INTERNAL) {
-                continue;
-            }
-            if ((*sym_it)->isDebug()) {
-                continue;
-            }
-
-            std::pair<dyn_hash_map<int, Symbol *>::iterator, bool> result;
-            if ((*sym_it)->isInDynSymtab()) {
-                result = dynsymByIndex.insert(std::make_pair((*sym_it)->getIndex(), (*sym_it)));
-            } else {
-                result = symtabByIndex.insert(std::make_pair((*sym_it)->getIndex(), (*sym_it)));
-            }
-
-            // A symbol should be uniquely identified by its index in the symbol table
-            if (!result.second) continue;
-        }
-    }
-
-    // Build mapping from section headers to Regions
-    std::vector<Region *>::iterator reg_it;
-    dyn_hash_map<unsigned, Region *> shToRegion;
-    for (reg_it = regions_.begin(); reg_it != regions_.end(); ++reg_it) {
-        std::pair<dyn_hash_map<unsigned, Region *>::iterator, bool> result;
-        result = shToRegion.insert(std::make_pair((*reg_it)->getRegionNumber(), (*reg_it)));
-    }
-
-    for (size_t i = 0;
-         i < allRegionHdrsByShndx.size();
-            ++i) {
-        auto shdr = allRegionHdrsByShndx[i];
-        if(!shdr) continue;
-        if (shdr->sh_type() != SHT_REL && shdr->sh_type() != SHT_RELA) continue;
-
-        Elf_X_Data reldata = shdr->get_data();
-        Elf_X_Rel rel = reldata.get_rel();
-        Elf_X_Rela rela = reldata.get_rela();
-
-        Elf_X_Shdr *curSymHdr = allRegionHdrsByShndx[shdr->sh_link()];
-
-        // Apparently, relocation entries may not have associated symbols.
-
-        for (unsigned j = 0; j < (shdr->sh_size() / shdr->sh_entsize()); ++j) {
-            // Relocation entry fields - need to be populated
-
-            Offset relOff, addend = 0;
-            std::string name;
-            unsigned long relType;
-            Region::RegionType regType;
-
-            long symbol_index;
-            switch (shdr->sh_type()) {
-                case SHT_REL:
-                    relType = rel.R_TYPE(j);
-                    relOff = rel.r_offset(j);
-                    symbol_index = rel.R_SYM(j);
-                    regType = Region::RT_REL;
-                    break;
-                case SHT_RELA:
-                    relType = rela.R_TYPE(j);
-                    relOff = rela.r_offset(j);
-                    symbol_index = rela.R_SYM(j);
-                    regType = Region::RT_RELA;
-                    addend = rela.r_addend(j);
-                    break;
-                default:
-                    continue;
-            }
-
-            // Determine which symbol table to use
-            Symbol *sym = NULL;
-            // Use dynstr to ensure we've initialized dynsym...
-            if (dynstr && curSymHdr && curSymHdr->sh_offset() == dynsym_offset) {
-                name = string(&dynstr[dynsym.st_name(symbol_index)]);
-                dyn_hash_map<int, Symbol *>::iterator sym_it;
-                sym_it = dynsymByIndex.find(symbol_index);
-                if (sym_it != dynsymByIndex.end()) {
-                    sym = sym_it->second;
-                    if (sym->getType() == Symbol::ST_SECTION) {
-                        name = sym->getRegion()->getRegionName().c_str();
-                    }
-                }
-            } else if (strtab && curSymHdr && curSymHdr->sh_offset() == symtab_offset) {
-                name = string(&strtab[symtab.st_name(symbol_index)]);
-                dyn_hash_map<int, Symbol *>::iterator sym_it;
-                sym_it = symtabByIndex.find(symbol_index);
-                if (sym_it != symtabByIndex.end()) {
-                    sym = sym_it->second;
-                    if (sym->getType() == Symbol::ST_SECTION) {
-                        name = sym->getRegion()->getRegionName().c_str();
-                    }
-                }
-            }
-
-            Region *region = NULL;
-            dyn_hash_map<unsigned, Region *>::iterator shToReg_it;
-            shToReg_it = shToRegion.find(i);
+      if (region != NULL) {
+        relocationEntry newrel(0, relOff, addend, name, sym, relType, regType);
+        parsing_printf("NEW RELOC %lx %s\n", relOff, name.c_str());
+        region->addRelocationEntry(newrel);
+        // relocations are also stored with their targets
+        // Need to find target region
+        if (sym) {
+          if (shdr->sh_info() != 0) {
+            Region *targetRegion = NULL;
+            shToReg_it = shToRegion.find(shdr->sh_info());
             if (shToReg_it != shToRegion.end()) {
-                region = shToReg_it->second;
+              targetRegion = shToReg_it->second;
             }
-
-            if (region != NULL) {
-                relocationEntry newrel(0, relOff, addend, name, sym, relType, regType);
-                region->addRelocationEntry(newrel);
-                // relocations are also stored with their targets
-                // Need to find target region
-                if (sym) {
-                    if (shdr->sh_info() != 0) {
-                        Region *targetRegion = NULL;
-                        shToReg_it = shToRegion.find(shdr->sh_info());
-                        if (shToReg_it != shToRegion.end()) {
-                            targetRegion = shToReg_it->second;
-                        }
-                        assert(targetRegion != NULL);
-                        targetRegion->addRelocationEntry(newrel);
-                    }
-                }
-            }
+            assert(targetRegion != NULL);
+            targetRegion->addRelocationEntry(newrel);
+          }
         }
+      }
     }
+  }
 
-    return true;
+  parsing_printf("OBJECT-ELF has %lu relocs\n", relocation_table_.size());
+  for(auto const& reloc : relocation_table_) {
+    parsing_printf("OBJECT-ELF relocs %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+  }
+
+  return true;
 }
 
 bool Region::isStandardCode() {
