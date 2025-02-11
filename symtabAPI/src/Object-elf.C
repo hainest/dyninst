@@ -2387,6 +2387,7 @@ void Object::getDependencies(std::vector<std::string> &deps) {
 
 bool Object::addRelocationEntry(relocationEntry &re) {
     relocation_table_.push_back(re);
+    parsing_printf("ADDRELOC %lx", static_cast<unsigned long>(re.target_addr()));
     return true;
 }
 
