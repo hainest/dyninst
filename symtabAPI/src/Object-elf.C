@@ -1022,414 +1022,404 @@ bool Object::get_relocationDyn_entries(unsigned rel_scnp_index,
     return true;
 }
 
-bool Object::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp,
-                                    Elf_X_Shdr *&dynsym_scnp,
-                                    Elf_X_Shdr *&dynstr_scnp) {
-    if (rel_plt_size_ && rel_plt_addr_) {
-        Elf_X_Data reldata = rel_plt_scnp->get_data();
-        Elf_X_Data symdata = dynsym_scnp->get_data();
-        Elf_X_Data strdata = dynstr_scnp->get_data();
+bool Object::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp, Elf_X_Shdr *&dynsym_scnp, Elf_X_Shdr *&dynstr_scnp) {
+  if (rel_plt_size_ && rel_plt_addr_) {
+    Elf_X_Data reldata = rel_plt_scnp->get_data();
+    Elf_X_Data symdata = dynsym_scnp->get_data();
+    Elf_X_Data strdata = dynstr_scnp->get_data();
 
-        if (reldata.isValid() && symdata.isValid() && strdata.isValid()) {
-            Offset next_plt_entry_addr = plt_addr_;
-            if (getArch() == Dyninst::Arch_x86 || getArch() == Dyninst::Arch_x86_64) {
-                next_plt_entry_addr += plt_entry_size_;  // 1st PLT entry is special
-            } else if (getArch() == Dyninst::Arch_ppc32) {
-                bool extraStubs = false;
+    if (reldata.isValid() && symdata.isValid() && strdata.isValid()) {
+      Offset next_plt_entry_addr = plt_addr_;
+      if (getArch() == Dyninst::Arch_x86 || getArch() == Dyninst::Arch_x86_64) {
+        next_plt_entry_addr += plt_entry_size_;  // 1st PLT entry is special
+      } else if (getArch() == Dyninst::Arch_ppc32) {
+        bool extraStubs = false;
 
-                // Sanity check.
-                if (!plt_entry_size_) {
-                    create_printf("%s[%d]:  FIXME:  plt_entry_size not established\n", FILE__, __LINE__);
-                    plt_entry_size_ = 8;
-                }
-
-                if (plt_entry_size_ == 8) {
-                    // Old style executable PLT section
-                    next_plt_entry_addr += 9 * plt_entry_size_;  // 1st 9 PLT entries are special
-
-                } else if (plt_entry_size_ == 16) {
-                    // New style secure PLT
-                    Region *plt = NULL, *dynamic = NULL,
-                            *got = NULL, *glink = NULL;
-                    unsigned int glink_addr = 0;
-                    unsigned int stub_addr = 0;
-
-                    // Find the GLINK section.  See ppc_elf_get_synthetic_symtab() in
-                    // bfd/elf32-ppc.c of GNU's binutils for more information.
-
-                    for (unsigned iter = 0; iter < regions_.size(); ++iter) {
-                        std::string name = regions_[iter]->getRegionName();
-                        if (name == PLT_NAME) plt = regions_[iter];
-                        else if (name == DYNAMIC_NAME) dynamic = regions_[iter];
-                        else if (name == GOT_NAME) got = regions_[iter];
-                    }
-
-                    // Rely on .dynamic section for prelinked binaries.
-                    if (dynamic != NULL) {
-                        Elf32_Dyn *dyn = (Elf32_Dyn *) dynamic->getPtrToRawData();
-                        unsigned int count = dynamic->getMemSize() / sizeof(Elf32_Dyn);
-
-                        for (unsigned int i = 0; i < count; ++i) {
-                            // Use DT_LOPROC instead of DT_PPC_GOT to circumvent problems
-                            // caused by early versions of libelf where DT_PPC_GOT has
-                            // yet to be defined.
-                            if (dyn[i].d_tag == DT_LOPROC) {
-                                unsigned int g_o_t = dyn[i].d_un.d_val;
-                                if (got != NULL) {
-                                    unsigned char *data =
-                                            (unsigned char *) got->getPtrToRawData();
-                                    glink_addr = Dyninst::read_memory_as<unsigned int>
-                                            (data + (g_o_t - got->getMemOffset() + 4));
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    // Otherwise, first entry in .plt section holds the glink address
-                    if (glink_addr == 0) {
-                        unsigned char *data = (unsigned char *) plt->getPtrToRawData();
-                        glink_addr = Dyninst::read_memory_as<uint32_t>(data);
-                    }
-
-                    // Search for region that contains glink address
-                    for (unsigned iter = 0; iter < regions_.size(); ++iter) {
-                        unsigned int start = regions_[iter]->getMemOffset();
-                        unsigned int end = start + regions_[iter]->getMemSize();
-                        if (start <= glink_addr && glink_addr < end) {
-                            glink = regions_[iter];
-                            break;
-                        }
-                    }
-
-                    if (!glink) {
-                        return false;
-                    }
-
-                    // Find PLT function stubs.  They preceed the glink section.
-                    stub_addr = glink_addr - (rel_plt_size_ / rel_plt_entry_size_) * 16;
-
-                    const unsigned int LWZ_11_30 = 0x817e0000;
-                    const unsigned int ADDIS_11_30 = 0x3d7e0000;
-                    const unsigned int LWZ_11_11 = 0x816b0000;
-                    const unsigned int MTCTR_11 = 0x7d6903a6;
-                    const unsigned int BCTR = 0x4e800420;
-
-                    unsigned char *sec_data = (unsigned char *) glink->getPtrToRawData();
-                    auto insn = alignas_cast<unsigned int>
-                            (sec_data + (stub_addr - glink->getMemOffset()));
-
-                    // Keep moving pointer back if more -fPIC stubs are found.
-                    while (sec_data < (unsigned char *) insn) {
-                        unsigned int *back = insn - 4;
-
-                        if (((back[0] & 0xffff0000) == LWZ_11_30
-                             && back[1] == MTCTR_11
-                             && back[2] == BCTR)
-
-                            || ((back[0] & 0xffff0000) == ADDIS_11_30
-                                && (back[1] & 0xffff0000) == LWZ_11_11
-                                && back[2] == MTCTR_11
-                                && back[3] == BCTR)) {
-                            extraStubs = true;
-                            stub_addr -= 16;
-                            insn = back;
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // Okay, this is where things get hairy.  If we have a one to one
-                    // relationship between the glink stubs and plt entries (meaning
-                    // extraStubs == false), then we can generate our relocationEntry
-                    // objects normally below.
-
-                    // However, if we have extra glink stubs, then we must generate
-                    // relocations with unknown destinations for *all* stubs.  Then,
-                    // we use the loop below to store additional information about
-                    // the data plt entry keyed by plt entry address.
-
-                    // Finally, if a symbol with any of the following forms:
-                    //     [hex_addr].got2.plt_pic32.[sym_name]
-                    //     [hex_addr].plt_pic32.[sym_name]
-                    //
-                    // matches the glink stub address, then stub symbols exist and we
-                    // can rely on these tell us where the stub will eventually go.
-
-                    if (extraStubs == true) {
-                        std::string name;
-                        relocationEntry re;
-
-                        while (stub_addr < glink_addr) {
-                            {
-                            dyn_c_hash_map<Offset,std::vector<Symbol*>>::const_accessor ca;
-                            if (symsByOffset_.find(ca, stub_addr)) {
-                                name = ca->second[0]->getMangledName();
-                                name = name.substr(name.rfind("plt_pic32.") + 10);
-                            }
-                            }
-
-                            if (!name.empty()) {
-                                re = relocationEntry(stub_addr, 0, name, NULL, 0);
-                            } else {
-                                re = relocationEntry(stub_addr, 0, "@plt", NULL, 0);
-                            }
-                            fbt_.push_back(re);
-                            stub_addr += 16;
-                        }
-
-                        // Now prepare to iterate over plt below.
-                        next_plt_entry_addr = plt_addr_;
-                        plt_entry_size_ = 4;
-
-                    } else {
-                        next_plt_entry_addr = stub_addr;
-                    }
-
-                } else {
-                    create_printf("ERROR: Can't handle %u PLT entry size\n",
-                                  plt_entry_size_);
-                    return false;
-                }
-
-                //  actually this is just fudged to make the offset value 72, which is what binutils uses
-                //  Note that binutils makes the distinction between PLT_SLOT_SIZE (8),
-                //  and PLT_ENTRY_SIZE (12).  PLT_SLOT_SIZE seems to be what we want, even though we also
-                //  have PLT_INITIAL_ENTRY_SIZE (72)
-                //  see binutils/bfd/elf32-ppc.c/h if more info is needed
-                //next_plt_entry_addr += 72;  // 1st 6 PLT entries art special
-
-
-            } else if (getArch() == Dyninst::Arch_ppc64) {
-                // Unlike PPC32 Linux, we don't have a deterministic way of finding
-                // PPC64 Linux linker stubs.  So, we'll wait until the CFG is built
-                // inside Dyninst, and code read at that point.  To find them at this
-                // point would require a scan of the entire .text section.
-                //
-                // If we're lucky, symbols may exist for these linker stubs.  They will
-                // come in the following forms:
-                //     [hex_addr].plt_call.[sym_name]
-                //     [hex_addr].plt_branch.[sym_name]
-                //     [hex_addr].long_branch.[sym_name]
-                //     [hex_addr].plt_branch_r2off.[sym_name]
-                //     [hex_addr].long_branch_r2off.[sym_name]
-                //
-                // Again unlike PPC32 above, we have no glink stub address to compare
-                // against, so we must search through all symbols to find these names.
-                //
-
-                // First, build a map of the .rela.plt symbol name -> .rela.plt offset:
-                dyn_hash_map<std::string, Offset> plt_rel_map;
-
-                // I'm not a fan of code duplication, but merging this into the
-                // loop below would be ugly and difficult to maintain.
-                Elf_X_Sym _sym = symdata.get_sym();
-                Elf_X_Rel _rel = reldata.get_rel();
-                Elf_X_Rela _rela = reldata.get_rela();
-                const char *_strs = strdata.get_string();
-
-                for (u_int i = 0; i < (rel_plt_size_ / rel_plt_entry_size_); ++i) {
-                    long _offset;
-                    long _index;
-
-                    switch (reldata.d_type()) {
-                        case ELF_T_REL:
-                            _offset = _rel.r_offset(i);
-                            _index = _rel.R_SYM(i);
-                            break;
-
-                        case ELF_T_RELA:
-                            _offset = _rela.r_offset(i);
-                            _index = _rela.R_SYM(i);
-                            break;
-
-                        default:
-                            // We should never reach this case.
-                            return false;
-                    };
-
-                    std::string _name = &_strs[_sym.st_name(_index)];
-                    // I'm interested to see if this assert will ever fail.
-                    if (!_name.length()) {
-                        create_printf("Empty name for REL/RELA entry found, ignoring\n");
-                        continue;
-                    }
-
-                    plt_rel_map[_name] = _offset;
-                }
-                // End code duplication.
-
-                dyn_c_hash_map<std::string, std::vector<Symbol *> >::iterator iter;
-                for (iter = symbols_.begin(); iter != symbols_.end(); ++iter) {
-                    std::string name = iter->first;
-                    if (name.length() > 8) {
-                        if (name.substr(8, 10) == ".plt_call.")
-                            name = name.substr(8 + 10);
-                        else if (name.substr(8, 12) == ".plt_branch.")
-                            name = name.substr(8 + 12);
-                        else if (name.substr(8, 13) == ".long_branch.")
-                            name = name.substr(8 + 13);
-                        else if (name.substr(8, 18) == ".plt_branch_r2off.")
-                            name = name.substr(8 + 18);
-                        else if (name.substr(8, 19) == ".long_branch_r2off.")
-                            name = name.substr(8 + 19);
-                        else
-                            continue;
-
-                        // Remove possible trailing addend value.
-                        std::string::size_type pos = name.rfind('+');
-                        if (pos != std::string::npos) name.erase(pos);
-
-                        // Remove possible version number.
-                        pos = name.find('@');
-                        if (pos != std::string::npos) name.erase(pos);
-
-                        // Find the dynamic symbol this linker stub branches to.
-                        Symbol *targ_sym = NULL;
-                        {
-                        dyn_c_hash_map<std::string,std::vector<Symbol*>>::const_accessor ca;
-                        if (symbols_.find(ca, name))
-                            for (unsigned i = 0; i < ca->second.size(); ++i)
-                                if (ca->second[i]->isInDynSymtab())
-                                    targ_sym = ca->second[i];
-                        }
-
-                        // If a corresponding target symbol cannot be found for a
-                        // named linker stub, then ignore it.  We'll find it during
-                        // parsing.
-                        if (!targ_sym) continue;
-
-                        if (iter->second.size() != 1)
-                            continue;
-                        dyn_hash_map<string, Offset>::iterator pltrel_iter = plt_rel_map.find(name);
-                        if (pltrel_iter == plt_rel_map.end())
-                            continue;
-
-                        Symbol *stub_sym = iter->second[0];
-                        relocationEntry re(stub_sym->getOffset(),
-                                           pltrel_iter->second,
-                                           name,
-                                           targ_sym);
-                        fbt_.push_back(re);
-                    }
-                }
-
-                // 1st plt entry is special.
-                next_plt_entry_addr += plt_entry_size_;
-
-            } else if (getArch() == Dyninst::Arch_aarch64) {
-                next_plt_entry_addr += 2 * plt_entry_size_;
-            } else {
-                next_plt_entry_addr += 4 * (plt_entry_size_); //1st 4 entries are special
-            }
-
-
-            Elf_X_Sym sym = symdata.get_sym();
-            Elf_X_Rel rel = reldata.get_rel();
-            Elf_X_Rela rela = reldata.get_rela();
-            const char *strs = strdata.get_string();
-
-            if (sym.isValid() && (rel.isValid() || rela.isValid()) && strs) {
-
-                // Sometimes, PPC32 Linux may use this loop to update fbt entries.
-                // Should stay -1 for all other platforms.  See notes above.
-                int fbt_iter = -1;
-                if (fbt_.size() > 0 && !fbt_[0].rel_addr() && fbt_[0].name() != "@plt")
-                    fbt_iter = 0;
-
-                for (u_int i = 0; i < (rel_plt_size_ / rel_plt_entry_size_); ++i) {
-                    long offset;
-                    long addend;
-                    long index;
-                    unsigned long type;
-                    Region::RegionType rtype;
-
-                    switch (reldata.d_type()) {
-                        case ELF_T_REL:
-                            offset = rel.r_offset(i);
-                            addend = 0;
-                            index = rel.R_SYM(i);
-                            type = rel.R_TYPE(i);
-                            rtype = Region::RT_REL;
-                            break;
-
-                        case ELF_T_RELA:
-                            offset = rela.r_offset(i);
-                            addend = rela.r_addend(i);
-                            index = rela.R_SYM(i);
-                            type = rela.R_TYPE(i);
-                            rtype = Region::RT_RELA;
-                            break;
-
-                        default:
-                            // We should never reach this case.
-                            return false;
-                    };
-
-                    std::string targ_name = &strs[sym.st_name(index)];
-                    vector<Symbol *> dynsym_list;
-                    {
-                    dyn_c_hash_map<std::string,std::vector<Symbol*>>::const_accessor ca;
-                    if (symbols_.find(ca, targ_name)) {
-                        const vector<Symbol *> &syms = ca->second;
-			for (auto s: syms) {
-                            if (!s->isInDynSymtab())
-                                continue;
-                            dynsym_list.push_back(s);
-                        }
-                    } else {
-                        dynsym_list.clear();
-                    }
-                    }
-
-                    if (fbt_iter == -1) { // Create new relocation entry.
-                        relocationEntry re(next_plt_entry_addr, offset, targ_name,
-                                           NULL, type);
-                        if (type == R_X86_64_IRELATIVE) {
-                            vector<Symbol *> funcs;
-                            dyn_c_hash_map<std::string, std::vector<Symbol *> >::iterator iter;
-                            // find the resolver function and use that as the
-                            // caller function symbol.  The resolver has not run
-                            // so we don't know the ultimate destination.
-                            // Since the funcsByOffset map hasn't been setup yet
-                            // we cannot call associated_symtab->findFuncByEntryOffset
-                            for (iter = symbols_.begin(); iter != symbols_.end(); ++iter) {
-                                std::string name = iter->first;
-                                Symbol *s = iter->second[0];
-                                if (s->getOffset() == (Offset) addend) {
-                                    // Use dynsym_list.push_back(sym) instead?
-                                    re.addDynSym(s);
-                                    break;
-                                }
-                            }
-                        }
-                        re.setAddend(addend);
-                        re.setRegionType(rtype);
-                        if (dynsym_list.size() > 0)
-                            re.addDynSym(dynsym_list[0]);
-                        fbt_.push_back(re);
-
-                    } else { // Update existing relocation entry.
-                        while ((unsigned) fbt_iter < fbt_.size() &&
-                               fbt_[fbt_iter].name() == targ_name) {
-
-                            fbt_[fbt_iter].setRelAddr(offset);
-                            fbt_[fbt_iter].setAddend(addend);
-                            fbt_[fbt_iter].setRegionType(rtype);
-                            if (dynsym_list.size() > 0)
-                                fbt_[fbt_iter].addDynSym(dynsym_list[0]);
-
-                            ++fbt_iter;
-                        }
-                    }
-
-                    next_plt_entry_addr += plt_entry_size_;
-                }
-                return true;
-            }
+        // Sanity check.
+        if (!plt_entry_size_) {
+          create_printf("%s[%d]:  FIXME:  plt_entry_size not established\n", FILE__, __LINE__);
+          plt_entry_size_ = 8;
         }
+
+        if (plt_entry_size_ == 8) {
+          // Old style executable PLT section
+          next_plt_entry_addr += 9 * plt_entry_size_;  // 1st 9 PLT entries are special
+
+        } else if (plt_entry_size_ == 16) {
+          // New style secure PLT
+          Region *plt = NULL, *dynamic = NULL, *got = NULL, *glink = NULL;
+          unsigned int glink_addr = 0;
+          unsigned int stub_addr = 0;
+
+          // Find the GLINK section.  See ppc_elf_get_synthetic_symtab() in
+          // bfd/elf32-ppc.c of GNU's binutils for more information.
+
+          for (unsigned iter = 0; iter < regions_.size(); ++iter) {
+            std::string name = regions_[iter]->getRegionName();
+            if (name == PLT_NAME)
+              plt = regions_[iter];
+            else if (name == DYNAMIC_NAME)
+              dynamic = regions_[iter];
+            else if (name == GOT_NAME)
+              got = regions_[iter];
+          }
+
+          // Rely on .dynamic section for prelinked binaries.
+          if (dynamic != NULL) {
+            Elf32_Dyn *dyn = (Elf32_Dyn*) dynamic->getPtrToRawData();
+            unsigned int count = dynamic->getMemSize() / sizeof(Elf32_Dyn);
+
+            for (unsigned int i = 0; i < count; ++i) {
+              // Use DT_LOPROC instead of DT_PPC_GOT to circumvent problems
+              // caused by early versions of libelf where DT_PPC_GOT has
+              // yet to be defined.
+              if (dyn[i].d_tag == DT_LOPROC) {
+                unsigned int g_o_t = dyn[i].d_un.d_val;
+                if (got != NULL) {
+                  unsigned char *data = (unsigned char*) got->getPtrToRawData();
+                  glink_addr = Dyninst::read_memory_as<unsigned int>(data + (g_o_t - got->getMemOffset() + 4));
+                  break;
+                }
+              }
+            }
+          }
+
+          // Otherwise, first entry in .plt section holds the glink address
+          if (glink_addr == 0) {
+            unsigned char *data = (unsigned char*) plt->getPtrToRawData();
+            glink_addr = Dyninst::read_memory_as<uint32_t>(data);
+          }
+
+          // Search for region that contains glink address
+          for (unsigned iter = 0; iter < regions_.size(); ++iter) {
+            unsigned int start = regions_[iter]->getMemOffset();
+            unsigned int end = start + regions_[iter]->getMemSize();
+            if (start <= glink_addr && glink_addr < end) {
+              glink = regions_[iter];
+              break;
+            }
+          }
+
+          if (!glink) {
+            return false;
+          }
+
+          // Find PLT function stubs.  They preceed the glink section.
+          stub_addr = glink_addr - (rel_plt_size_ / rel_plt_entry_size_) * 16;
+
+          const unsigned int LWZ_11_30 = 0x817e0000;
+          const unsigned int ADDIS_11_30 = 0x3d7e0000;
+          const unsigned int LWZ_11_11 = 0x816b0000;
+          const unsigned int MTCTR_11 = 0x7d6903a6;
+          const unsigned int BCTR = 0x4e800420;
+
+          unsigned char *sec_data = (unsigned char*) glink->getPtrToRawData();
+          auto insn = alignas_cast<unsigned int>(sec_data + (stub_addr - glink->getMemOffset()));
+
+          // Keep moving pointer back if more -fPIC stubs are found.
+          while (sec_data < (unsigned char*) insn) {
+            unsigned int *back = insn - 4;
+
+            if (((back[0] & 0xffff0000) == LWZ_11_30 && back[1] == MTCTR_11 && back[2] == BCTR)
+
+                || ((back[0] & 0xffff0000) == ADDIS_11_30 && (back[1] & 0xffff0000) == LWZ_11_11 && back[2] == MTCTR_11
+                    && back[3] == BCTR)) {
+              extraStubs = true;
+              stub_addr -= 16;
+              insn = back;
+            } else {
+              break;
+            }
+          }
+
+          // Okay, this is where things get hairy.  If we have a one to one
+          // relationship between the glink stubs and plt entries (meaning
+          // extraStubs == false), then we can generate our relocationEntry
+          // objects normally below.
+
+          // However, if we have extra glink stubs, then we must generate
+          // relocations with unknown destinations for *all* stubs.  Then,
+          // we use the loop below to store additional information about
+          // the data plt entry keyed by plt entry address.
+
+          // Finally, if a symbol with any of the following forms:
+          //     [hex_addr].got2.plt_pic32.[sym_name]
+          //     [hex_addr].plt_pic32.[sym_name]
+          //
+          // matches the glink stub address, then stub symbols exist and we
+          // can rely on these tell us where the stub will eventually go.
+
+          if (extraStubs == true) {
+            std::string name;
+            relocationEntry re;
+
+            while (stub_addr < glink_addr) {
+              {
+                dyn_c_hash_map<Offset, std::vector<Symbol*>>::const_accessor ca;
+                if (symsByOffset_.find(ca, stub_addr)) {
+                  name = ca->second[0]->getMangledName();
+                  name = name.substr(name.rfind("plt_pic32.") + 10);
+                }
+              }
+
+              if (!name.empty()) {
+                re = relocationEntry(stub_addr, 0, name, NULL, 0);
+              } else {
+                re = relocationEntry(stub_addr, 0, "@plt", NULL, 0);
+              }
+              fbt_.push_back(re);
+              stub_addr += 16;
+            }
+
+            // Now prepare to iterate over plt below.
+            next_plt_entry_addr = plt_addr_;
+            plt_entry_size_ = 4;
+
+          } else {
+            next_plt_entry_addr = stub_addr;
+          }
+
+        } else {
+          create_printf("ERROR: Can't handle %u PLT entry size\n", plt_entry_size_);
+          return false;
+        }
+
+        //  actually this is just fudged to make the offset value 72, which is what binutils uses
+        //  Note that binutils makes the distinction between PLT_SLOT_SIZE (8),
+        //  and PLT_ENTRY_SIZE (12).  PLT_SLOT_SIZE seems to be what we want, even though we also
+        //  have PLT_INITIAL_ENTRY_SIZE (72)
+        //  see binutils/bfd/elf32-ppc.c/h if more info is needed
+        //next_plt_entry_addr += 72;  // 1st 6 PLT entries art special
+
+      } else if (getArch() == Dyninst::Arch_ppc64) {
+        // Unlike PPC32 Linux, we don't have a deterministic way of finding
+        // PPC64 Linux linker stubs.  So, we'll wait until the CFG is built
+        // inside Dyninst, and code read at that point.  To find them at this
+        // point would require a scan of the entire .text section.
+        //
+        // If we're lucky, symbols may exist for these linker stubs.  They will
+        // come in the following forms:
+        //     [hex_addr].plt_call.[sym_name]
+        //     [hex_addr].plt_branch.[sym_name]
+        //     [hex_addr].long_branch.[sym_name]
+        //     [hex_addr].plt_branch_r2off.[sym_name]
+        //     [hex_addr].long_branch_r2off.[sym_name]
+        //
+        // Again unlike PPC32 above, we have no glink stub address to compare
+        // against, so we must search through all symbols to find these names.
+        //
+
+        // First, build a map of the .rela.plt symbol name -> .rela.plt offset:
+        dyn_hash_map<std::string, Offset> plt_rel_map;
+
+        // I'm not a fan of code duplication, but merging this into the
+        // loop below would be ugly and difficult to maintain.
+        Elf_X_Sym _sym = symdata.get_sym();
+        Elf_X_Rel _rel = reldata.get_rel();
+        Elf_X_Rela _rela = reldata.get_rela();
+        const char *_strs = strdata.get_string();
+
+        for (u_int i = 0; i < (rel_plt_size_ / rel_plt_entry_size_); ++i) {
+          long _offset;
+          long _index;
+
+          switch (reldata.d_type()) {
+            case ELF_T_REL:
+              _offset = _rel.r_offset(i);
+              _index = _rel.R_SYM(i);
+              break;
+
+            case ELF_T_RELA:
+              _offset = _rela.r_offset(i);
+              _index = _rela.R_SYM(i);
+              break;
+
+            default:
+              // We should never reach this case.
+              return false;
+          };
+
+          std::string _name = &_strs[_sym.st_name(_index)];
+          // I'm interested to see if this assert will ever fail.
+          if (!_name.length()) {
+            create_printf("Empty name for REL/RELA entry found, ignoring\n");
+            continue;
+          }
+
+          plt_rel_map[_name] = _offset;
+        }
+        // End code duplication.
+
+        dyn_c_hash_map<std::string, std::vector<Symbol*> >::iterator iter;
+        for (iter = symbols_.begin(); iter != symbols_.end(); ++iter) {
+          std::string name = iter->first;
+          if (name.length() > 8) {
+            if (name.substr(8, 10) == ".plt_call.")
+              name = name.substr(8 + 10);
+            else if (name.substr(8, 12) == ".plt_branch.")
+              name = name.substr(8 + 12);
+            else if (name.substr(8, 13) == ".long_branch.")
+              name = name.substr(8 + 13);
+            else if (name.substr(8, 18) == ".plt_branch_r2off.")
+              name = name.substr(8 + 18);
+            else if (name.substr(8, 19) == ".long_branch_r2off.")
+              name = name.substr(8 + 19);
+            else
+              continue;
+
+            // Remove possible trailing addend value.
+            std::string::size_type pos = name.rfind('+');
+            if (pos != std::string::npos)
+              name.erase(pos);
+
+            // Remove possible version number.
+            pos = name.find('@');
+            if (pos != std::string::npos)
+              name.erase(pos);
+
+            // Find the dynamic symbol this linker stub branches to.
+            Symbol *targ_sym = NULL;
+            {
+              dyn_c_hash_map<std::string, std::vector<Symbol*>>::const_accessor ca;
+              if (symbols_.find(ca, name))
+                for (unsigned i = 0; i < ca->second.size(); ++i)
+                  if (ca->second[i]->isInDynSymtab())
+                    targ_sym = ca->second[i];
+            }
+
+            // If a corresponding target symbol cannot be found for a
+            // named linker stub, then ignore it.  We'll find it during
+            // parsing.
+            if (!targ_sym)
+              continue;
+
+            if (iter->second.size() != 1)
+              continue;
+            dyn_hash_map<string, Offset>::iterator pltrel_iter = plt_rel_map.find(name);
+            if (pltrel_iter == plt_rel_map.end())
+              continue;
+
+            Symbol *stub_sym = iter->second[0];
+            relocationEntry re(stub_sym->getOffset(), pltrel_iter->second, name, targ_sym);
+            fbt_.push_back(re);
+          }
+        }
+
+        // 1st plt entry is special.
+        next_plt_entry_addr += plt_entry_size_;
+
+      } else if (getArch() == Dyninst::Arch_aarch64) {
+        next_plt_entry_addr += 2 * plt_entry_size_;
+      } else {
+        next_plt_entry_addr += 4 * (plt_entry_size_); //1st 4 entries are special
+      }
+
+      Elf_X_Sym sym = symdata.get_sym();
+      Elf_X_Rel rel = reldata.get_rel();
+      Elf_X_Rela rela = reldata.get_rela();
+      const char *strs = strdata.get_string();
+
+      if (sym.isValid() && (rel.isValid() || rela.isValid()) && strs) {
+
+        // Sometimes, PPC32 Linux may use this loop to update fbt entries.
+        // Should stay -1 for all other platforms.  See notes above.
+        int fbt_iter = -1;
+        if (fbt_.size() > 0 && !fbt_[0].rel_addr() && fbt_[0].name() != "@plt")
+          fbt_iter = 0;
+
+        for (u_int i = 0; i < (rel_plt_size_ / rel_plt_entry_size_); ++i) {
+          long offset;
+          long addend;
+          long index;
+          unsigned long type;
+          Region::RegionType rtype;
+
+          switch (reldata.d_type()) {
+            case ELF_T_REL:
+              offset = rel.r_offset(i);
+              addend = 0;
+              index = rel.R_SYM(i);
+              type = rel.R_TYPE(i);
+              rtype = Region::RT_REL;
+              break;
+
+            case ELF_T_RELA:
+              offset = rela.r_offset(i);
+              addend = rela.r_addend(i);
+              index = rela.R_SYM(i);
+              type = rela.R_TYPE(i);
+              rtype = Region::RT_RELA;
+              break;
+
+            default:
+              // We should never reach this case.
+              return false;
+          };
+
+          std::string targ_name = &strs[sym.st_name(index)];
+          vector<Symbol*> dynsym_list;
+          {
+            dyn_c_hash_map<std::string, std::vector<Symbol*>>::const_accessor ca;
+            if (symbols_.find(ca, targ_name)) {
+              const vector<Symbol*> &syms = ca->second;
+              for (auto s : syms) {
+                if (!s->isInDynSymtab())
+                  continue;
+                dynsym_list.push_back(s);
+              }
+            } else {
+              dynsym_list.clear();
+            }
+          }
+
+          if (fbt_iter == -1) { // Create new relocation entry.
+            parsing_printf("Creating relocation entry [0x%lx]%s at offset 0x%lx\n",next_plt_entry_addr, targ_name.c_str(), offset);
+            relocationEntry re(next_plt_entry_addr, offset, targ_name,
+            NULL, type);
+            if (type == R_X86_64_IRELATIVE) {
+              vector<Symbol*> funcs;
+              dyn_c_hash_map<std::string, std::vector<Symbol*> >::iterator iter;
+              // find the resolver function and use that as the
+              // caller function symbol.  The resolver has not run
+              // so we don't know the ultimate destination.
+              // Since the funcsByOffset map hasn't been setup yet
+              // we cannot call associated_symtab->findFuncByEntryOffset
+              for (iter = symbols_.begin(); iter != symbols_.end(); ++iter) {
+                std::string name = iter->first;
+                Symbol *s = iter->second[0];
+                if (s->getOffset() == (Offset) addend) {
+                  // Use dynsym_list.push_back(sym) instead?
+                  re.addDynSym(s);
+                  break;
+                }
+              }
+            }
+            re.setAddend(addend);
+            re.setRegionType(rtype);
+            if (dynsym_list.size() > 0)
+              re.addDynSym(dynsym_list[0]);
+            fbt_.push_back(re);
+
+          } else { // Update existing relocation entry.
+            while ((unsigned) fbt_iter < fbt_.size() && fbt_[fbt_iter].name() == targ_name) {
+
+              fbt_[fbt_iter].setRelAddr(offset);
+              fbt_[fbt_iter].setAddend(addend);
+              fbt_[fbt_iter].setRegionType(rtype);
+              if (dynsym_list.size() > 0)
+                fbt_[fbt_iter].addDynSym(dynsym_list[0]);
+
+              ++fbt_iter;
+            }
+          }
+
+          next_plt_entry_addr += plt_entry_size_;
+        }
+        return true;
+      }
     }
-    return false;
+  }
+  return false;
 }
 
 void Object::load_object(bool alloc_syms) {
