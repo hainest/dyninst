@@ -942,84 +942,86 @@ void Object::parseDynamic(Elf_X_Shdr *&dyn_scnp, Elf_X_Shdr *&dynsym_scnp,
 /* parse relocations for the sections represented by DT_REL/DT_RELA in
  * the dynamic section. This section is the one we would want to emit
  */
-bool Object::get_relocationDyn_entries(unsigned rel_scnp_index,
-                                       Elf_X_Shdr *&dynsym_scnp,
-                                       Elf_X_Shdr *&dynstr_scnp) {
-    Elf_X_Data symdata = dynsym_scnp->get_data();
-    Elf_X_Data strdata = dynstr_scnp->get_data();
-    Elf_X_Shdr *rel_scnp = NULL;
-    if (!symdata.isValid() || !strdata.isValid())
-        return false;
-    const char *strs = strdata.get_string();
-    Elf_X_Sym sym = symdata.get_sym();
+bool Object::get_relocationDyn_entries(unsigned rel_scnp_index, Elf_X_Shdr *&dynsym_scnp, Elf_X_Shdr *&dynstr_scnp) {
+  Elf_X_Data symdata = dynsym_scnp->get_data();
+  Elf_X_Data strdata = dynstr_scnp->get_data();
+  Elf_X_Shdr *rel_scnp = NULL;
+  if (!symdata.isValid() || !strdata.isValid())
+    return false;
+  const char *strs = strdata.get_string();
+  Elf_X_Sym sym = symdata.get_sym();
 
-    unsigned num_rel_entries_found = 0;
-    unsigned num_rel_entries = rel_size_ / rel_entry_size_;
+  unsigned num_rel_entries_found = 0;
+  unsigned num_rel_entries = rel_size_ / rel_entry_size_;
 
-    if (rel_addr_ + rel_size_ > rel_plt_addr_) {
-        // REL/RELA section overlaps with REL PLT section
-        num_rel_entries = (rel_plt_addr_ - rel_addr_) / rel_entry_size_;
-    }
-    while (num_rel_entries_found != num_rel_entries) {
-        rel_scnp = getRegionHdrByIndex(rel_scnp_index++);
-        Elf_X_Data reldata = rel_scnp->get_data();
+  if (rel_addr_ + rel_size_ > rel_plt_addr_) {
+    // REL/RELA section overlaps with REL PLT section
+    num_rel_entries = (rel_plt_addr_ - rel_addr_) / rel_entry_size_;
+  }
+  while (num_rel_entries_found != num_rel_entries) {
+    rel_scnp = getRegionHdrByIndex(rel_scnp_index++);
+    Elf_X_Data reldata = rel_scnp->get_data();
 
-        if (!reldata.isValid()) return false;
-        Elf_X_Rel rel = reldata.get_rel();
-        Elf_X_Rela rela = reldata.get_rela();
+    if (!reldata.isValid())
+      return false;
+    Elf_X_Rel rel = reldata.get_rel();
+    Elf_X_Rela rela = reldata.get_rela();
 
-        if (sym.isValid() && (rel.isValid() || rela.isValid()) && strs) {
-            /* Iterate over the entries. */
-            for (u_int i = 0; i < (reldata.d_size() / rel_entry_size_); ++i) {
-                num_rel_entries_found++;
-                long offset;
-                long addend;
-                long index;
-                unsigned long type;
-                Region::RegionType rtype = Region::RT_REL;
+    if (sym.isValid() && (rel.isValid() || rela.isValid()) && strs) {
+      /* Iterate over the entries. */
+      for (u_int i = 0; i < (reldata.d_size() / rel_entry_size_); ++i) {
+        num_rel_entries_found++;
+        long offset;
+        long addend;
+        long index;
+        unsigned long type;
+        Region::RegionType rtype = Region::RT_REL;
 
-                switch (reldata.d_type()) {
-                    case ELF_T_REL:
-                        offset = rel.r_offset(i);
-                        addend = 0;
-                        index = rel.R_SYM(i);
-                        type = rel.R_TYPE(i);
-                        break;
+        switch (reldata.d_type()) {
+          case ELF_T_REL:
+            offset = rel.r_offset(i);
+            addend = 0;
+            index = rel.R_SYM(i);
+            type = rel.R_TYPE(i);
+            break;
 
-                    case ELF_T_RELA:
-                        offset = rela.r_offset(i);
-                        addend = rela.r_addend(i);
-                        index = rela.R_SYM(i);
-                        type = rela.R_TYPE(i);
-                        rtype = Region::RT_RELA;
-                        break;
+          case ELF_T_RELA:
+            offset = rela.r_offset(i);
+            addend = rela.r_addend(i);
+            index = rela.R_SYM(i);
+            type = rela.R_TYPE(i);
+            rtype = Region::RT_RELA;
+            break;
 
-                    default:
-                        // We should never reach this case.
-                        return false;
-                };
-                relocationEntry re(offset, string(&strs[sym.st_name(index)]), NULL, type);
-                re.setAddend(addend);
-                re.setRegionType(rtype);
-                dyn_c_hash_map<std::string, std::vector<Symbol*>>::accessor a;
-                if (symbols_.find(a, &strs[sym.st_name(index)])) {
-                    vector<Symbol *> &syms = a->second;
-                    for (auto s: syms) {
-                        if (!s->isInDynSymtab())
-                            continue;
-                        re.addDynSym(s);
-                        break;
-                    }
-                }
-
-                relocation_table_.push_back(re);
-            }
-        } else {
+          default:
+            // We should never reach this case.
             return false;
+        };
+        relocationEntry re(offset, string(&strs[sym.st_name(index)]), NULL, type);
+        re.setAddend(addend);
+        re.setRegionType(rtype);
+        dyn_c_hash_map<std::string, std::vector<Symbol*>>::accessor a;
+        if (symbols_.find(a, &strs[sym.st_name(index)])) {
+          vector<Symbol*> &syms = a->second;
+          for (auto s : syms) {
+            if (!s->isInDynSymtab())
+              continue;
+            re.addDynSym(s);
+            break;
+          }
         }
 
+        relocation_table_.push_back(re);
+      }
+    } else {
+      return false;
     }
-    return true;
+
+    for(auto const& reloc : relocation_table_) {
+        parsing_printf("DYNENTRIES %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+    }
+  }
+  return true;
 }
 
 bool Object::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp, Elf_X_Shdr *&dynsym_scnp, Elf_X_Shdr *&dynstr_scnp) {
