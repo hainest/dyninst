@@ -1011,15 +1011,16 @@ bool Object::get_relocationDyn_entries(unsigned rel_scnp_index, Elf_X_Shdr *&dyn
           }
         }
 
-        std::cerr << "DYNENTRIES " << offset << "\n";
+        std::cerr << "DYNENTRIES offset = 0x" << std::hex << offset << "\n";
         relocation_table_.push_back(re);
       }
     } else {
       return false;
     }
 
+    std::cerr << "-- get_relocationDyn_entries --\n";
     for(auto const& reloc : relocation_table_) {
-        parsing_printf("DYNENTRIES %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+        std::cerr << reloc << '\n';
     }
   }
   return true;
