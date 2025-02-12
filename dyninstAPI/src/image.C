@@ -1418,6 +1418,12 @@ image::image(fileDescriptor &desc,
    }
 #endif
 
+   std::cerr << "image::image\n";
+   std::vector<SymtabAPI::relocationEntry> fbt;
+   linkedFile->getFuncBindingTable(fbt);
+   for(auto const& reloc : fbt) {
+     std::cerr << reloc << "\n";
+   }
    err = false;
 
    name_ = extract_pathname_tail(string(desc.file().c_str()));
