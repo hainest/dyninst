@@ -452,7 +452,26 @@ void IA_IAPI::getNewEdges(std::vector<std::pair<Address, EdgeTypeEnum>>& outEdge
   Instruction ci = curInsn();
 
   // Only call this on control flow instructions!
-  if(ci.isCall()) {
+  if(ci.isReturn()) {
+    parsing_printf("%s[%d]: return candidate %s at 0x%lx\n", FILE__, __LINE__, ci.format().c_str(), current);
+    if(ci.allowsFallThrough()) {
+      outEdges.push_back(std::make_pair(getNextAddr(), FALLTHROUGH));
+    } else if(!isReturn(context, currBlk)) {
+      // If BLR is not a return, then it is a jump table
+      parsedJumpTable = true;
+      parsing_printf("%s[%d]: BLR jump table candidate %s at 0x%lx\n", FILE__, __LINE__, ci.format().c_str(), current);
+      successfullyParsedJumpTable = parseJumpTable(context, currBlk, outEdges);
+      parsing_printf("Parsed BLR jump table\n");
+      if(!successfullyParsedJumpTable || outEdges.empty()) {
+        parsing_printf("%s[%d]: BLR unparsed jump table %s at 0x%lx in function %s UNINSTRUMENTABLE\n", FILE__,
+                       __LINE__, ci.format().c_str(), current, context->name().c_str());
+        outEdges.push_back(std::make_pair((Address)-1, INDIRECT));
+      }
+    }
+
+    parsing_printf("Returning from parse out edges\n");
+    return;
+  } else if(ci.isCall()) {
     bool success;
     Address target;
     boost::tie(success, target) = getCFT();
@@ -569,25 +588,6 @@ void IA_IAPI::getNewEdges(std::vector<std::pair<Address, EdgeTypeEnum>>& outEdge
       }
       return;
     }
-  } else if(ci.isReturn()) {
-    parsing_printf("%s[%d]: return candidate %s at 0x%lx\n", FILE__, __LINE__, ci.format().c_str(), current);
-    if(ci.allowsFallThrough()) {
-      outEdges.push_back(std::make_pair(getNextAddr(), FALLTHROUGH));
-    } else if(!isReturn(context, currBlk)) {
-      // If BLR is not a return, then it is a jump table
-      parsedJumpTable = true;
-      parsing_printf("%s[%d]: BLR jump table candidate %s at 0x%lx\n", FILE__, __LINE__, ci.format().c_str(), current);
-      successfullyParsedJumpTable = parseJumpTable(context, currBlk, outEdges);
-      parsing_printf("Parsed BLR jump table\n");
-      if(!successfullyParsedJumpTable || outEdges.empty()) {
-        parsing_printf("%s[%d]: BLR unparsed jump table %s at 0x%lx in function %s UNINSTRUMENTABLE\n", FILE__,
-                       __LINE__, ci.format().c_str(), current, context->name().c_str());
-        outEdges.push_back(std::make_pair((Address)-1, INDIRECT));
-      }
-    }
-
-    parsing_printf("Returning from parse out edges\n");
-    return;
   } else if(isSysEnter()) {
     parseSysEnter(outEdges);
     return;
