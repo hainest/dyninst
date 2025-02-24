@@ -28,7 +28,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "common/src/arch.h"
 #include "IA_aarch64.h"
 #include "instructionAPI/h/syscalls.h"
 #include "common/src/arch-aarch64.h"
