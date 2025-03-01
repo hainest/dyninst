@@ -116,6 +116,7 @@ set(_sources
     src/dynThread.C
     src/edge.C
     src/findMain_ppc.C
+    src/findMain_x86.C
     src/frame.C
     src/frameChecker.C
     src/function.C
