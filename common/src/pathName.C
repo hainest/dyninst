@@ -84,7 +84,7 @@ std::string resolve_file_path(std::string path) {
   // If it has a tilde, expand tilde pathname
   // This is a no-op on Windows
   if (path.find('~') != std::string::npos) {
-    path = expand_tilde_pathname(path);
+    path = expand_tilde(path);
   }
 
   // Convert to a boost::filesystem::path
