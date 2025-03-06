@@ -48,7 +48,7 @@ static std::string expand_tilde(std::string path_name) {
 
   // A tilde by itself (e.g. ~/x or ~)
   if (path_name[1] == '/' || path_name[1] == '\0') {
-    return path_name.replace(0, 1, home);
+    return path_name.replace(0, 1, home_dir);
   }
 
   // A tilde followed by a username.
@@ -56,10 +56,10 @@ static std::string expand_tilde(std::string path_name) {
   auto const idx_of_slash = path_name.find('/');
   
   if(idx_of_slash == std::string::npos) {
-    return home;
+    return home_dir;
   }
   
-  return home + path_name.substr(idx_of_slash);
+  return home_dir + path_name.substr(idx_of_slash);
 }
 
 std::string extract_pathname_tail(const std::string &path) {
