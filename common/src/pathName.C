@@ -37,12 +37,12 @@
 
 // Replace unix `~` in a path with $HOME
 static std::string expand_tilde(std::string path_name) {
-  if(path_name.empty() || path_name[0] != '~') {
+  if (path_name.empty() || path_name[0] != '~') {
     return path_name;
   }
-  
-  char const* home_dir = std::getenv("HOME");
-  if(!home_dir) {
+
+  char const *home_dir = std::getenv("HOME");
+  if (!home_dir) {
     return path_name;
   }
 
@@ -54,11 +54,11 @@ static std::string expand_tilde(std::string path_name) {
   // A tilde followed by a username.
   // The username starts at path_name[1] and ends at the first '/' or '\0'.
   auto const idx_of_slash = path_name.find('/');
-  
-  if(idx_of_slash == std::string::npos) {
+
+  if (idx_of_slash == std::string::npos) {
     return home_dir;
   }
-  
+
   return home_dir + path_name.substr(idx_of_slash);
 }
 
