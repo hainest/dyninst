@@ -38,7 +38,7 @@
 // Replace unix `~` in a path with $HOME
 static std::string expand_tilde(std::string path_name) {
   if(path_name.empty() || path_name[0] != '~') {
-    return dir;
+    return path_name;
   }
   
   char const* home_dir = std::getenv("HOME");
