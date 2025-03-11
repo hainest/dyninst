@@ -31,17 +31,7 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
-#include <string>
-#include "dyntypes.h"
-#include "dyninst_visibility.h"
-
-
 namespace Dyninst {
-
-#define WILDCARD_CHAR '?'
-#define MULTIPLE_WILDCARD_CHAR '*'
-
-DYNINST_EXPORT bool wildcardEquiv(const std::string &us, const std::string &them, bool checkCase = false );
 
 }
 
