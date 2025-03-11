@@ -53,6 +53,8 @@
 #include "compiler_annotations.h"
 #include "common/h/util.h"
 
+#include <boost/regex.hpp>
+
 using namespace Dyninst;
 using namespace Dyninst::ParseAPI;
 using namespace Dyninst::ProcControlAPI;
@@ -308,15 +310,26 @@ mapped_module *mapped_object::findModule(string const& m_name, bool wildcard)
 {
    parsing_printf("findModule for %s (substr match %d)\n",
          m_name.c_str(), wildcard);
-   std::string tmp = m_name.c_str();
-   for (unsigned i = 0; i < everyModule.size(); i++) {
-      if (everyModule[i]->fileName() == m_name ||
-            (wildcard &&
-             (wildcardEquiv(tmp, everyModule[i]->fileName())))) {
-         //parsing_printf("... found!\n");
-         return everyModule[i];
+
+  boost::regex search_expr{};
+
+  if(wildcard) {
+    // Case-insensitive
+    search_expr = boost::regex(m_name, boost::regex::icase);
+  }
+
+  for(auto *m : everyModule) {
+    auto const& fname = m->fileName();
+    if(fname == m_name) {
+      return m;
+    }
+    if(wildcard) {
+      // Use POSIX-style matching rules
+      if(boost::regex_search(fname, search_expr, boost::match_posix)) {
+        return m;
       }
-   }
+    }
+  }
    // Create a new one IF there's one in the child pd_module
 
    pdmodule *pdmod = image_->findModule(m_name, wildcard);
