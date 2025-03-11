@@ -284,8 +284,8 @@ class AddressSpace : public InstructionSource {
     //  the provided string is returned.
     // Wildcard: handles "*" and "?"
     mapped_module *findModule(const std::string &mod_name, bool wildcard = false);
+
     // And the same for objects
-    // Wildcard: handles "*" and "?"
     mapped_object *findObject(std::string obj_name, bool wildcard = false) const;
     mapped_object *findObject(Address addr) const;
     mapped_object *findObject(fileDescriptor desc) const;
