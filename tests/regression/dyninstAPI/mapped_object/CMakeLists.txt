@@ -1,15 +1,4 @@
-include(DyninstRegTests)
-
 # cmake-format: off
-
-dyninst_reg_test(
-  dyninstapi_mapped_object_findModule
-  findModule.cpp
-  dyninstAPI
-  NOSTATICLIBS
-  NOSTRIPPEDLIBS  # Needs debuginfo
-  NOEXEC
-)
 
 set(_hosts "I386" "X86_64" "PPC64LE" "AARCH64")
 set(_tests findModule)
