@@ -40,7 +40,7 @@ endif()
 set(Boost_NO_WARN_NEW_VERSIONS ON)
 
 # Library components that need to be linked against
-set(_boost_components atomic chrono date_time filesystem thread timer)
+set(_boost_components atomic chrono date_time filesystem regex thread timer)
 find_package(Boost ${_min_version} QUIET REQUIRED COMPONENTS ${_boost_components})
 
 # Don't let Boost variables seep through
