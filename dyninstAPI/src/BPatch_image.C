@@ -36,6 +36,8 @@
 #include <assert.h>
 #include <string.h>
 #include <string>
+#include <boost/regex.hpp>
+#include <algorithm>
 
 #include "instPoint.h"
 #include "function.h"
@@ -408,144 +410,88 @@ BPatch_module *BPatch_image::findModule(const char *name, bool substring_match)
  * name		The name of function to look up.
  * funcs	The vector in which to place the results.
  */
+BPatch_Vector<BPatch_function*>* BPatch_image::findFunction(const char* name, BPatch_Vector<BPatch_function*>& funcs,
+                                                            bool showError, bool regex_case_sensitive,
+                                                            bool incUninstrumentable) {
+  std::vector<AddressSpace*> address_space{};
+  addSpace->getAS(address_space);
 
-BPatch_Vector<BPatch_function*> *BPatch_image::findFunction(const char *name, 
-      BPatch_Vector<BPatch_function*> &funcs, 
-      bool showError,
-      bool regex_case_sensitive,
-      bool incUninstrumentable)
-{
-   std::vector<AddressSpace *> as;
-   addSpace->getAS(as);
-   assert(as.size());
+  if(address_space.empty()) {
+    if(showError) {
+      BPatch_reportError(BPatchSerious, 100, "No address spaces found");
+    }
+    return nullptr;
+  }
 
-   if (NULL == strpbrk(name, REGEX_CHARSET)) {
-      //  usual case, no regex
-      std::vector<func_instance *> foundIntFuncs;
-      for (unsigned i=0; i<as.size(); i++) {
-         as[i]->findFuncsByAll(std::string(name), foundIntFuncs);
+  auto all_functions = [&address_space]() {
+    std::vector<func_instance*> all_funcs;
+    for(auto* as : address_space) {
+      as->getAllFunctions(all_funcs);
+    }
+    return all_funcs;
+  }();
+
+  if(all_functions.empty()) {
+    if(showError) {
+      char const* msg = "Image: no functions found in address space";
+      BPatch_reportError(BPatchSerious, 100, msg);
+    }
+    return nullptr;
+  }
+
+  if(!incUninstrumentable) {
+    // Remove uninstrumentable functions
+    auto end_itr = std::remove_if(all_functions.begin(), all_functions.end(), [](func_instance* f) {
+      return !f->isInstrumentable();
+    });
+    all_functions.erase(end_itr, all_functions.end());
+  }
+
+  const auto flags_ = [regex_case_sensitive]() {
+    auto flags = boost::regex::nosubs | boost::regex::extended;
+    if(!regex_case_sensitive) {
+      flags |= boost::regex::icase;
+    }
+    return flags;
+  }();
+
+  boost::regex search_expr(name, flags_);
+
+  auto save_ = [this, &funcs](func_instance* f) {
+    funcs.push_back(addSpace->findOrCreateBPFunc(f, nullptr));
+  };
+
+  /* Order of match preference:
+   *
+   *   1. Exactly the pretty name
+   *   2. Exactly the mangled name
+   *   3. Regex match the pretty name
+   *   4. Regex match the mangled name
+   *
+   */
+  for(auto* f : all_functions) {
+    // symTabName is the mangled name
+    if(f->prettyName() == name || f->symTabName() == name) {
+      save_(f);
+      continue;
+    }
+    for(const auto& fname : {f->prettyName(), f->symTabName()}) {
+      if(boost::regex_search(fname, search_expr)) {
+        save_(f);
       }
-      if (!foundIntFuncs.size())
-      {
-         // Error callback...
-         if (showError) {
-            std::string msg = std::string("Image: Unable to find function: ") + 
-               std::string(name);
-            BPatch_reportError(BPatchSerious, 100, msg.c_str());
-         }
-         return NULL;
-      }
-      // We have a list; if we don't want to include uninstrumentable,
-      // scan and check
-      for (unsigned int fi = 0; fi < foundIntFuncs.size(); fi++) {
-         if (foundIntFuncs[fi]->isInstrumentable() || incUninstrumentable) {
-            BPatch_function *foo = addSpace->findOrCreateBPFunc(foundIntFuncs[fi], NULL);
-            funcs.push_back(foo);
-         }
-      }
+    }
+  }
 
-      if (funcs.size() > 0)
-         return &funcs;
-      if (showError) {
-         std::string msg = std::string("Image: Unable to find function: ") + 
-            std::string(name);
-         BPatch_reportError(BPatchSerious, 100, msg.c_str());
-      }
-      return NULL;
-   }
+  if(!funcs.empty()) {
+    return &funcs;
+  }
 
-#if !defined(os_windows)
-   // REGEX falls through:
-   regex_t comp_pat;
-   int err, cflags = REG_NOSUB | REG_EXTENDED;
+  if(showError) {
+    auto msg = std::string("Image: Unable to find function: ") + name;
+    BPatch_reportError(BPatchSerious, 100, msg.c_str());
+  }
 
-   if ( !regex_case_sensitive )
-      cflags |= REG_ICASE;
-
-   //cerr << "compiling regex: " <<name<<endl;
-
-   if (0 != (err = regcomp( &comp_pat, name, cflags ))) {
-      char errbuf[80];
-      regerror( err, &comp_pat, errbuf, 80 );
-      if (showError) {
-         cerr << __FILE__ << ":" << __LINE__ << ":  REGEXEC ERROR: "<< errbuf << endl;
-         std::string msg = std::string("Image: Unable to find function pattern: ") 
-            + std::string(name) + ": regex error --" + std::string(errbuf);
-         BPatch_reportError(BPatchSerious, 100, msg.c_str());
-      }
-      // remove this line
-      cerr << __FILE__ << ":" << __LINE__ << ":  REGEXEC ERROR: "<< errbuf << endl;
-      return NULL;
-   }
-
-   // Regular expression search. This used to be handled at the image
-   // class level, but was moved up here to simplify semantics. We
-   // have to iterate over every function known to the process at some
-   // point, so it might as well be top-level. This is also an
-   // excellent candidate for a "value-added" library.
-
-   std::vector<func_instance *> all_funcs;
-   for (unsigned i=0; i<as.size(); i++) {
-      as[i]->getAllFunctions(all_funcs);
-   }
-
-   for (unsigned ai = 0; ai < all_funcs.size(); ai++) {
-      func_instance *func = all_funcs[ai];
-      // If it matches, push onto the vector
-      // Check all pretty names (and then all mangled names if 
-      // there is no match)
-      bool found_match = false;
-
-      for (auto piter = func->pretty_names_begin(); 
-	   piter != func->pretty_names_end();
-	   ++ piter)
-      {
-         const string &pName = *piter;
-         int err_code;
-
-         if (0 == (err_code = regexec(&comp_pat, pName.c_str(), 1, NULL, 0 ))){
-            if (func->isInstrumentable() || incUninstrumentable) {
-               BPatch_function *foo = addSpace->findOrCreateBPFunc(func,NULL);
-               //BPatch_function *foo = proc->findOrCreateBPFunc(func, NULL);
-               funcs.push_back(foo);
-            }
-            found_match = true;
-            break;
-         }
-      }
-      if (found_match) continue; // Don't check mangled names
-
-      for (auto miter = func->symtab_names_begin(); 
-	   miter != func->symtab_names_end();
-	   ++miter) 
-      {
-         const string &mName = *miter;
-         int err_code;
-
-         if (0 == (err_code = regexec(&comp_pat, mName.c_str(), 1, NULL, 0 ))){
-            if (func->isInstrumentable() || incUninstrumentable) {
-               BPatch_function *foo = addSpace->findOrCreateBPFunc(func,NULL);
-               //	   BPatch_function *foo = proc->findOrCreateBPFunc(func, NULL);
-               funcs.push_back(foo);
-            }
-            found_match = true;
-            break;
-         }
-      }
-   }
-
-   regfree(&comp_pat);
-
-   if (funcs.size() > 0) {
-      return &funcs;
-   } 
-
-   if (showError) {
-      std::string msg = std::string("Unable to find pattern: ") + std::string(name);
-      BPatch_reportError(BPatchSerious, 100, msg.c_str());
-   }
-#endif
-   return NULL;
+  return nullptr;
 }
 
 /*
