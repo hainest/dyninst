@@ -991,7 +991,7 @@ BPatch_object *BPatch_process::loadLibrary(const char *libname, bool)
       mapped_object* plib = llproc->findObject(libname);
       if (!plib) {
         std::string wildcard(libname);
-        wildcard += "*";
+        wildcard += ".*";
         plib = llproc->findObject(wildcard, true);
       }
       if (!plib) {

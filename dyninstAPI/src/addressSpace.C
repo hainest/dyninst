@@ -61,11 +61,12 @@
 #include "Relocation/DynInstrumenter.h"
 
 #include <boost/bind/bind.hpp>
+#include <boost/regex.hpp>
 
 #include "dynThread.h"
 #include "pcEventHandler.h"
 #include "unaligned_memory_access.h"
-#include "common/h/util.h"
+#include "dyninst_filesystem.h"
 
 // Implementations of non-virtual functions in the address space
 // class.
@@ -878,34 +879,42 @@ mapped_module *AddressSpace::findModule(const std::string &mod_name, bool wildca
 // This just iterates over the mapped object vector
 mapped_object *AddressSpace::findObject(std::string obj_name, bool wildcard) const
 {
+  boost::regex search_expr{};
+
+  if(wildcard) {
+    // Case-insensitive
+    search_expr = boost::regex(obj_name, boost::regex::icase);
+  }
+
+  // Need to capture `obj_name` by ref here since it's possibly
+  // modified before doing the search by filename.
+  auto match_ = [&, wildcard](std::string const& str) {
+    if(str == obj_name) {
+      return true;
+    }
+    if(wildcard) {
+      // Use POSIX-style matching rules
+      return boost::regex_search(str, search_expr, boost::match_posix);
+    }
+    return false;
+  };
+
    // Update: check by full name first because we may have non-unique fileNames. 
-   for(u_int j=0; j < mapped_objects.size(); j++){
-      if (mapped_objects[j]->fullName() == obj_name ||
-          (wildcard &&
-           wildcardEquiv(obj_name, mapped_objects[j]->fullName())))
-         return mapped_objects[j];
+   for(auto *mo : mapped_objects){
+     if(match_(mo->fullName())) {
+       return mo;
+     }
    }
 
-   // get rid of the directory in the path
-   std::string orig_name = obj_name;
-   std::string::size_type dir = obj_name.rfind('/');
-   if (dir != std::string::npos) {
-      // +1, as that finds the slash and we don't want it. 
-      obj_name = obj_name.substr(dir+1);
-   } else {
-	   dir = obj_name.rfind('\\');
-	   if (dir != std::string::npos){
-		 obj_name = obj_name.substr(dir+1);
-	   }
+   // Try by just the filename
+   obj_name = Dyninst::filesystem::extract_filename(obj_name);
+   for(auto *mo : mapped_objects){
+     if(match_(mo->fileName())) {
+       return mo;
+     }
    }
 
-   for(u_int j=0; j < mapped_objects.size(); j++){
-      if (mapped_objects[j]->fileName() == obj_name ||
-          (wildcard &&
-           wildcardEquiv(obj_name, mapped_objects[j]->fileName())))
-         return mapped_objects[j];
-   }
-   return NULL;
+   return nullptr;
 }
 
 // findObject: returns the object associated with obj_name 
