@@ -117,9 +117,9 @@ bool PCProcess::multithread_capable(bool ignoreIfMtNotSet) {
         return false;
     }
 
-    if(    findObject("libpthread.so*", true) // Linux
-        || findObject("libpthread-*.so", true) // Linux
-        || findObject("libthr.*", true) ) // FreeBSD
+    if(    findObject(R"(libpthread\.so.*)", true) // Linux
+        || findObject(R"(libpthread-.*\.so)", true) // Linux
+        || findObject(R"(libthr\..*)", true) ) // FreeBSD
     {
         mt_cache_result_ = cached_mt_true;
         return true;
@@ -136,14 +136,14 @@ bool PCProcess::multithread_capable(bool ignoreIfMtNotSet) {
 static void findThreadFuncs(PCProcess *p, std::string func,
                             std::vector<func_instance *> &result) {
     const std::vector<func_instance*>* found = NULL;
-    mapped_object *lpthread = p->findObject("libpthread*", true);
+    mapped_object *lpthread = p->findObject(R"(libpthread.*)", true);
     if (lpthread)
         found = lpthread->findFuncVectorByMangled(func);
     if (found) {
 	result = *found;
         return;
     }
-    mapped_object *lc = p->findObject("libc.so*", true);
+    mapped_object *lc = p->findObject(R"(libc\.so.*)", true);
     if (lc)
         found = lc->findFuncVectorByMangled(func);
     if (found) {
@@ -151,7 +151,7 @@ static void findThreadFuncs(PCProcess *p, std::string func,
         return;
     }
 
-    lc = p->findObject("libc-2.*.so*", true);
+    lc = p->findObject(R"(libc-2\..*\.so.*)", true);
     if (lc)
         found = lc->findFuncVectorByMangled(func);
     if (found) {
