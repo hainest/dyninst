@@ -760,7 +760,7 @@ bool initTraceInMutatee(dynHandle *dh)
    BPatch_Vector< BPatch_function * > funcs;
 
    sendMsg(config.outfd, ID_TRACE_FIND_OPEN, VERB2, ID_TEST);
-   if (!dh->image->findFunction("^(__)?open(64)?$", funcs)) {
+   if (!dh->image->findFunction(R"(^_*open[[:digit:]]*$)", funcs)) {
       sendMsg(config.outfd, ID_TRACE_FIND_OPEN, VERB2, ID_FAIL,
               "Failure in BPatch_image::findFunction()");
       return false;
@@ -779,7 +779,7 @@ bool initTraceInMutatee(dynHandle *dh)
    trace_fd = allocateIntegerInMutatee(dh, -1);
    funcs.clear();
    sendMsg(config.outfd, ID_TRACE_FIND_WRITE, VERB2);
-   if (!dh->image->findFunction("^(__)?write$", funcs)) {
+   if (!dh->image->findFunction(R"(^_*write[[:digit:]]*$)", funcs)) {
       sendMsg(config.outfd, ID_TRACE_FIND_WRITE, VERB2, ID_FAIL,
               "Failure in BPatch_image::findFunction()");
       return false;
