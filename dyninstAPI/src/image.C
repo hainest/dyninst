@@ -232,14 +232,16 @@ int image::findMain()
     return -1;
   }
 
-  pa::Function *entry_point = [&regions, &scs, &entry_address](){
-    // To save time, only parse the entry function
+  pa::CodeObject co = [&scs]() {
+    // To save time, delay the parsing
     pa::CFGFactory *f{};
     pa::ParseCallback *cb{};
     constexpr bool defensive_mode = false;
     constexpr bool delay_parse = true;
-    pa::CodeObject co(&scs, f, cb, defensive_mode, delay_parse);
+    return pa::CodeObject(&scs, f, cb, defensive_mode, delay_parse);
+  }();
 
+  pa::Function *entry_point = [&regions, entry_address](){
     pa::CodeRegion* region = *(regions.begin());
     constexpr bool recursive = true;
     co.parse(region, entry_address, recursive);
