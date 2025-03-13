@@ -38,7 +38,7 @@
 #include "image.h"
 #include "debug.h"
 #include "patching/function.h"
-
+#include "find_main.h"
 #include "common/src/Timer.h"
 #include "common/src/dyninst_filesystem.h"
 #include "common/src/MappedFile.h"
@@ -140,273 +140,6 @@ void* fileDescriptor::rawPtr()
 extern unsigned enable_pd_sharedobj_debug;
 
 int codeBytesSeen = 0;
-
-#if defined(ppc64_linux) && defined(DYNINST_CODEGEN_ARCH_POWER)
-
-#include <dataflowAPI/h/slicing.h>
-#include <dataflowAPI/h/SymEval.h>
-#include <dataflowAPI/h/AbslocInterface.h>
-#include <dataflowAPI/h/Absloc.h>
-#include <dataflowAPI/h/DynAST.h>
-#include <instructionAPI/h/InstructionAST.h>
-
-namespace {
-    /* On PPC GLIBC (32 & 64 bit) the address of main is in a structure
-       located in either .data or .rodata, depending on whether the 
-       binary is PIC. The structure has the following format:
-
-        struct 
-        {
-            void * // "small data area base"
-            main   // pointer to main
-            init   // pointer to init
-            fini   // pointer to fini
-        }
-
-        This structure is passed in GR8 as an argument to libc_start_main.
-
-        Annoyingly, the value in GR8 is computed in several different ways,
-        depending on how GLIBC was compiled.
-
-        This code follows the i386 linux version closely otherwise.
-    */
-
-    class Default_Predicates : public Slicer::Predicates {};
-
-    /* This visitor is capable of simplifying constant value computations
-       that involve additions and concatenations (lis instruction). This
-       is sufficient to handle the startup struct address calculation in
-       GLIBC that we have seen; if additional variants are introduced
-       (refer to start.S in glibc or equivalently to the compiled library)
-       this visitor should be expanded to handle any new operations */
-        
-    class SimpleArithVisitor : public ASTVisitor {
-
-        using ASTVisitor::visit;
-
-        virtual ASTPtr visit(AST * a) {return a->ptr();}
-        virtual ASTPtr visit(DataflowAPI::BottomAST *a) {return a->ptr(); }
-        virtual ASTPtr visit(DataflowAPI::ConstantAST *c) {return c->ptr();}
-        virtual ASTPtr visit(DataflowAPI::VariableAST *v) {return v->ptr();}
-
-        virtual ASTPtr visit(DataflowAPI::RoseAST * r) {
-            using namespace DataflowAPI;
-
-            AST::Children newKids;
-            for(unsigned i=0;i<r->numChildren();++i) {
-                newKids.push_back(r->child(i)->accept(this));
-            }
-
-            switch(r->val().op) {
-                case ROSEOperation::addOp:
-                    assert(newKids.size() == 2);
-                    if(newKids[0]->getID() == AST::V_ConstantAST &&
-                       newKids[1]->getID() == AST::V_ConstantAST)
-                    {
-                        ConstantAST::Ptr c1 = ConstantAST::convert(newKids[0]);
-                        ConstantAST::Ptr c2 = ConstantAST::convert(newKids[1]);
-                        return ConstantAST::create(
-                            Constant(c1->val().val+c2->val().val));
-                    }
-                    break;
-                case ROSEOperation::concatOp:
-                    assert(newKids.size() == 2);
-                    if(newKids[0]->getID() == AST::V_ConstantAST &&
-                       newKids[1]->getID() == AST::V_ConstantAST)
-                    {
-                        ConstantAST::Ptr c1 = ConstantAST::convert(newKids[0]);
-                        ConstantAST::Ptr c2 = ConstantAST::convert(newKids[1]);
-                        unsigned long result = c1->val().val;
-                        result |= (c2->val().val << c2->val().size);
-                        return ConstantAST::create(Constant{result});
-                    }
-                    break;
-                default:
-                    startup_printf("%s[%d] unhandled operation in simplification\n",FILE__,__LINE__);
-            }
-        
-            return RoseAST::create(r->val(), newKids);
-        }
-    };
-
-    struct libc_startup_info {
-        void * sda;
-        void * main_addr;
-        void * init_addr;
-        void * fini_addr;
-    };
-
-    void *get_raw_symtab_ptr(Symtab *linkedFile, Address addr)
-    {
-        Region *reg = linkedFile->findEnclosingRegion(addr);
-        if (reg != NULL) {
-            char *data = (char*)reg->getPtrToRawData();
-            data += addr - reg->getMemOffset();
-            return data;
-        }
-        return NULL;
-    }
-
-    Address deref_opd(Symtab *linkedFile, Address addr)
-    {
-        Region *reg = linkedFile->findEnclosingRegion(addr);
-        if (reg && reg->getRegionName() == ".opd") {
-            // opd symbol needing dereference
-            void *data = get_raw_symtab_ptr(linkedFile, addr);
-            if (data)
-                return *(Address*)data;
-        }
-        return addr;
-    }
-
-    /*
-     * b ends with a call to libc_start_main. We are looking for the
-     * value in GR8, which is the address of a structure that contains
-     * the address to main
-     */
-    Address evaluate_main_address(Symtab * linkedFile, Function * f, Block *b)
-    {
-        using namespace DataflowAPI;
-        using namespace InstructionAPI;
-        // looking for the *last* instruction in the block
-        // that defines GR8
-    
-        Instruction r8_def;
-        Address r8_def_addr;
-        bool find = false;
-    
-        InstructionDecoder dec(
-            b->region()->getPtrToInstruction(b->start()),
-            b->end()-b->start(),
-            b->region()->getArch());
-
-        // Register operands produced by the decoder are normalized to the
-        // decoding architecture (ppc64) but do not necessarily carry the
-        // same bit range as a RegisterAST built directly from a ppc64
-        // register. RegisterAST equality -- used by Instruction::isWritten/
-        // isRead and Expression::bind -- compares the register id AND the
-        // bit range, so those queries silently never match here. Match and
-        // bind registers by id instead.
-        auto usesRegID = [](std::set<RegisterAST::Ptr> const& regs,
-                            MachRegister reg) {
-            for (auto const& i : regs)
-                if (i->getID() == reg) return true;
-            return false;
-        };
-
-        Address cur_addr = b->start();
-        while(cur_addr < b->end()) {
-            Instruction cur = dec.decode();
-            std::set<RegisterAST::Ptr> written;
-            cur.getWriteSet(written);
-            if(usesRegID(written, ppc64::r8)) {
-                find = true;
-                r8_def = cur;
-                r8_def_addr = cur_addr;  
-            }
-            cur_addr += cur.size();
-        }
-        if(!find)
-            return 0;
-
-        Address ss_addr = 0;
-
-        // Try a TOC-based lookup first
-        std::set<RegisterAST::Ptr> readRegs;
-        r8_def.getReadSet(readRegs);
-        if (usesRegID(readRegs, ppc64::r2)) {
-            set<Expression::Ptr> memReads;
-            r8_def.getMemoryReadOperands(memReads);
-            Address TOC = f->obj()->cs()->getTOC(r8_def_addr);
-            // ELFv2 (ppc64le) has no .opd section, so the code source's TOC
-            // table is empty and getTOC() returns 0 for every address.
-            // Derive the TOC from the function's global entry point instead.
-            // The ABI-prescribed entry sequence
-            //     addis r2,r12,H ; addi r2,r2,L
-            // with r12 holding the entry address gives
-            //     TOC = entry + (H << 16) + L,
-            // and the linker may relax it (static links below 2 GB) to the
-            // absolute form
-            //     lis r2,H ; addi r2,r2,L    =>    TOC = (H << 16) + L.
-            // (POWER10 pc-relative code sets up no TOC at all; its r8 load
-            // does not read r2, so this branch is never reached for it.)
-            if (TOC == 0) {
-                const uint32_t *entry_code = (const uint32_t *)
-                    b->region()->getPtrToInstruction(f->addr());
-                if (entry_code
-                    && f->addr() + 8 <= b->region()->high()
-                    && (entry_code[1] & 0xffff0000) == 0x38420000) // addi r2,r2,L
-                {
-                    Address hi = (Address)(int16_t)(entry_code[0] & 0xffff) << 16;
-                    Address lo = (Address)(int16_t)(entry_code[1] & 0xffff);
-                    if ((entry_code[0] & 0xffff0000) == 0x3c4c0000)      // addis r2,r12,H
-                        TOC = f->addr() + hi + lo;
-                    else if ((entry_code[0] & 0xffff0000) == 0x3c400000) // lis r2,H
-                        TOC = hi + lo;
-                }
-            }
-            if (TOC != 0 && memReads.size() == 1) {
-                Expression::Ptr expr = *memReads.begin();
-                // Bind the r2 instance used by the expression itself so the
-                // bind's equality test matches it.
-                for (RegisterAST::Ptr const& ru : getUsedRegisters(expr))
-                    if (ru->getID() == ppc64::r2)
-                        expr->bind(ru.get(), Result(u64, TOC));
-                const Result &res = expr->eval();
-                if (res.defined) {
-                    void *res_addr =
-                        get_raw_symtab_ptr(linkedFile, res.convert<Address>());
-                    if (res_addr)
-                        ss_addr = *(Address*)res_addr;
-                }
-            }
-        }
-
-        if (ss_addr == 0) {
-            // Get all of the assignments that happen in this instruction
-            AssignmentConverter conv(true, true);
-            vector<Assignment::Ptr> assigns;
-            conv.convert(r8_def,r8_def_addr,f,b,assigns);
-
-            // find the one we care about (r8)
-            vector<Assignment::Ptr>::iterator ait = assigns.begin();
-            for( ; ait != assigns.end(); ++ait) {
-                AbsRegion & outReg = (*ait)->out();
-                Absloc const& loc = outReg.absloc();
-                if(loc.reg() == ppc64::r8)
-                    break;
-            }
-            if(ait == assigns.end()) {
-                return 0;
-            }
-
-            // Slice back to the definition of R8, and, if possible, simplify
-            // to a constant
-            Slicer slc(*ait,b,f);
-            Default_Predicates preds;
-            Graph::Ptr slg = slc.backwardSlice(preds);
-            DataflowAPI::Result_t sl_res;
-            DataflowAPI::SymEval::expand(slg,sl_res);
-            AST::Ptr calculation = sl_res[*ait];
-            SimpleArithVisitor visit; 
-            AST::Ptr simplified = calculation->accept(&visit);
-            //printf("after simplification:\n%s\n",simplified->format().c_str());
-            if(simplified->getID() == AST::V_ConstantAST) { 
-                ConstantAST::Ptr cp = ConstantAST::convert(simplified);
-                ss_addr = cp->val().val;
-            }
-        }
-
-        // need a pointer to the image data
-        auto si = (struct libc_startup_info *)
-            get_raw_symtab_ptr(linkedFile, ss_addr);
-        if (si)
-            return (Address)si->main_addr;
-
-        return 0;
-    }
-}
-#endif
 
 #include <Graph.h>
 #include <Node.h>
@@ -598,56 +331,32 @@ int image::findMain()
   // assume the first call is the one we want.
   pa::Block *entry_block = (*edges.begin())->src();
   if(!entry_block) {
-    startup_printf("findMain: No block found for edge with target -x%x\n", (*edges.begin())->trg_addr());
+    startup_printf("findMain: No block found for edge with target 0x%x\n", (*edges.begin())->trg_addr());
     return -1;
   }
 
+  // Try architecture-specific searches
+  auto main_addr = [this, &entry_point]() {
+    auto file_arch = linkedFile->getArchitecture();
+
+    if(file_arch == Dyninst::Arch_ppc32 || file_arch == Dyninst::Arch_ppc64) {
+      return DyninstAPI::ppc::find_main(linkedFile, scs, entry_point);
+    }
+
+    return Dyninst::ADDR_NULL;
+  }();
 
 #if defined(ppc64_linux) && defined(DYNINST_CODEGEN_ARCH_POWER)
-  using namespace Dyninst::InstructionAPI;
-
-  // Candidate blocks for the __libc_start_main call setup:
-  // glibc's dynamic _start makes the call from its entry block,
-  // but a tail-branching _start (static link) parses into one
-  // function with several call edges further in.
-  // evaluate_main_address() is fail-to-zero per block, so rather
-  // than guessing the one right block, try the entry block and
-  // then each call-edge source until one yields a valid address.
-  std::vector<Block *> candidates;
-  candidates.push_back(entryBlock);
-  const Function::edgelist & calls = entry_point->callEdges();
-  for (Function::edgelist::const_iterator cit = calls.begin();
-       cit != calls.end(); ++cit) {
-      if ((*cit)->src() && (*cit)->src() != entryBlock)
-          candidates.push_back((*cit)->src());
-  }
-
-  Address mainAddress = 0;
-  for (std::vector<Block *>::const_iterator bit = candidates.begin();
-       bit != candidates.end() && mainAddress == 0; ++bit) {
-      Address cand = evaluate_main_address(linkedFile,func,*bit);
-      cand = deref_opd(linkedFile, cand);
-      if (cand != 0 && scs.isValidAddress(cand))
-          mainAddress = cand;
-  }
-
-  if(0 == mainAddress) {
-      startup_printf("%s[%d] failed to find main\n",FILE__,__LINE__);
-      return -1;
-  } else {
-      startup_printf("%s[%d] found main at %lx\n",
-              FILE__,__LINE__,mainAddress);
-  }
   Symbol *newSym= new Symbol( "main",
           Symbol::ST_FUNCTION,
           Symbol::SL_LOCAL,
           Symbol::SV_INTERNAL,
-          mainAddress,
+          main_addr,
           linkedFile->getDefaultModule(),
           entry_region,
           0 );
   linkedFile->addSymbol(newSym);
-  this->address_of_main = mainAddress;
+  this->address_of_main = main_addr;
 
 #elif defined(i386_unknown_linux2_0) \
     || defined(x86_64_unknown_linux2_4) /* Blind duplication - Ray */ \
@@ -679,8 +388,6 @@ int image::findMain()
 		return -1;
 	    }
 
-	    Address mainAddress = 0;
-
 	    // To get the secont to last instruction, which loads the address of main
 	    auto iit = insns.end();
 	    --iit;
@@ -699,7 +406,7 @@ int image::findMain()
                 if(!ast)
                 {
                     /* expand failed */
-                    mainAddress = 0x0;
+                    main_addr = 0x0;
 		    startup_printf("%s[%d]:  cannot expand %s from instruction %s\n", FILE__, __LINE__, assignment->format().c_str(),
                            assignment->insn().format().c_str());
                 } else { 
@@ -708,9 +415,9 @@ int image::findMain()
                     ast->accept(&fmv);
                     if(fmv.resolved)
                     {
-                        mainAddress = fmv.target;
+                        main_addr = fmv.target;
                     } else {
-                        mainAddress = 0x0;
+                        main_addr = 0x0;
 			startup_printf("%s[%d]:  FindMainVisitor cannot find main address in %s\n", FILE__, __LINE__, ast->format().c_str());   
 
                     }
@@ -749,18 +456,18 @@ int image::findMain()
                     callTarget->bind(&thePC, Result(s64, callAddress));
                     Result actualTarget = callTarget->eval();
                     if( actualTarget.defined ) {
-                        mainAddress = actualTarget.convert<Address>();
+                        main_addr = actualTarget.convert<Address>();
                     }
                 }
             }
 #endif
 
-            if(!mainAddress || !scs.isValidAddress(mainAddress)) {
+            if(!main_addr || !scs.isValidAddress(main_addr)) {
                 startup_printf("%s[%d]:  invalid main address 0x%lx\n",
-                        FILE__, __LINE__, mainAddress);   
+                        FILE__, __LINE__, main_addr);
             } else {
                 startup_printf("%s[%d]:  set main address to 0x%lx\n",
-                        FILE__,__LINE__,mainAddress);
+                        FILE__,__LINE__,main_addr);
             }
 
             /* Note: creating a symbol for main at the invalid address 
@@ -774,14 +481,14 @@ int image::findMain()
                */
 
             Region *pltsec;
-            if((linkedFile->findRegion(pltsec, ".plt")) && pltsec->isOffsetInRegion(mainAddress))
+            if((linkedFile->findRegion(pltsec, ".plt")) && pltsec->isOffsetInRegion(main_addr))
             {
                 //logLine( "No static symbol for function main\n" );
                 Symbol *newSym = new Symbol("DYNINST_pltMain", 
                         Symbol::ST_FUNCTION, 
                         Symbol::SL_LOCAL,
                         Symbol::SV_INTERNAL,
-                        mainAddress,
+                        main_addr,
                         linkedFile->getDefaultModule(),
                         entry_region,
                         0 );
@@ -793,12 +500,12 @@ int image::findMain()
                         Symbol::ST_FUNCTION,
                         Symbol::SL_LOCAL,
                         Symbol::SV_INTERNAL,
-                        mainAddress,
+                        main_addr,
                         linkedFile->getDefaultModule(),
                         entry_region,
                         0 );
                 linkedFile->addSymbol(newSym);		
-                this->address_of_main = mainAddress;
+                this->address_of_main = main_addr;
             }
         }
         if( !foundStart )
@@ -889,6 +596,13 @@ int image::findMain()
             this->address_of_main = eAddr;
         }
 #endif
+
+  if(main_addr == Dyninst::ADDR_NULL || !scs.isValidAddress(main_addr)) {
+    startup_printf("findMain: unable to find valid entry for 'main'\n");
+    return -1;
+  }
+
+  startup_printf("%s[%d] found main at %lx\n", FILE__,__LINE__, main_addr);
 
     return 0; /* Success */
 }
