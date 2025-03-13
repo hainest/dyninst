@@ -51,7 +51,6 @@
 #include "PatchCFG.h"
 #include "PCProcess.h"
 #include "compiler_annotations.h"
-#include "common/h/util.h"
 
 #include <boost/regex.hpp>
 
