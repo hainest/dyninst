@@ -1,3 +1,3 @@
 include_guard(GLOBAL)
 
-add_subdirectory(image)
+add_subdirectory(find_main)

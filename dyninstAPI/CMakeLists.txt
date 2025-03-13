@@ -62,7 +62,7 @@ set(_private_headers
     src/emit-power.h
     src/emitter.h
     src/emit-x86.h
-    src/findMain.h
+    src/find_main.h
     src/frameChecker.h
     src/frame.h
     src/freebsd.h
@@ -115,8 +115,9 @@ set(_sources
     src/dynProcess.C
     src/dynThread.C
     src/edge.C
-    src/findMain_ppc.C
-    src/findMain_x86.C
+    src/find_main.C
+    src/find_main_ppc.C
+    src/find_main_x86.C
     src/frame.C
     src/frameChecker.C
     src/function.C
