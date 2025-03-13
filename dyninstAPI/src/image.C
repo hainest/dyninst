@@ -46,7 +46,6 @@
 #include "common/src/Timer.h"
 #include "common/src/dyninst_filesystem.h"
 #include "common/src/MappedFile.h"
-#include "common/h/util.h"
 #include "dyninstAPI/h/BPatch_flowGraph.h"
 
 #include "symtabAPI/h/Function.h"
