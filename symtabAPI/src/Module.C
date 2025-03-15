@@ -32,7 +32,7 @@
 #include <string.h>
 #include <common/src/debug_common.h>
 #include "debug.h"
-
+#include "dyninst_filesystem.h"
 #include "Annotatable.h"
 #include "Module.h"
 #include "Symtab.h"
@@ -290,7 +290,7 @@ Module::Module(supportedLanguages lang, Offset adr,
    objectLevelLineInfo(false),
    lineInfo_(NULL),
    typeInfo_(NULL),
-   fileName_(std::move(fullNm)),
+   fileName_(Dyninst::filesystem::canonicalize(std::move(fullNm))),
    compDir_(""),
    language_(lang),
    addr_(adr),
