@@ -32,7 +32,7 @@
 #include "symtabAPI/h/Symtab.h"
 #include "symtabAPI/h/Symbol.h"
 #include "symtabAPI/h/Function.h"
-
+#include "dyninst_filesystem.h"
 #include "symtabAPI/src/Object.h"
 #include <queue>
 #include <iostream>
@@ -279,6 +279,7 @@ SymtabReaderFactory::~SymtabReaderFactory()
 
 SymReader *SymtabReaderFactory::openSymbolReader(std::string pathname)
 {
+   pathname = Dyninst::filesystem::canonicalize(std::move(pathname));
    std::map<std::string, SymReader *>::iterator i = open_syms.find(pathname);
    if (i != open_syms.end()) {
       SymtabReader *symtabreader = dynamic_cast<SymtabReader *>(i->second);
