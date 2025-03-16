@@ -854,6 +854,7 @@ bool AddressTranslateSysV::refresh()
 }
 
 FCNode::FCNode(string f, dev_t d, ino_t i, SymbolReaderFactory *factory_) :
+   filename{Dyninst::filesystem::canonicalize(std::move(f))},
    device(d),
    inode(i),
    parsed_file(false),
@@ -865,9 +866,7 @@ FCNode::FCNode(string f, dev_t d, ino_t i, SymbolReaderFactory *factory_) :
    r_trap_offset(0),
    symreader(NULL),
    factory(factory_)
-{
-   filename = Dyninst::filesystem::canonicalize(std::move(f));
-}
+{}
 
 string FCNode::getFilename() {
    return filename;
