@@ -29,6 +29,7 @@
  */
 
 #include "common/src/addrtranslate.h"
+#include "dyninst_filesystem.h"
 
 #include <cstdio>
 
@@ -195,7 +196,7 @@ bool LoadedLib::shouldClean()
 }
 
 LoadedLib::LoadedLib(string n, Address la) :
-   name(n),
+   name(Dyninst::filesystem::canonicalize(std::move(n))),
    load_addr(la),
    data_load_addr(0),
    dynamic_addr(0),
