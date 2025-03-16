@@ -50,6 +50,7 @@
 #include <set>
 
 #include "dyninst_visibility.h"
+#include "dyninst_filesystem.h"
 #include "dyninstAPI/src/util.h"
 #include "dyninstAPI/src/codeRange.h"
 #include "dyninstAPI/src/infHeap.h"
@@ -146,7 +147,7 @@ class fileDescriptor {
 		procHandle_(INVALID_HANDLE_VALUE),
 		fileHandle_(INVALID_HANDLE_VALUE),
 #endif
-		file_(file),
+		file_(Dyninst::filesystem::canonicalize(std::move(file))),
         code_(code),
         data_(data),
         pid_(0),
@@ -160,7 +161,7 @@ class fileDescriptor {
 		procHandle_(INVALID_HANDLE_VALUE),
 		fileHandle_(INVALID_HANDLE_VALUE),
 #endif
-		file_(file),
+		file_(Dyninst::filesystem::canonicalize(std::move(file))),
         code_(code),
         data_(data),
         pid_(0),
