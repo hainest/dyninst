@@ -638,6 +638,7 @@ SymElfFactory::~SymElfFactory()
 
 SymReader *SymElfFactory::openSymbolReader(std::string pathname)
 {
+   pathname = Dyninst::filesystem::canonicalize(std::move(pathname));
    SymElf *se = NULL;
    std::map<std::string, SymElf *>::iterator i = open_symelfs->find(pathname);
    if (i == open_symelfs->end()) {
