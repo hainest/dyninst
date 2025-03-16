@@ -1398,6 +1398,7 @@ image::image(fileDescriptor &desc,
 
    name_ = Dyninst::filesystem::extract_filename(desc.file());
 
+   // fileDescriptor::file is already canonical
    pathname_ = desc.file();
 
    // initialize (data members) codeOffset_, dataOffset_,
