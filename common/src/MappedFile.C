@@ -36,6 +36,8 @@ dyn_hash_map<std::string, MappedFile *> MappedFile::mapped_files;
 
 MappedFile *MappedFile::createMappedFile(std::string const& fullpath_)
 {
+   fullpath_ = Dyninst::filesystem::canonicalize(std::move(fullpath_));
+
    //fprintf(stderr, "%s[%d]:  createMappedFile %s\n", FILE__, __LINE__, fullpath_.c_str());
    if (mapped_files.find(fullpath_) != mapped_files.end()) {
       //fprintf(stderr, "%s[%d]:  mapped file exists for %s\n", FILE__, __LINE__, fullpath_.c_str());
