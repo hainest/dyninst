@@ -980,11 +980,13 @@ void FCNode::parsefile()
 
 FCNode *FileCache::getNode(const string &filename, SymbolReaderFactory *factory)
 {
+   auto file = Dyninst::filesystem::canonicalize(filename);
+
    struct stat buf;
-   int result = stat(filename.c_str(), &buf);
+   int result = stat(file.c_str(), &buf);
    if (result == -1)
       return NULL;
-   if (!filename.length())
+   if (!file.length())
       return NULL;
 
    for (unsigned i=0; i<nodes.size(); i++)
@@ -996,7 +998,7 @@ FCNode *FileCache::getNode(const string &filename, SymbolReaderFactory *factory)
       }
    }
 
-   FCNode *fc = new FCNode(filename, buf.st_dev, buf.st_ino, factory);
+   FCNode *fc = new FCNode(std::move(file), buf.st_dev, buf.st_ino, factory);
    nodes.push_back(fc);
 
    return fc;
