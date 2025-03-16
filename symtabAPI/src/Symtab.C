@@ -1360,6 +1360,7 @@ Symtab *Symtab::findOpenSymtab(std::string const& filename)
 
 bool Symtab::openFile(Symtab *&obj, std::string const& filename, def_t def_binary)
 {
+   filename = Dyninst::filesystem::canonicalize(std::move(filename));
    bool err = false;
 #if defined(TIMED_PARSE)
    struct timeval starttime;
