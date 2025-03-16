@@ -30,6 +30,7 @@
 
 #include "SymLite-elf.h"
 #include "common/src/headers.h"
+#include "dyninst_filesystem.h"
 #include "unaligned_memory_access.h"
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -50,7 +51,7 @@ SymElf::SymElf(std::string file_) :
    fd(-1),
    need_odp(false),
    odp_section(NULL),
-   file(file_),
+   file(Dyninst::filesystem::canonicalize(std::move(file_))),
    buffer(NULL),
    buffer_size(0),
    cache(NULL),
