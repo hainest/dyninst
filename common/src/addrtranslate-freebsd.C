@@ -29,6 +29,7 @@
  */
 
 #include "common/src/headers.h"
+#include "dyninst_filesystem.h"
 #include "common/src/addrtranslate-sysv.h"
 #include "common/src/freebsdKludges.h"
 #include "common/src/vm_maps.h"
@@ -217,7 +218,7 @@ string AddressTranslateSysV::getExecName() {
     if( exec_name.empty() ) {
         char *pathname = sysctl_getExecPathname(pid);
         if( NULL != pathname ) {
-            exec_name = std::string(pathname);
+            exec_name = Dyninst::filesystem::canonicalize(pathname);
 
             free(pathname);
         }
