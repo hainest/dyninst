@@ -134,7 +134,7 @@ MappedFile *MappedFile::createMappedFile(void *loc, unsigned long size_, const s
 }
 
 MappedFile::MappedFile(void *loc, unsigned long size_, std::string name, bool &ok) :
-   fullpath(std::move(name)),
+   fullpath(Dyninst::filesystem::canonicalize(std::move(name))),
 	map_addr(NULL),
 #if defined(os_windows)
 	hMap(NULL),
