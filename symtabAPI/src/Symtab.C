@@ -1057,8 +1057,10 @@ bool Symtab::extractInfo(Object *linkedFile)
 
     vector<relocationEntry >fbt;
     linkedFile->get_func_binding_table(fbt);
-    for(unsigned i=0; i<fbt.size();i++)
+    for(unsigned i=0; i<fbt.size();i++) {
+      //parsing_printf("FBT entry %lx %s\n", fbt[i].target_addr(), fbt[i].name().c_str());
         relocation_table_.push_back(fbt[i]);
+    }
     return true;
 }
 
@@ -1198,6 +1200,9 @@ DYNINST_EXPORT bool Symtab::updateFuncBindingTable(Offset stub_addr, Offset plt_
         relocation_table_[stub_idx].setTargetAddr(stub_addr);
         return true;
     }
+//    for(auto const& reloc : relocation_table_) {
+//        parsing_printf("UPDATE %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+//    }
     return false;
 }
 
@@ -1854,6 +1859,9 @@ DYNINST_EXPORT bool Symtab::fixup_RegionAddr(const char* name, Offset memOffset,
         relref[i].setRelAddr(memOffset + value);
     }
 
+//    for(auto const& reloc : relocation_table_) {
+//        parsing_printf("FIXUP %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+//    }
 #if defined(_MSC_VER)
     regionsByEntryAddr.erase(sec->getMemOffset());
 #endif
@@ -2177,6 +2185,7 @@ DYNINST_EXPORT bool Symtab::addExternalSymbolReference(Symbol *externalSym, Regi
 
    if( !addSymbol(symRef, externalSym) ) return false;
 
+//   std::cerr << "addExternalSymbolReference\n" << localRel << "\n";
    localRegion->addRelocationEntry(localRel);
 
    // Make sure the Symtab holding the external symbol gets linked

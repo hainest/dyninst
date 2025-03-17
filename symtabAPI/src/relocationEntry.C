@@ -187,35 +187,35 @@ bool relocationEntry::operator==(const relocationEntry &r) const
 	return true;
 }
 
-std::ostream & operator<< (std::ostream &os, const relocationEntry &r)
-{
-    using namespace std;
+std::ostream& operator<<(std::ostream &os, const relocationEntry &r) {
+  os << "Name: ";
 
-    if( r.getDynSym() != NULL ) {
-        os << "Name: " << setw(20) << ( "'" + r.getDynSym()->getMangledName() + "'" );
-    }else{
-        os << "Name: " << setw(20) << r.name();
+  if (r.getDynSym() != NULL) {
+    os << ("'" + r.getDynSym()->getMangledName() + "'");
+  } else {
+    os << r.name();
+  }
+  os << "\n";
+  os << std::hex;
+
+  os << "  Offset: 0x" << r.rel_addr() << '\n'
+     << "  Target Address: 0x" << r.target_addr() << '\n'
+     << "  Addend: 0x" << r.addend() << '\n'
+     << "  Region: " << Region::regionType2Str(r.regionType()) << '\n'
+     << "  Type: " << relocationEntry::relType2Str(r.getRelType()) << "(" << std::dec << r.getRelType() << ")\n";
+
+  if (r.getDynSym() != NULL) {
+    os << std::hex;
+    os << "  Symbol Offset: 0x" << r.getDynSym()->getOffset();
+
+    if (r.getDynSym()->isCommonStorage()) {
+      os << " COM";
+    } else if (r.getDynSym()->getRegion() == NULL) {
+      os << " UND";
     }
-    os << " Offset: " << std::hex << std::setfill('0') << setw(8) << r.rel_addr()
-       << std::dec << std::setfill(' ')
-       << " Offset: " << std::hex << std::setfill('0') << setw(8) << r.target_addr()
-       << std::dec << std::setfill(' ')
-       << " Addend: " << r.addend()
-       << " Region: " << Region::regionType2Str(r.regionType())
-       << " Type: " << setw(15) << relocationEntry::relType2Str(r.getRelType())
-       << "(" << r.getRelType() << ")";
-    if( r.getDynSym() != NULL ) {
-        os << " Symbol Offset: " << std::hex << std::setfill('0') << setw(8) << r.getDynSym()->getOffset();
-        os << std::dec << std::setfill(' ');
-        if( r.getDynSym()->isCommonStorage() ) {
-            os << " COM";
-        }else if( r.getDynSym()->getRegion() == NULL ) {
-            os << " UND";
-        }
-    }
-    return os;
+  }
+  return os;
 }
-
 
 }
 }

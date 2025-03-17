@@ -376,6 +376,7 @@ DYNINST_EXPORT bool Symtab::updateRelocations(Address start,
                                              Address end,
                                              Symbol *oldsym,
                                              Symbol *newsym) {
+  //std::cerr << "Symtab::updateRelocations\n";
    for (unsigned i = 0; i < codeRegions_.size(); ++i) {
       codeRegions_[i]->updateRelocations(start, end, oldsym, newsym);
    }

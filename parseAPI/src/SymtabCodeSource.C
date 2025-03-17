@@ -395,8 +395,21 @@ SymtabCodeSource::stopTimer(const std::string & name) const
 void
 SymtabCodeSource::init(hint_filt * filt , bool allLoadedRegions)
 {
+    vector<SymtabAPI::relocationEntry> fbt;
+    _symtab->getFuncBindingTable(fbt);
+//    std::cerr << "BEFORE init_regions\n";
+//    for(auto const& r : fbt) {
+//      std::cerr << r << "\n";
+//    }
+
     // regions (and hints)
     init_regions(filt, allLoadedRegions);
+
+    _symtab->getFuncBindingTable(fbt);
+//    std::cerr << "AFTER init_regions\n";
+//    for(auto const& r : fbt) {
+//      std::cerr << r << "\n";
+//    }
 
     // external linkage
     init_linkage();
@@ -605,9 +618,15 @@ SymtabCodeSource::init_linkage()
     }
 
     for(auto const& reloc : fbt) {
-        parsing_printf("Found PLT entry %lx %s\n", reloc.target_addr(), reloc.name().c_str());
+        //std::cerr << "Found PLT entry\n" << reloc << "\n";
         _linkage[reloc.target_addr()] = reloc.name();
     }
+
+    parsing_printf("Linkage map:\n");
+    for(auto const& l : _linkage) {
+      parsing_printf("  %lx %s\n", l.first, l.second.c_str());
+    }
+
     if (getArch() != Arch_x86_64) return;
     SymtabAPI::Region * plt_sec = NULL;
     if (_symtab->findRegion(plt_sec, ".plt.sec")) {
