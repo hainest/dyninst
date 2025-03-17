@@ -862,9 +862,6 @@ edge_instance *AddressSpace::findEdge(ParseAPI::Edge *iedge) {
 // images for this resource
 mapped_module *AddressSpace::findModule(const std::string &mod_name, bool wildcard)
 {
-   // KLUDGE: first search any shared libraries for the module name 
-   //  (there is only one module in each shared library, and that 
-   //  is the library name)
    for(u_int j=0; j < mapped_objects.size(); j++){
       mapped_module *mod = mapped_objects[j]->findModule(mod_name, wildcard);
       if (mod) {
