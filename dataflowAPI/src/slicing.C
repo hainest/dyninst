@@ -364,86 +364,119 @@ Slicer::markVisited(
 // elements in the active map. if any are found, graph nodes and edges are
 // created. this function also updates the active map to be contain only the
 // elements that are valid after the above linking (killed defs are removed).
-bool Slicer::updateAndLink(
-    Graph::Ptr g,
-    Direction dir,
-    SliceFrame & cand,
-    DefCache& cache,
-    Predicates &p)
-{
+bool Slicer::updateAndLink(Graph::Ptr g, Direction dir, SliceFrame &cand, DefCache &cache, Predicates &p) {
 
-    vector<Assignment::Ptr> assns;
-    vector<bool> killed;
-    vector<Element> matches;
-    vector<Element> newactive;
+  vector<Assignment::Ptr> assns;
+  vector<bool> killed;
+  vector<Element> matches;
+  vector<Element> newactive;
 
-    bool change = false;
+  bool change = false;
 
-    killed.resize(cand.active.size(),false);
+  killed.resize(cand.active.size(), false);
 
-    if(dir == forward)
-        convertInstruction(cand.loc.current->first,cand.addr(),cand.loc.func, cand.loc.block, assns);
-    else
-        convertInstruction(cand.loc.rcurrent->first,cand.addr(),cand.loc.func, cand.loc.block, assns);
-
-    // iterate over assignments and link matching elements.
-    for(unsigned i=0; i<assns.size(); ++i) {
-        SliceFrame::ActiveMap::iterator ait = cand.active.begin();
-        unsigned j=0;
-        for( ; ait != cand.active.end(); ++ait,++j) {
-            if (findMatch(g,dir,cand,(*ait).first,assns[i],matches, cache)) { // links	  
-	        if (!p.addNodeCallback(assns[i], visitedEdges)) return false;
-	    }
-	    killed[j] = killed[j] || kills((*ait).first,assns[i]);
-            change = change || killed[j];
-        }
-        // Record the *potential* of this instruction to interact
-        // with all possible abstract regions
-        cachePotential(dir,assns[i],cache);
+  if (cand.addr() == 0x1220) {
+    std::cerr << "updateAndLink/0 active candidates: ";
+    for (auto const &reg : cand.active) {
+      std::cerr << std::get<0>(reg).format() << ", ";
     }
+    std::cerr << "\n";
+  }
 
-    if(!change && matches.empty()) {// no change -- nothing killed, nothing added
-        return true;
+  if (dir == forward)
+    convertInstruction(cand.loc.current->first, cand.addr(), cand.loc.func, cand.loc.block, assns);
+  else
+    convertInstruction(cand.loc.rcurrent->first, cand.addr(), cand.loc.func, cand.loc.block, assns);
+
+  if (cand.addr() == 0x1220) {
+    std::cerr << "updateAndLink/1 assignments: ";
+    for (auto const &reg : assns) {
+      std::cerr << reg->format() << ", ";
     }
+    std::cerr << "\n";
 
-    // update of active set -- matches + anything not killed
+    std::cerr << "updateAndLink/1 active candidates: ";
+    for (auto const &reg : cand.active) {
+      std::cerr << std::get<0>(reg).format() << ", ";
+    }
+    std::cerr << "\n";
+  }
+  // iterate over assignments and link matching elements.
+  for (unsigned i = 0; i < assns.size(); ++i) {
     SliceFrame::ActiveMap::iterator ait = cand.active.begin();
-    unsigned j=0;
-    for( ; ait != cand.active.end(); ) {
-        if(killed[j]) {
-            // remove killed nodes from plausible exit set.
-            // this need only be done in the forward case,
-            // because backward slice semantics properly
-            // handle the plausible entry set.
-            if (dir == forward) {
-                for (auto vf = ait->second.begin(), vl = ait->second.end();
-                        vf != vl; ++vf) {
-                    plausibleNodes.erase(createNode(*vf));
-                }
-                
-            }
-            SliceFrame::ActiveMap::iterator del = ait;
-            ++ait;
-            cand.active.erase(del);
-        } else {
-            ++ait;
-        }
-        ++j;
+    unsigned j = 0;
+    for (; ait != cand.active.end(); ++ait, ++j) {
+      if (findMatch(g, dir, cand, (*ait).first, assns[i], matches, cache)) { // links
+        if (!p.addNodeCallback(assns[i], visitedEdges))
+          return false;
+      }
+      killed[j] = killed[j] || kills((*ait).first, assns[i]);
+      change = change || killed[j];
     }
+    // Record the *potential* of this instruction to interact
+    // with all possible abstract regions
+    cachePotential(dir, assns[i], cache);
+  }
 
-    for(unsigned i=0;i<matches.size();++i) {
-       // Check our predicates
-       if (p.widenAtPoint(matches[i].ptr)) {
-          widen(g, dir, matches[i]);
-       }
-       else if (p.endAtPoint(matches[i].ptr)) {
-          // Do nothing...
-       }
-       else {
-          cand.active[matches[i].reg].push_back(matches[i]);
-       }
+  if (cand.addr() == 0x1220) {
+    std::cerr << "updateAndLink/2 assignments: ";
+    for (auto const &reg : assns) {
+      std::cerr << reg->format() << ", ";
     }
-    return p.modifyCurrentFrame(cand, g, this);
+    std::cerr << "\n";
+    std::cerr << "updateAndLink/2 active candidates: ";
+    for (auto const &reg : cand.active) {
+      std::cerr << std::get<0>(reg).format() << ", ";
+    }
+    std::cerr << "\n";
+  }
+
+  if (!change && matches.empty()) {        // no change -- nothing killed, nothing added
+    return true;
+  }
+
+  // update of active set -- matches + anything not killed
+  SliceFrame::ActiveMap::iterator ait = cand.active.begin();
+  unsigned j = 0;
+  for (; ait != cand.active.end();) {
+    if (killed[j]) {
+      // remove killed nodes from plausible exit set.
+      // this need only be done in the forward case,
+      // because backward slice semantics properly
+      // handle the plausible entry set.
+      if (dir == forward) {
+        for (auto vf = ait->second.begin(), vl = ait->second.end(); vf != vl; ++vf) {
+          plausibleNodes.erase(createNode(*vf));
+        }
+
+      }
+      SliceFrame::ActiveMap::iterator del = ait;
+      ++ait;
+      cand.active.erase(del);
+    } else {
+      ++ait;
+    }
+    ++j;
+  }
+  if (cand.addr() == 0x1220) {
+    std::cerr << "ldp updateAndLink/2: ";
+    for (auto const &reg : assns) {
+      std::cerr << reg->format() << ", ";
+    }
+    std::cerr << "\n";
+  }
+
+  for (unsigned i = 0; i < matches.size(); ++i) {
+    // Check our predicates
+    if (p.widenAtPoint(matches[i].ptr)) {
+      widen(g, dir, matches[i]);
+    } else if (p.endAtPoint(matches[i].ptr)) {
+      // Do nothing...
+    } else {
+      cand.active[matches[i].reg].push_back(matches[i]);
+    }
+  }
+  return p.modifyCurrentFrame(cand, g, this);
 }
 
 // similar to updateAndLink, but this version only looks at the
@@ -795,19 +828,17 @@ Slicer::getPredecessors(
       }
 
       if(cont) {
-        slicing_printf("\t\t\t\t Adding intra-block predecessor %lx\n",
-          nf->loc.addr());
-        slicing_printf("\t\t\t\t Current regions are:\n");
+        slicing_printf("Adding intra-block predecessor %lx\n", nf->loc.addr());
+        slicing_printf("Current regions: ");
         if(df_debug_slicing_on()) {
-          for (SliceFrame::ActiveMap::const_iterator ait = cand.active.begin(); ait != cand.active.end(); ++ait) {
-            slicing_printf("\t\t\t\t%s\n",
-              (*ait).first.format().c_str());
-
-            vector<Element> const& eles = (*ait).second;
-            for(unsigned i=0;i<eles.size();++i) {
-              slicing_printf("\t\t\t\t\t [%s] : %s\n",
-                eles[i].reg.format().c_str(),eles[i].ptr->format().c_str());
+          for(auto const& cur_active : cand.active) {
+            auto region = std::get<0>(cur_active);
+            auto const& elems = std::get<1>(cur_active);
+            slicing_printf("%s ", region.format().c_str());
+            for(auto const& elem : elems) {
+              slicing_printf("[%s] : %s; ", elem.reg.format().c_str(),elem.ptr->format().c_str());
             }
+            slicing_printf("\n");
           }
         }
       }
@@ -1860,6 +1891,14 @@ void Slicer::constructInitialFrame(
         init_instruction = initFrame.loc.rcurrent->first;
     }
 
+    if(a_->addr() == 0x1220) {
+      std::cerr << "before constructInitialFrame/converInstruction: " << init_instruction.getOperation().getID() << '\n';
+      for(auto itr = initFrame.loc.rcurrent; itr != initFrame.loc.rend; ++itr) {
+        std::cerr << std::get<0>(*itr).format() << ", ";
+      }
+      std::cerr << "\n";
+    }
+
     // reconstruct initial assignment. the initial assignment was created
     // by a different converter, and thus if the instruction is visited
     // more than once by the slicer, the assignment will be recreated
@@ -1868,8 +1907,8 @@ void Slicer::constructInitialFrame(
     std::vector<Assignment::Ptr> assigns;
     convertInstruction(init_instruction, a_->addr(), f_, b_, assigns);
 
-    if(init_instruction.getOperation().getID() == aarch64_op_ldp_gen) {
-      std::cerr << "ldp constructInitialFrame/converInstruction: ";
+    if(a_->addr() == 0x1220) {
+      std::cerr << "after constructInitialFrame/converInstruction: \n";
       for(auto const& reg : assigns) {
         std::cerr << reg->format() << ", ";
       }
