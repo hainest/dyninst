@@ -278,11 +278,6 @@ class AddressSpace : public InstructionSource {
     // findModule: returns the module associated with "mod_name" 
     // this routine checks both the a.out image and any shared object 
     // images for this module
-    // if check_excluded is true it checks to see if the module is excluded
-    // and if it is it returns 0.  If check_excluded is false it doesn't check
-    //  if substring_match is true, the first module whose name contains
-    //  the provided string is returned.
-    // Wildcard: handles "*" and "?"
     mapped_module *findModule(const std::string &mod_name, bool wildcard = false);
 
     // And the same for objects
