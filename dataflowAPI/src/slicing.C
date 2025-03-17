@@ -1867,6 +1867,15 @@ void Slicer::constructInitialFrame(
     // nodes. 
     std::vector<Assignment::Ptr> assigns;
     convertInstruction(init_instruction, a_->addr(), f_, b_, assigns);
+
+    if(init_instruction.getOperation().getID() == aarch64_op_ldp_gen) {
+      std::cerr << "ldp constructInitialFrame/converInstruction: ";
+      for(auto const& reg : assigns) {
+        std::cerr << reg->format() << ", ";
+      }
+      std::cerr << "\n";
+    }
+
     for (auto first = assigns.begin(), last = assigns.end(); first != last; ++first) {
         if ((*first)->out() == a_->out()) { a_ = *first; break; }
     }
@@ -1881,6 +1890,13 @@ void Slicer::constructInitialFrame(
             Element ie(b_,f_,*iit,a_);
             initFrame.active[*iit].push_back(ie);
         }
+    }
+    if(init_instruction.getOperation().getID() == aarch64_op_ldp_gen) {
+      std::cerr << "ldp constructInitialFrame/end: ";
+      for(auto const& reg : assigns) {
+        std::cerr << reg->format() << ", ";
+      }
+      std::cerr << "\n";
     }
 }
 
