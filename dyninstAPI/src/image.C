@@ -34,6 +34,7 @@
 #include <assert.h>
 #include <string>
 #include <fstream>
+#include <boost/regex.hpp>
 
 #include "image.h"
 #include "parRegion.h"
@@ -1000,20 +1001,16 @@ pdmodule *image::findModule(const string &name, bool wildcard)
       }
    }
    else {
-      //  if we want a substring, have to iterate over all module names
-      //  this is ok b/c there are not usually more than a handful or so
-      //
-      dyn_hash_map <string, pdmodule *>::iterator mi;
-      string str; pdmodule *mod;
+      // Case-insensitive
+      boost::regex search_expr(name, boost::regex::icase);
 
-      for(mi = modsByFileName.begin(); mi != modsByFileName.end() ; mi++)
-      {
-         str = mi->first;
-         mod = mi->second;
-         if (wildcardEquiv(name, mod->fileName())) {
-            found = mod; 
-            break;
-         }
+      for(auto const& mod : modsByFileName) {
+        auto *pdmod = std::get<1>(mod);
+
+        // Use POSIX-style matching rules
+        if(boost::regex_search(pdmod->fileName(), search_expr, boost::match_posix)) {
+          return pdmod;
+        }
       }
    }
 
