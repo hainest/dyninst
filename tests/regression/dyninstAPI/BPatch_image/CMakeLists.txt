@@ -14,7 +14,9 @@ dyninst_reg_test(
   dyninstapi_BPatch_image_findModule
   findModule.cpp
   dyninstAPI
-  NOSTRIPPED  # Needs debuginfo
+  NOSTATICLIBS
+  NOSTRIPPEDLIBS  # Needs debuginfo
+  NOEXEC
 )
 
 # cmake-format: on
