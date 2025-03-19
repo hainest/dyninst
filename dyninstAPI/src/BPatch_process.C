@@ -1234,8 +1234,8 @@ bool BPatch_process::hideDebugger()
 
     // disable API calls //
     vector<pair<BPatch_function *,BPatch_function *> > disabledFuncs;
-    BPatch_module *user = image->findModule("user32.dll",true);
-    BPatch_module *kern = image->findModule("*kernel32.dll",true);
+    BPatch_module *user = image->findModule(R"(user32\.dll)",true);
+    BPatch_module *kern = image->findModule(R"(.*kernel32\.dll)",true);
 
     if (user) {
         // BlockInput
