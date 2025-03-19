@@ -344,60 +344,56 @@ void BPatch_image::getObjects(std::vector<BPatch_object *> &objs) {
  */
 BPatch_module *BPatch_image::findModule(const char *name, bool substring_match) 
 {
-   char buf[512];
-
    if (!name) {
       bperr("%s[%d]:  findModule:  no module name provided\n",
             __FILE__, __LINE__);
       return NULL;
    }
 
-   BPatch_module *target = NULL;
-
-   for (ModMap::iterator iter = modmap.begin(); iter != modmap.end(); ++iter) {
-      BPatch_module *mod = iter->second;
-      assert(mod);
-      mod->getName(buf, 512); 
-      if (substring_match) { 
-         if (strstr(buf, name)) {
-            target = mod;
-            break;
-         }
+   for(auto const& mod_elem : modmap) {
+      BPatch_module *mod = std::get<1>(mod_elem);
+      if(!mod) {
+        continue;
       }
-      else  {//exact match required
-         if (!strcmp(name, buf)) {
-            target = mod;
-            break;
-         }
+
+      auto const& module_name = mod->getName();
+
+      if(substring_match) {
+        auto const idx = module_name.find(name);
+        if(idx != std::string::npos) {
+          return mod;
+        }
+      } else if(module_name == name) {
+        return mod;
       }
    }
 
-   if (target) 
-      return target;
+   // AddressSpace::findModule does a regex match
+   auto name_regex = [&]() -> std::string {
+     if(substring_match) {
+       return ".*" + std::string(name) + ".*";
+     }
+     return name;
+   }();
 
-   // process::findModule does a wildcard match, not a substring match 
-
-   char *tmp = (char *) malloc(strlen(name) + 3);
-   if (substring_match)
-      sprintf(tmp, "*%s*", name); 
-   else 
-      sprintf(tmp, "%s", name);
-
-   std::vector<AddressSpace *> as;
-   addSpace->getAS(as);
+   std::vector<AddressSpace *> address_spaces;
+   addSpace->getAS(address_spaces);
    
-   mapped_module *mod = NULL;
-   for (unsigned i=0; i<as.size(); i++) {
-      mod = as[i]->findModule(tmp,substring_match);
-      if (mod)
-         break;
+   auto *mod = [&]() -> mapped_module* {
+     for(auto *as : address_spaces) {
+        auto m = as->findModule(name_regex, substring_match);
+        if(m) {
+          return m;
+        }
+     }
+     return nullptr;
+   }();
+
+   if(!mod) {
+     return nullptr;
    }
 
-   free(tmp);
-   if (!mod) return NULL;
-
-   target = findOrCreateModule(mod);
-   return target;
+   return findOrCreateModule(mod);
 }
 
 /*
