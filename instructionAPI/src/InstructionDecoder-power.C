@@ -302,19 +302,19 @@ which are both 0).
        *  The conventional return sequence is to use `bclr` (Branch
        *  Conditional to Link Register) with BH=0b00.
        *********************************************************************/
-      bool const has_subroutine_return_hint = [this]() {
+      bool const is_conditional = [this]() { //has_subroutine_return_hint = [this]() {
         auto const bh_field = field<19,20>(insn);
-        return bh_field == 0;
+        return bh_field != 0;
       }();
 
-      bool const always_branch = [this]() {
-        auto const bo_field = field<6,10>(insn);
-        auto const mask = 0x14;  // bits 0,1,3 are ignored (0b10100)
-        return (bo_field & mask) == mask;
-      }();
-
-      bool const is_return = (has_subroutine_return_hint && always_branch);
-      bool const is_conditional = !is_return;
+//      bool const always_branch = [this]() {
+//        auto const bo_field = field<6,10>(insn);
+//        auto const mask = 0x14;  // bits 0,1,3 are ignored (0b10100)
+//        return (bo_field & mask) == mask;
+//      }();
+//
+//      bool const is_return = (has_subroutine_return_hint && always_branch);
+//      bool const is_conditional = !is_return;
 
       {
         auto target = makeRegisterExpression(ppc32::lr);
