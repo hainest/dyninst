@@ -58,6 +58,7 @@ set(_private_headers
     src/ABI/architecture.h
     src/ABI/interface_definition.h
     src/ABI/ppc64.h
+    src/ABI/x86_64.h
     src/addrtranslate.h
     src/addrtranslate-sysv.h
     src/arch-aarch64.h
