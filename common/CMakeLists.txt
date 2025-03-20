@@ -54,6 +54,7 @@ set(_public_headers
     )
 
 set(_private_headers
+    src/ABI/aarch64.h
     src/ABI/architecture.h
     src/ABI/interface_definition.h
     src/addrtranslate.h
