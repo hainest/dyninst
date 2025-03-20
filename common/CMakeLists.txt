@@ -6,6 +6,7 @@ configure_file(${PROJECT_SOURCE_DIR}/cmake/dyninstversion.h.in
                ${CMAKE_CURRENT_SOURCE_DIR}/h/dyninstversion.h)
 
 set(_public_headers
+    h/abi.h
     h/Annotatable.h
     h/Architecture.h
     h/Buffer.h
@@ -92,6 +93,7 @@ set(_private_headers
     src/vm_maps.h)
 
 set(_sources
+    src/ABI/ABI.C
     src/pfq-rwlock.C
     src/concurrent.C
     src/Timer.C
