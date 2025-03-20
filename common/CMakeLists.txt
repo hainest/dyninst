@@ -42,6 +42,7 @@ set(_public_headers
     h/registers/cuda_regs.h
     h/registers/ppc32_regs.h
     h/registers/ppc64_regs.h
+    h/registers/registerSet.h
     h/registers/reg_def.h
     h/registers/x86_64_regs.h
     h/registers/x86_regs.h
