@@ -1,6 +1,12 @@
 include_guard(GLOBAL)
 
+# Need 3.16 for COMMAND_EXPAND_LISTS
+cmake_minimum_required(VERSION 3.16)
+
 list(INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/tests/cmake")
+
+# Use same warning flags as used to build Dyninst
+set(UNIT_TESTS_WARNING_FLAGS ${SUPPORTED_CXX_WARNING_FLAGS})
 
 string(TOUPPER ${DYNINST_ENABLE_TESTS} _test_flag)
 
