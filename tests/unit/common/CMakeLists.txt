@@ -1,5 +1,7 @@
 include_guard(GLOBAL)
 
+add_subdirectory(registers)
+
 add_executable(pathName filesystem.cpp)
 target_compile_options(pathName PRIVATE ${SUPPORTED_CXX_WARNING_FLAGS})
 target_include_directories(pathName PRIVATE ${UNIT_TESTS_INCLUDES})
