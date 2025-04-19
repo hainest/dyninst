@@ -28,9 +28,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#if !defined(INSTRUCTIONAST_H)
-#define INSTRUCTIONAST_H
+#ifndef DYNINST_INSTRUCTIONAPI_INSTRUCTIONAST_H
+#define DYNINST_INSTRUCTIONAPI_INSTRUCTIONAST_H
 
 #include "Expression.h"
+#include "BinaryFunction.h"
+#include "Dereference.h"
+#include "Immediate.h"
+#include "MultiRegister.h"
+#include "Register.h"
+#include "Ternary.h"
+#include "Visitor.h"
 
 #endif
