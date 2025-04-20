@@ -32,6 +32,7 @@
 #define VALUECOMPUTATION_H
 
 #include "dyninst_visibility.h"
+#include "compiler_annotations.h"
 #include "registers/MachRegister.h"
 #include "Result.h"
 #include "Visitor.h"
@@ -72,11 +73,15 @@ namespace Dyninst { namespace InstructionAPI {
 
     virtual const Result& eval() const;
 
-    virtual void getUses(std::set<Expression::Ptr> &uses) = 0;
-    virtual bool isUsed(Expression::Ptr findMe) const = 0;
+    virtual void getUses(std::set<Expression::Ptr>&){}
+    virtual bool isUsed(Expression::Ptr) const { return false; }
 
-    virtual std::string format(Dyninst::Architecture, formatStyle = defaultStyle) const = 0;
-    virtual std::string format(formatStyle = defaultStyle) const = 0;
+    virtual std::string format(Dyninst::Architecture, formatStyle = defaultStyle) const {
+      return {};
+    }
+    virtual std::string format(formatStyle = defaultStyle) const {
+      return {};
+    }
 
     void setValue(const Result& knownValue);
     void clearValue();
@@ -86,7 +91,12 @@ namespace Dyninst { namespace InstructionAPI {
     virtual bool bind(Expression* expr, const Result& value);
     virtual void apply(Visitor*) {}
 
-    virtual void getChildren(std::vector<Expression::Ptr>& children) const = 0;
+//    DYNINST_DEPRECATED("Use getSubexpressions()")
+    virtual void getChildren(std::vector<Expression::Ptr>&) const {}
+
+    virtual std::vector<Expression::Ptr> getSubexpressions() const {
+      return {};
+    }
 
   protected:
     friend class MultiRegisterAST;
@@ -95,7 +105,7 @@ namespace Dyninst { namespace InstructionAPI {
 
     virtual bool isFlag() const;
 
-    virtual bool isStrictEqual(const Expression &rhs) const = 0;
+    virtual bool isStrictEqual(const Expression &) const { return false; }
 
     virtual bool checkRegID(Dyninst::MachRegister, unsigned int = 0, unsigned int = 0) const {
       return false;

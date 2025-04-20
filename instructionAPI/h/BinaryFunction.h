@@ -32,6 +32,7 @@
 #define BINARYFUNCTION_H
 
 #include "ArchSpecificFormatters.h"
+#include "compiler_annotations.h"
 #include "Expression.h"
 #include "Register.h"
 #include "Result.h"
@@ -211,11 +212,15 @@ namespace Dyninst { namespace InstructionAPI {
 
     virtual const Result& eval() const override;
 
-    virtual void getChildren(std::vector<Expression::Ptr>& children) const override {
-      children.push_back(m_arg1);
-      children.push_back(m_arg2);
+    DYNINST_DEPRECATED("Use getSubexpressions()")
+    void getChildren(std::vector<Expression::Ptr>& children) const override {
+      for(auto e : getSubexpressions()) {
+        children.push_back(e);
+      }
+    }
 
-      return;
+    std::vector<Expression::Ptr> getSubexpressions() const override {
+      return {m_arg1, m_arg2};
     }
 
     virtual void getUses(std::set<Expression::Ptr>& uses) override {

@@ -32,8 +32,7 @@
 #include "ArchSpecificFormatters.h"
 #include "Architecture.h"
 #include "InstructionDecoder-power.h"
-#include "Register.h"
-#include "Visitor.h"
+#include "InstructionAST.h"
 #include "registers/MachRegister.h"
 #include "registers/x86_regs.h"
 
@@ -61,8 +60,6 @@ namespace Dyninst { namespace InstructionAPI {
         m_num_elements(num_elements) {}
 
   RegisterAST::~RegisterAST() {}
-
-  void RegisterAST::getChildren(vector<Expression::Ptr>& /*children*/) const { return; }
 
   void RegisterAST::getUses(set<Expression::Ptr>& uses) {
     uses.insert(shared_from_this());
@@ -173,4 +170,38 @@ namespace Dyninst { namespace InstructionAPI {
     }
     return false;
   }
+
+  std::vector<RegisterAST::Ptr> getUsedRegisters(Expression::Ptr expr) {
+    struct reg_visitor : Visitor {
+      reg_visitor() {
+        regs.reserve(5);
+      }
+      void visit(BinaryFunction* b) {
+        for(auto e : b->getSubexpressions()) {
+          e->apply(this);
+        }
+      }
+      void visit(Dereference* d) {
+        for(auto e : d->getSubexpressions()) {
+          e->apply(this);
+        } 
+      }
+      void visit(Immediate*) {}
+      void visit(RegisterAST* r) {
+        regs.push_back(boost::static_pointer_cast<RegisterAST>(r->shared_from_this()));
+      }
+      void visit(MultiRegisterAST* r) {
+        for(auto e : r->getSubexpressions()) {
+          e->apply(this);
+        }
+      }
+
+      std::vector<RegisterAST::Ptr> regs;
+    };
+
+    reg_visitor rv;
+    expr->apply(&rv);
+    return rv.regs;
+  }
+
 }}

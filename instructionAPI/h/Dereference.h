@@ -33,6 +33,7 @@
 
 #include "ArchSpecificFormatters.h"
 #include "BinaryFunction.h"
+#include "compiler_annotations.h"
 #include "Expression.h"
 #include "Immediate.h"
 #include "Operand.h"
@@ -53,9 +54,15 @@ namespace Dyninst { namespace InstructionAPI {
 
     virtual ~Dereference() {}
 
+    DYNINST_DEPRECATED("Use getSubexpressions()")
     virtual void getChildren(std::vector<Expression::Ptr>& children) const override {
-      children.push_back(addressToDereference);
-      return;
+      for(auto e : getSubexpressions()) {
+        children.push_back(e);
+      }
+    }
+
+    std::vector<Expression::Ptr> getSubexpressions() const override {
+      return {addressToDereference};
     }
 
     virtual void getUses(std::set<Expression::Ptr>& uses) override {
