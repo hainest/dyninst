@@ -41,6 +41,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/smart_ptr/make_shared.hpp>
+
 namespace Dyninst { namespace InstructionAPI {
 
   class DYNINST_EXPORT RegisterAST : public Expression {
@@ -58,7 +60,9 @@ namespace Dyninst { namespace InstructionAPI {
     virtual ~RegisterAST();
     RegisterAST(const RegisterAST&) = default;
 
-    virtual void getChildren(std::vector<Expression::Ptr>& children) const override;
+    std::vector<Expression::Ptr> getSubexpressions() const override {
+      return { boost::make_shared<Expression>(*this) };
+    }
 
     virtual void getUses(std::set<Expression::Ptr>& uses) override;
 
@@ -110,6 +114,9 @@ namespace Dyninst { namespace InstructionAPI {
 
     virtual std::string format(formatStyle how = defaultStyle) const override;
   };
+
+  std::vector<RegisterAST::Ptr> getUsedRegisters(Expression::Ptr);
+
 }}
 
 #endif

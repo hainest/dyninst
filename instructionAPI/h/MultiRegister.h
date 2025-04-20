@@ -32,6 +32,7 @@
 #define MULTIREGISTER_H
 
 #include "Architecture.h"
+#include "compiler_annotations.h"
 #include "Expression.h"
 #include "Register.h"
 #include "registers/MachRegister.h"
@@ -53,7 +54,14 @@ namespace Dyninst { namespace InstructionAPI {
     virtual ~MultiRegisterAST() = default;
     MultiRegisterAST(const MultiRegisterAST&) = default;
 
-    virtual void getChildren(std::vector<Expression::Ptr>& children) const override;
+    std::vector<Expression::Ptr> getSubexpressions() const override {
+      std::vector<Expression::Ptr> v;
+      v.reserve(m_Regs.size());
+      for(auto r : m_Regs) {
+        v.push_back(r);
+      }
+      return v;
+    }
 
     virtual void getUses(std::set<Expression::Ptr>& uses) override;
 
