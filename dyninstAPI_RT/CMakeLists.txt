@@ -83,18 +83,10 @@ foreach(t ${dyninstAPI_RT_TARGETS})
 endforeach()
 
 if(BUILD_RTLIB_32)
-  include(CheckCCompilerFlag)
+  include(DyninstLinkProperties)
 
-  # '-m32' is really a linker option, but CMAKE_REQUIRED_LINK_OPTIONS isn't available until
-  # cmake-3.14.0, so hijack the libraries argument instead.
-  set(_m ${CMAKE_REQUIRED_LIBRARIES})
-  list(APPEND CMAKE_REQUIRED_LIBRARIES "-m32")
-  check_c_compiler_flag("-m32" _has_mabi)
-  set(CMAKE_REQUIRED_LIBRARIES ${_m})
-  unset(_m)
-
-  if(NOT _has_mabi)
-    message(FATAL_ERROR "BUILD_RTLIB_32 enabled, but compiler doesn't support '-m32'")
+  if(NOT DYNINST_C_HAVE_32BIT_LINK_FLAG)
+    message(FATAL_ERROR "BUILD_RTLIB_32 enabled, but compiler doesn't support 32-bit runtime")
   endif()
 
   if(NOT DYNINST_OS_UNIX)
@@ -123,8 +115,8 @@ if(BUILD_RTLIB_32)
 	# cmake-format: on
 
   foreach(t ${dyninstAPI_RT_m32_TARGETS})
-    target_compile_options(${t} PRIVATE "-m32")
-    target_link_options(${t} PRIVATE "-m32")
+    target_compile_options(${t} PRIVATE "${DYNINST_C_32BIT_LINK_FLAG}")
+    target_link_options(${t} PRIVATE "${DYNINST_C_32BIT_LINK_FLAG}")
 
     target_include_directories(
       ${t} BEFORE PRIVATE "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/common/h>")
