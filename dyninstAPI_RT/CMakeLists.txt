@@ -83,9 +83,9 @@ foreach(t ${dyninstAPI_RT_TARGETS})
 endforeach()
 
 if(BUILD_RTLIB_32)
-  include(DyninstLinkProperties)
+  include(Dyninst32bitRuntimeFlag)
 
-  if(NOT DYNINST_C_HAVE_32BIT_LINK_FLAG)
+  if(NOT DYNINST_C_HAVE_32BIT_RUNTIME_FLAG)
     message(FATAL_ERROR "BUILD_RTLIB_32 enabled, but compiler doesn't support 32-bit runtime")
   endif()
 
@@ -115,8 +115,8 @@ if(BUILD_RTLIB_32)
 	# cmake-format: on
 
   foreach(t ${dyninstAPI_RT_m32_TARGETS})
-    target_compile_options(${t} PRIVATE "${DYNINST_C_32BIT_LINK_FLAG}")
-    target_link_options(${t} PRIVATE "${DYNINST_C_32BIT_LINK_FLAG}")
+    target_compile_options(${t} PRIVATE "${DYNINST_C_32BIT_RUNTIME_FLAG}")
+    target_link_options(${t} PRIVATE "${DYNINST_C_32BIT_RUNTIME_FLAG}")
 
     target_include_directories(
       ${t} BEFORE PRIVATE "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/common/h>")
@@ -130,6 +130,8 @@ if(BUILD_RTLIB_32)
     if(${t} MATCHES "static")
       target_sources(${t} PRIVATE ${static_sources} src/RTstatic_ctors_dtors-x86.c)
       target_compile_definitions(${t} PRIVATE DYNINST_RT_STATIC_LIB)
+      target_compile_options(${t} PRIVATE "${DYNINST_C_32BIT_STATIC_RUNTIME_FLAG}")
+      target_link_options(${t} PRIVATE "${DYNINST_C_32BIT_STATIC_RUNTIME_FLAG}")
     endif()
   endforeach()
 endif()
