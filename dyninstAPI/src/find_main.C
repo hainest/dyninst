@@ -128,7 +128,7 @@ Dyninst::Address find_main(st::Symtab* linkedFile) {
   }();
 
   if(main_addr == Dyninst::ADDR_NULL || !scs.isValidAddress(main_addr)) {
-    startup_printf("find_main: unable to find valid entry for 'main'");
+    startup_printf("find_main: unable to find valid entry for 'main'\n");
     return Dyninst::ADDR_NULL;
   }
 
