@@ -108,26 +108,16 @@ Dyninst::Address find_main(st::Symtab* linkedFile) {
 
   startup_printf("find_main: found '%s' at entry 0x%lx\n", entry_point->name().c_str(), entry_address);
 
-  const auto& edges = entry_point->callEdges();
-  if(edges.empty()) {
-    startup_printf("find_main: no call edges\n");
-    return Dyninst::ADDR_NULL;
-  }
-
-  // In libc, the entry point is _start which only calls __libc_start_main, so
-  // assume the first call is the one we want.
-  pa::Block* b = (*edges.begin())->src();
-
   // Try architecture-specific searches
   auto main_addr = [&]() {
     auto file_arch = linkedFile->getArchitecture();
 
     if(file_arch == Dyninst::Arch_ppc32 || file_arch == Dyninst::Arch_ppc64) {
-      return DyninstAPI::ppc::find_main_by_toc(linkedFile, entry_point, b);
+      return DyninstAPI::ppc::find_main_by_toc(linkedFile, entry_point);
     }
 
     if(file_arch == Dyninst::Arch_x86 || file_arch == Dyninst::Arch_x86_64) {
-      return DyninstAPI::x86::find_main(entry_point, b);
+      return DyninstAPI::x86::find_main(entry_point);
     }
 
     return Dyninst::ADDR_NULL;

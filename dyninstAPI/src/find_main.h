@@ -19,11 +19,11 @@ namespace Dyninst { namespace DyninstAPI {
   std::vector<st::Symbol*> get_missing_symbols(st::Symtab*, Dyninst::Address);
 
   namespace ppc {
-    Dyninst::Address find_main_by_toc(st::Symtab*, pa::Function*, pa::Block*);
+    Dyninst::Address find_main_by_toc(st::Symtab*, pa::Function*);
   }
 
   namespace x86 {
-    Dyninst::Address find_main(pa::Function*, pa::Block*);
+    Dyninst::Address find_main(pa::Function*);
   }
 
 }}

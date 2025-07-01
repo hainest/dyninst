@@ -125,12 +125,13 @@ namespace Dyninst { namespace DyninstAPI { namespace ppc {
        *
        *  `b` ends with a call to libc_start_main
        */
-      Dyninst::Address find_main_by_toc(st::Symtab* linkedFile, pa::Function* f, pa::Block* b) {
+      Dyninst::Address find_main_by_toc(st::Symtab* linkedFile, pa::Function* f) {
         // looking for the *last* instruction in the block that defines GR8
         ia::Instruction r8_def;
         Dyninst::Address r8_def_addr;
         bool find = false;
 
+        pa::Block* b{};
         ia::InstructionDecoder dec(b->region()->getPtrToInstruction(b->start()), b->end() - b->start(),
                                    b->region()->getArch());
 
