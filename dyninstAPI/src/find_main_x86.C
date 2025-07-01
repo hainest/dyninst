@@ -1,128 +1,162 @@
-#include "CFG.h"
-#include "dataflowAPI/h/AbslocInterface.h"
-#include "dataflowAPI/h/SymEval.h"
 #include "debug.h"
-#include "DynAST.h"
 #include "dyntypes.h"
 #include "find_main.h"
 #include "Function.h"
-#include "SymEval.h"
-#include "Symtab.h"
+#include "Register.h"
+#include "registers/x86_regs.h"
 #include "util.h"
+
+#include <algorithm>
+#include <boost/shared_ptr.hpp>
 
 namespace Dyninst { namespace DyninstAPI { namespace x86 {
 
-  namespace st = Dyninst::SymtabAPI;
   namespace pa = Dyninst::ParseAPI;
-  namespace df = Dyninst::DataflowAPI;
-
-  class FindMainVisitor final : public Dyninst::ASTVisitor {
-    using ASTVisitor::visit;
-
-  public:
-    bool resolved{false};
-    bool hardFault{false};
-    Dyninst::Address target{};
-
-    Dyninst::AST::Ptr visit(df::RoseAST* r) override {
-      Dyninst::AST::Children newKids;
-      for(unsigned i = 0; i < r->numChildren(); i++) {
-        newKids.push_back(r->child(i)->accept(this));
-      }
-
-      if(r->val().op == df::ROSEOperation::addOp) {
-        auto const_ast = Dyninst::AST::V_ConstantAST;
-        assert(newKids.size() == 2);
-        if(newKids[0]->getID() == const_ast && newKids[1]->getID() == const_ast) {
-          auto c1 = df::ConstantAST::convert(newKids[0]);
-          auto c2 = df::ConstantAST::convert(newKids[1]);
-          if(!hardFault) {
-            target = c1->val().val + c2->val().val;
-            resolved = true;
-          }
-          return df::ConstantAST::create(df::Constant(c1->val().val + c2->val().val));
-        }
-      } else {
-        startup_printf("%s[%d] unhandled FindMainVisitor operation %d\n", FILE__, __LINE__, r->val().op);
-      }
-
-      return df::RoseAST::create(r->val(), newKids);
-    }
-
-    ASTPtr visit(df::ConstantAST* c) override {
-      /* We can only handle constant values */
-      if(!target && !hardFault) {
-        resolved = true;
-        target = c->val().val;
-      }
-
-      return c->ptr();
-    }
-
-    ASTPtr visit(df::VariableAST* v) override {
-      /* If we visit a variable node, we can't do any analysis */
-      hardFault = true;
-      resolved = false;
-      target = 0;
-      return v->ptr();
-    }
-  };
+  namespace di = Dyninst::InstructionAPI;
 
   Dyninst::Address find_main(pa::Function* entry_point) {
-    // glibc's __start has at least a call to __libc_start_main
+
+    // There is at least a call to __libc_start_main
     const auto& call_edges = entry_point->callEdges();
     if(call_edges.empty()) {
       startup_printf("find_main: no call edges\n");
       return Dyninst::ADDR_NULL;
     }
 
-//    // And it's the last call in __start
-//    pa::Edge *last_call = [&call_edges](){
-//      // clang-format off
-//      auto itr = std::max_element(call_edges.begin(), call_edges.end(),
-//          [](pa::Edge *e1, pa::Edge *e2){ return e1->src()->start() > e2->src()->start(); }
-//      );
-//      // clang-format on
-//      return *itr;
-//    }();
+    // __ASSUME__ it's the last call (and so in the last block of the function)
+    pa::Edge *call_edge = [&call_edges](){
+      // clang-format off
+      auto itr = std::max_element(call_edges.begin(), call_edges.end(),
+        [](pa::Edge *e1, pa::Edge *e2){
+          return e1->src()->start() > e2->src()->start();
+        }
+      );
+      // clang-format on
+      return *itr;
+    }();
 
-//    pa::Block::Insns insns;
-//    last_call->src()->getInsns(insns);
-//
-//    if(insns.size() < 2UL) {
-//      startup_printf("findMain: not enough instructions in block 0x%lx\n", b->start());
-//      return Dyninst::ADDR_NULL;
-//    }
-//
-//    // To get the second-to-last instruction, which loads the address of main
-//    auto iit = insns.end();
-//    --iit;
-//    --iit;
-//
-//    std::vector<Assignment::Ptr> assignments;
-//    Dyninst::AssignmentConverter assign_convert(true, false);
-//    assign_convert.convert(iit->second, iit->first, func, b, assignments);
-//
-//    if(assignments.empty()) {
-//      return Dyninst::ADDR_NULL;
-//    }
-//
-//    Assignment::Ptr assignment = assignments[0];
-//    std::pair<AST::Ptr, bool> res = DataflowAPI::SymEval::expand(assignment, false);
-//    AST::Ptr ast = res.first;
-//    if(!ast) {
-//      startup_printf("findMain: cannot expand %s from instruction %s\n", assignment->format().c_str(),
-//                     assignment->insn().format().c_str());
-//      return Dyninst::ADDR_NULL;
-//    }
-//
-//    FindMainVisitor fmv;
-//    ast->accept(&fmv);
-//    if(fmv.resolved) {
-//      return fmv.target;
-//    }
+    std::cerr << "Using block [0x" << std::hex << call_edge->src()->start()
+              << ", 0x" << call_edge->src()->end() << "]\n";
 
-    return Dyninst::ADDR_NULL;
+    // Get all the instructions in the block
+    pa::Block::Insns instructions{};
+    call_edge->src()->getInsns(instructions);
+    if(instructions.size() < 2UL) {
+      startup_printf("find_main: block [0x%lx, 0x%lx] has too few instructions\n",
+                     call_edge->src()->start(), call_edge->src()->end()
+      );
+      return Dyninst::ADDR_NULL;
+    }
+
+    // Get the last call instruction in the block
+    auto callsite_itr = std::find_if(instructions.rbegin(), instructions.rend(),
+      [](pa::Block::Insns::value_type const& val){
+        auto insn = val.second;
+        return insn.isCall();
+      }
+    );
+    if(callsite_itr == instructions.rend()) {
+      startup_printf("find_main: no call instruction found\n");
+      return Dyninst::ADDR_NULL;
+    }
+
+    struct instruction_t {
+      Dyninst::Address address{};
+      di::Instruction insn{};
+      instruction_t(Dyninst::Address a, di::Instruction i) : address{a}, insn{i} {}
+    };
+    instruction_t callsite{callsite_itr->first, callsite_itr->second};
+
+    std::cerr << std::hex << "Found callsite [0x" << callsite.address << "] " << callsite.insn.format() << "\n";
+
+    // Address of `main` is passed in eax to __libc_start_main
+    auto parameter_register = [](){
+      return boost::make_shared<di::RegisterAST>(Dyninst::x86::eax);
+    }();
+
+    // Search backward from the call callsite to find the first instruction
+    // that writes to the parameter register.
+    auto parameter_site_itr = std::find_if(callsite_itr, instructions.rend(),
+      [&parameter_register](pa::Block::Insns::value_type const& val){
+        auto const& insn = val.second;
+        return insn.isWritten(parameter_register);
+      }
+    );
+    if(parameter_site_itr == instructions.rend()) {
+      startup_printf("find_main: unable to find parameter\n");
+      return Dyninst::ADDR_NULL;
+    }
+
+    instruction_t parameter_site{parameter_site_itr->first, parameter_site_itr->second};
+
+    std::cerr << std::hex << "Found parameter site [0x" << parameter_site.address << "] " << parameter_site.insn.format() << "\n";
+
+    auto operands = parameter_site.insn.getAllOperands();
+    if(operands.size() != 2UL) {
+      startup_printf("find_main: found %lu explicit operands, expected 2\n", operands.size());
+      return Dyninst::ADDR_NULL;
+    }
+
+    auto source_operand = [&]() -> di::Expression::Ptr {
+      for(di::Operand o : operands) {
+        if(*o.getValue() == *parameter_register) {
+          // skip the destination operand
+          continue;
+        }
+        return o.getValue();
+      }
+      return {};
+    }();
+
+    std::cerr << "Found source operand '" << source_operand->format() << "'\n";
+
+    /* Find the parameter's value
+     *
+     * Can be direct or indirect addressing:
+     *
+     *    lea eax,[eip+OFFSET]
+     *  or
+     *    mov eax,MAIN
+     */
+    struct find_address_visitor final : di::Visitor {
+      Dyninst::Address imm{Dyninst::ADDR_NULL};
+      di::RegisterAST* rip{};
+
+      void visit(di::Immediate* i) override {
+        imm = i->eval().convert<Dyninst::Address>();
+      }
+      void visit(di::RegisterAST* r) override {
+        rip = r;
+      }
+
+      void visit(di::Dereference*) override {}
+      void visit(di::BinaryFunction*) override {}
+      void visit(di::MultiRegisterAST*) override {}
+    };
+
+    find_address_visitor vis{};
+    source_operand->apply(&vis);
+
+    std::cerr << "Visitor results {imm=0x"
+              << std::hex << vis.imm << ", "
+              << "rip=0x" << vis.rip << ", "
+              << "}\n";
+
+    if(vis.imm == Dyninst::ADDR_NULL) {
+      // This would be a nonsense instruction like 'lea [rip]'
+      startup_printf("main_find: parameter calculation dereference has no offset\n");
+      return Dyninst::ADDR_NULL;
+    }
+
+    // Direct case
+    //  NOTE: could be NULL_ADDR if something weird happened and
+    //        no immediate was encountered.
+    if(!vis.rip) {
+      return vis.imm;
+    }
+
+    // Indirect case
+    return callsite.address + vis.imm;
   }
 
 }}}
