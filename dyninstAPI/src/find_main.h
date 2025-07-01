@@ -22,6 +22,10 @@ namespace Dyninst { namespace DyninstAPI {
     Dyninst::Address find_main_by_toc(st::Symtab*, pa::Function*);
   }
 
+  namespace x86_64 {
+    Dyninst::Address find_main(pa::Function*);
+  }
+
   namespace x86 {
     Dyninst::Address find_main(pa::Function*);
   }
