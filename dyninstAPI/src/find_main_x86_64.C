@@ -1,14 +1,9 @@
-#include "CFG.h"
-#include "dataflowAPI/h/AbslocInterface.h"
-#include "dataflowAPI/h/SymEval.h"
 #include "debug.h"
-#include "DynAST.h"
 #include "dyntypes.h"
 #include "find_main.h"
 #include "Function.h"
 #include "Register.h"
 #include "registers/x86_64_regs.h"
-#include "Symtab.h"
 #include "util.h"
 
 #include <algorithm>
@@ -16,9 +11,7 @@
 
 namespace Dyninst { namespace DyninstAPI { namespace x86_64 {
 
-  namespace st = Dyninst::SymtabAPI;
   namespace pa = Dyninst::ParseAPI;
-  namespace df = Dyninst::DataflowAPI;
   namespace di = Dyninst::InstructionAPI;
 
   Dyninst::Address find_main(pa::Function* entry_point) {
