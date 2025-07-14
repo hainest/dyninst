@@ -34,7 +34,7 @@
 #include <assert.h>
 #include <string>
 #include <fstream>
-#include <memory>
+
 #include "image.h"
 #include "debug.h"
 #include "patching/function.h"
@@ -138,14 +138,6 @@ extern unsigned enable_pd_sharedobj_debug;
 
 int codeBytesSeen = 0;
 
-#include <Graph.h>
-#include <Node.h>
-#include <DynAST.h>
-#include <dyntypes.h>
-#include <SymEval.h>
-#include <slicing.h>
-
-
 /**
  * Search for the Main Symbols in the list of symbols, Only in case
  * if the file is a shared object. If not present add them to the
@@ -153,131 +145,12 @@ int codeBytesSeen = 0;
  */
 int image::findMain()
 {
-  namespace st = Dyninst::SymtabAPI;
-  namespace pa = Dyninst::ParseAPI;
+  auto const main_addr = Dyninst::DyninstAPI::find_main(this->linkedFile);
 
-  startup_printf("findMain: looking for 'main' in %s\n", linkedFile->name().c_str());
-
-  // Only look for 'main' in executables, including PIE, but not
-  // other binaries that could be executable (for an example,
-  // see ObjectELF::isOnlyExecutable()).
-  if(!linkedFile->isExec()) {
-    startup_printf("findMain: not an executable\n");
+  if(main_addr == Dyninst::ADDR_NULL) {
     return -1;
   }
-
-  // It must have at least one code region
-  {
-    std::vector<st::Region*> regions;
-    linkedFile->getCodeRegions(regions);
-    if(regions.size() == 0UL) {
-      startup_printf("findMain: No main found; no code regions\n");
-      return -1;
-    }
-  }
-
-  // Check for a known symbol name
-  for(char const* name : main_function_names()) {
-    std::vector<st::Function*> funcs;
-    if(linkedFile->findFunctionsByName(funcs, name)) {
-      if(dyn_debug_startup) {
-       startup_printf("findMain: found ");
-       for(auto *f : funcs) {
-         startup_printf("{ %s@0x%lx}, ", f->getName().c_str(), f->getOffset());
-       }
-       startup_printf("\n");
-      }
-      this->address_of_main = funcs[0]->getFirstSymbol()->getOffset();
-      return 0;
-    }
-  }
-
-  // Report a non-stripped binary, but don't fail.
-  // This indicates we need to expand our list of possible symbols for 'main'
-  if(!linkedFile->isStripped()) {
-    startup_printf("findMain: no symbol found, but binary isn't stripped\n");
-  }
-
-  // We need to do actual binary analysis from here
-  startup_printf("findMain: no symbol found; attempting manual search\n");
-
-  auto const entry_address = static_cast<Dyninst::Address>(linkedFile->getEntryOffset());
-  st::Region* entry_region = linkedFile->findEnclosingRegion(entry_address);
-
-  if(!entry_region) {
-    startup_printf("findMain: no region found at entry 0x%lx\n", entry_address);
-    return -1;
-  }
-
-  bool const parseInAllLoadableRegions = (BPatch_normalMode != this->mode_);
-  pa::SymtabCodeSource scs(linkedFile, filt, parseInAllLoadableRegions);
-
-  std::set<pa::CodeRegion*> regions;
-  scs.findRegions(entry_address,regions);
-
-  if(regions.empty()) {
-    startup_printf("findMain: no region contains 0x%lx\n", entry_address);
-    return -1;
-  }
-
-  // We should only get one region
-  if(regions.size() > 1UL) {
-    startup_printf("findMain: found %lu possibly-overlapping regions for 0x%lx\n", regions.size(), entry_address);
-    return -1;
-  }
-
-  auto co = [&scs]() -> std::unique_ptr<pa::CodeObject> {
-    // To save time, delay the parsing
-    pa::CFGFactory *f{};
-    pa::ParseCallback *cb{};
-    constexpr bool defensive_mode = false;
-    constexpr bool delay_parse = true;
-    return std::unique_ptr<pa::CodeObject>(new pa::CodeObject(&scs, f, cb, defensive_mode, delay_parse));
-  }();
-
-  pa::Function* entry_point = [&]() {
-    pa::CodeRegion* region = *(regions.begin());
-    constexpr bool recursive = true;
-    co->parse(region, entry_address, recursive);
-    return co->findFuncByEntry(region, entry_address);
-  }();
-
-  if(!entry_point) {
-    startup_printf("findMain: couldn't find function at entry 0x%lx\n", entry_address);
-    return -1;
-  }
-
-  startup_printf("findMain: found '%s' at entry 0x%lx\n", entry_point->name().c_str(),
-                 entry_address);
-
-  auto const& edges = entry_point->callEdges();
-  if(edges.empty()) {
-    startup_printf("findMain: no call edges\n");
-    return -1;
-  }
-
-  // In libc, the entry point is _start which only calls __libc_start_main, so
-  // assume the first call is the one we want.
-  pa::Block *entry_block = (*edges.begin())->src();
-  if(!entry_block) {
-    startup_printf("findMain: No block found for edge with target 0x%x\n", (*edges.begin())->trg_addr());
-    return -1;
-  }
-
-  // Try architecture-specific searches
-  auto main_addr = [this, &entry_point]() {
-    auto file_arch = linkedFile->getArchitecture();
-
-    if(file_arch == Dyninst::Arch_ppc32 || file_arch == Dyninst::Arch_ppc64) {
-      return DyninstAPI::ppc::find_main(linkedFile, scs, entry_point);
-    }
-
-    if(file_arch == Dyninst::Arch_x86 || file_arch == Dyninst::Arch_x86_64) {
-      return DyninstAPI::x86::find_main(entry_point);
-    }
-
-    return Dyninst::ADDR_NULL;
-  }();
+  this->address_of_main = main_addr;
 
 #if defined(ppc64_linux) && defined(DYNINST_CODEGEN_ARCH_POWER)
   Symbol *newSym= new Symbol( "main",
@@ -289,7 +162,6 @@ int image::findMain()
           entry_region,
           0 );
   linkedFile->addSymbol(newSym);
-  this->address_of_main = main_addr;
 
 #elif defined(i386_unknown_linux2_0) \
     || defined(x86_64_unknown_linux2_4) /* Blind duplication - Ray */ \
