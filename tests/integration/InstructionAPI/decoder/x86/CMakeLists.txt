@@ -1,0 +1,7 @@
+include_guard(GLOBAL)
+
+add_executable(x87_comparison x87_comparison.cpp)
+target_compile_options(x87_comparison PRIVATE ${SUPPORTED_CXX_WARNING_FLAGS})
+target_link_libraries(x87_comparison PRIVATE instructionAPI decode_verify)
+add_test(NAME instructionAPI_x87_comparison COMMAND x87_comparison)
+set_tests_properties(instructionAPI_x87_comparison PROPERTIES LABELS "integration")
