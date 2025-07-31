@@ -11,3 +11,9 @@ target_compile_options(register_read_write PRIVATE ${SUPPORTED_CXX_WARNING_FLAGS
 target_link_libraries(register_read_write PRIVATE instructionAPI decode_verify)
 add_test(NAME instructionAPI_register_read_write COMMAND register_read_write)
 set_tests_properties(instructionAPI_register_read_write PROPERTIES LABELS "integration")
+
+add_executable(control_flow control_flow.cpp)
+target_compile_options(control_flow PRIVATE ${SUPPORTED_CXX_WARNING_FLAGS})
+target_link_libraries(control_flow PRIVATE instructionAPI decode_verify)
+add_test(NAME instructionAPI_control_flow COMMAND control_flow)
+set_tests_properties(instructionAPI_control_flow PROPERTIES LABELS "integration")
