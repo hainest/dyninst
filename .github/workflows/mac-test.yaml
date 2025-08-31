@@ -24,3 +24,5 @@ jobs:
           
           echo -e "\nbinutils"
           ld -v
+          
+          find / -iname boost
