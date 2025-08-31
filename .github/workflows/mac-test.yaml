@@ -26,6 +26,4 @@ jobs:
           #ld -v
           
           #ls /
-          find /Library -iname boost
-          find /opt -iname boost
-          find /var -iname boost
+          which brew
