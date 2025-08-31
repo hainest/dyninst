@@ -19,8 +19,8 @@ jobs:
           echo "Clang"
           clang++ --version
           
-          echo "Some system libs"
+          echo -e "\nSome system libs"
           otool -L $(which clang++)
           
-          echo "binutils"
-          ld --version
+          echo -e "\nbinutils"
+          ld -v
