@@ -13,16 +13,17 @@ jobs:
     runs-on: macos-latest
     steps:
       - run: |
-          system_profiler SPHardwareDataType
-          system_profiler SPSoftwareDataType
+          #system_profiler SPHardwareDataType
+          #system_profiler SPSoftwareDataType
           
-          echo "Clang"
-          clang++ --version
+          #echo "Clang"
+          #clang++ --version
           
-          echo -e "\nSome system libs"
-          otool -L $(which clang++)
+          #echo -e "\nSome system libs"
+          #otool -L $(which clang++)
           
-          echo -e "\nbinutils"
-          ld -v
+          #echo -e "\nbinutils"
+          #ld -v
           
-          find / -iname boost
+          ls /
+          find /usr -iname boost
