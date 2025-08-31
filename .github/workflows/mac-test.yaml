@@ -25,5 +25,8 @@ jobs:
           #echo -e "\nbinutils"
           #ld -v
           
-          ls /
-          find /usr -iname boost
+          #ls /
+          find /Applications -iname boost
+          find /Library -iname boost
+          find /opt -iname boost
+          find /var -iname boost
