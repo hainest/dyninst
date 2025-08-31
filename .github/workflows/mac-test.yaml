@@ -26,7 +26,6 @@ jobs:
           #ld -v
           
           #ls /
-          find /Applications -iname boost
           find /Library -iname boost
           find /opt -iname boost
           find /var -iname boost
