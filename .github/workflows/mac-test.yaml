@@ -17,3 +17,4 @@ jobs:
           system_profiler SPSoftwareDataType
           clang++ --version
           echo $PATH
+          ls /usr/bin
