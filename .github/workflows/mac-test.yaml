@@ -15,5 +15,12 @@ jobs:
       - run: |
           system_profiler SPHardwareDataType
           system_profiler SPSoftwareDataType
+          
+          echo "Clang"
           clang++ --version
+          
+          echo "Some system libs"
           otool -L $(which clang++)
+          
+          echo "binutils"
+          ld --version
