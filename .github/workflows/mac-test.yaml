@@ -13,7 +13,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - run: |
-          #system_profiler SPHardwareDataType
-          #system_profiler SPSoftwareDataType
-          #clang++ --version
+          system_profiler SPHardwareDataType
+          system_profiler SPSoftwareDataType
+          clang++ --version
           otool -L $(which clang++)
