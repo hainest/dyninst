@@ -16,4 +16,4 @@ jobs:
           #system_profiler SPHardwareDataType
           #system_profiler SPSoftwareDataType
           #clang++ --version
-          otool -L $(which sqlcmd)
+          otool -L $(which clang++)
