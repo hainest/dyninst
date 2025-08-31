@@ -13,8 +13,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - run: |
-          echo "Hardare"
           system_profiler SPHardwareDataType
-          echo "Software"
           system_profiler SPSoftwareDataType
           clang++ --version
+          echo $PATH
