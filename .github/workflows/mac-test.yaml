@@ -18,5 +18,4 @@ jobs:
           #clang++ --version
           #echo $PATH
           #ls /usr/bin
-          find / -type f  -iname "*system*"
-          #ls /
+          find / -type f  -iname "lib*system*"
