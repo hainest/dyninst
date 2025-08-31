@@ -26,4 +26,4 @@ jobs:
           #ld -v
           
           #ls /
-          which brew
+          brew list
