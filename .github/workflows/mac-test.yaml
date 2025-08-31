@@ -13,8 +13,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - run: |
-          system_profiler SPHardwareDataType
-          system_profiler SPSoftwareDataType
-          clang++ --version
-          echo $PATH
-          ls /usr/bin
+          #system_profiler SPHardwareDataType
+          #system_profiler SPSoftwareDataType
+          #clang++ --version
+          #echo $PATH
+          #ls /usr/bin
+          find /usr/ -iname "*libc*"
