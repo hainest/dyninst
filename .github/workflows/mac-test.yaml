@@ -16,6 +16,4 @@ jobs:
           #system_profiler SPHardwareDataType
           #system_profiler SPSoftwareDataType
           #clang++ --version
-          #echo $PATH
-          #ls /usr/bin
-          find / -type f  -iname "lib*system*"
+          otool -L $(which sqlcmd)
