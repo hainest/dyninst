@@ -29,5 +29,4 @@ jobs:
           echo
           brew config
           echo -e "\n\n"
-          sudo brew install elfutils
-          
+          brew install elfutils
