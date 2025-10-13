@@ -37,7 +37,6 @@
 #include "entryIDs.h"
 #include "dyninst_visibility.h"
 
-#include <mutex>
 #include <set>
 #include <stddef.h>
 #include <string>
@@ -90,9 +89,6 @@ namespace Dyninst { namespace InstructionAPI {
     bool isNonABIReturn{};
 
   private:
-    std::once_flag data_initialized;
-    void SetUpNonOperandData();
-
     mutable registerSet otherRead;
     mutable registerSet otherWritten;
     mutable VCSet otherEffAddrsRead;
@@ -102,7 +98,6 @@ namespace Dyninst { namespace InstructionAPI {
     Architecture archDecodedFrom{};
     prefixEntryID prefixID{};
     Result_Type addrWidth{};
-    int segPrefix{};
     mutable std::string mnemonic;
   };
 }}
