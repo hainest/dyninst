@@ -61,12 +61,9 @@
 
 #include "Command.h"
 #include "Relocation/DynInstrumenter.h"
+#include "snippetHandler_amdgpu_gfx908.h"
 
 #include "PatchMgr.h"
-
-#if defined(DYNINST_CODEGEN_ARCH_AMDGPU_GFX908)
-#include "amdgpu-internal-impl.h"
-#endif
 
 using Dyninst::PatchAPI::Patcher;
 using Dyninst::PatchAPI::DynInsertSnipCommand;
@@ -77,6 +74,11 @@ using Dyninst::PatchAPI::DynRemoveCallCommand;
 BPatch_addressSpace::BPatch_addressSpace() :
    pendingInsertions(NULL), image(NULL)
 {
+#ifdef DYNINST_CODEGEN_ARCH_AMDGPU_GFX908
+  snippet_handler = std::unique_ptr<snippetHandler_amdgpu_gfx908>();
+#else
+  snippet_handler = std::unique_ptr<snippetHandler>();
+#endif
 }
 
 BPatch_addressSpace::~BPatch_addressSpace()
@@ -859,16 +861,8 @@ BPatchSnippetHandle *BPatch_addressSpace::insertSnippet(const BPatch_snippet &ex
                                                                     BPatch_callWhen when,
                                                                     BPatch_snippetOrder order)
 {
-#if defined(DYNINST_CODEGEN_ARCH_AMDGPU_GFX908)
-  for (size_t i = 0; i < points.size(); ++i) {
-    BPatch_function *f = points[i]->getFunction();
-    auto result = amdgpuImpl->instrumentedFunctions.insert(f);
-    if (result.second) {
-      amdgpuImpl->insertPrologueIfKernel(f);
-      amdgpuImpl->insertEpilogueIfKernel(f);
-    }
-  }
-#endif
+  snippet_handler->record_points(points);
+
   BPatchSnippetHandle *retHandle = new BPatchSnippetHandle(this);
 
   if (dyn_debug_inst) {
@@ -1147,8 +1141,3 @@ Dyninst::PatchAPI::PatchMgrPtr Dyninst::PatchAPI::convert(const BPatch_addressSp
       return proc->lowlevel_process()->mgr();
    }
 }
-
-#if defined(DYNINST_CODEGEN_ARCH_AMDGPU_GFX908)
-std::set<BPatch_function *> BPatch_addressSpace::instrumentedFunctions = {};
-std::vector<AmdgpuKernelInfo> BPatch_addressSpace::kernelInfos = {};
-#endif
