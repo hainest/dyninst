@@ -29,6 +29,7 @@
  */
 
 #include "InstructionDecoderImpl.h"
+#include "x86/decoder.h"
 #include "InstructionDecoder-power.h"
 #include "InstructionDecoder-aarch64.h"
 #ifdef DYNINST_ENABLE_CAPSTONE
@@ -61,7 +62,7 @@ namespace Dyninst
             {
                 case Arch_x86:
                 case Arch_x86_64:
-                    return Ptr{};
+                    return Ptr(new x86_decoder(a));
                 case Arch_ppc32:
                 case Arch_ppc64:
                     return Ptr(new InstructionDecoder_power(a));
