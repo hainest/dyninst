@@ -21,6 +21,7 @@ set(_subprojects
 
 set(_sources
     src/debug.C
+    src/decoder/x86/decoder.C
     src/Instruction.C
     src/Operation.C
     src/Operand.C
