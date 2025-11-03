@@ -153,17 +153,19 @@ namespace Dyninst { namespace InstructionAPI {
     DYNINST_EXPORT Architecture getArch() const;
 
     DYNINST_EXPORT InsnCategory getCategory() const;
-    DYNINST_EXPORT bool isCall() const { return getCategory() == c_CallInsn; }
-    DYNINST_EXPORT bool isReturn() const { return getCategory() == c_ReturnInsn; }
-    DYNINST_EXPORT bool isBranch() const { return getCategory() == c_BranchInsn; }
-    DYNINST_EXPORT bool isCompare() const { return getCategory() == c_CompareInsn; }
-    DYNINST_EXPORT bool isPrefetch() const { return getCategory() == c_PrefetchInsn; }
-    DYNINST_EXPORT bool isSysEnter() const { return getCategory() == c_SysEnterInsn; }
-    DYNINST_EXPORT bool isSyscall() const { return getCategory() == c_SyscallInsn; }
-    DYNINST_EXPORT bool isInterrupt() const { return getCategory() == c_InterruptInsn; }
-    DYNINST_EXPORT bool isVector() const { return getCategory() == c_VectorInsn; }
-    DYNINST_EXPORT bool isGPUKernelExit() const { return getCategory() == c_GPUKernelExitInsn; }
-    DYNINST_EXPORT bool isSoftwareException() const { return isGPUKernelExit() || getCategory() == c_SoftwareExceptionInsn; }
+    DYNINST_EXPORT bool isCall() const { return checked_category(c_CallInsn); }
+    DYNINST_EXPORT bool isReturn() const { return checked_category(c_ReturnInsn); }
+    DYNINST_EXPORT bool isBranch() const { return checked_category(c_BranchInsn); }
+    DYNINST_EXPORT bool isConditional() const { return checked_category(c_ConditionalInsn); }
+    DYNINST_EXPORT bool isCompare() const { return checked_category(c_CompareInsn); }
+    DYNINST_EXPORT bool isPrefetch() const { return checked_category(c_PrefetchInsn); }
+    DYNINST_EXPORT bool isSysEnter() const { return checked_category(c_SysEnterInsn); }
+    DYNINST_EXPORT bool isSyscall() const { return checked_category(c_SyscallInsn); }
+    DYNINST_EXPORT bool isInterrupt() const { return checked_category(c_InterruptInsn); }
+    DYNINST_EXPORT bool isVector() const { return checked_category(c_VectorInsn); }
+    DYNINST_EXPORT bool isGPUKernelExit() const { return checked_category(c_GPUKernelExitInsn); }
+    DYNINST_EXPORT bool isTransactional() const { return checked_category(c_TransactionalInsn); }
+    DYNINST_EXPORT bool isSoftwareException() const { return isGPUKernelExit() || checked_category(c_SoftwareExceptionInsn); }
 
     DYNINST_EXPORT bool isMultiInsnCall() const { return isCall() && getOperation().isMultiInsnCall; }
     DYNINST_EXPORT bool isMultiInsnBranch() const { return isBranch() && getOperation().isMultiInsnBranch; }
@@ -203,10 +205,24 @@ namespace Dyninst { namespace InstructionAPI {
     void copyRaw(size_t size, const unsigned char* raw);
 
     bool checked_category(InsnCategory c) const {
-      if(arch_decoded_from == Arch_riscv64) {
-        return categories.satisfies(c);
+      switch(arch_decoded_from) {
+        case Arch_riscv64:
+        case Arch_x86_64:
+        case Arch_x86:
+          return categories.satisfies(c);
+        case Arch_ppc32:
+        case Arch_ppc64:
+        case Arch_aarch32:
+        case Arch_aarch64:
+        case Arch_cuda:
+        case Arch_amdgpu_gfx908:
+        case Arch_amdgpu_gfx90a:
+        case Arch_amdgpu_gfx940:
+        case Arch_intelGen9:
+        case Arch_none:
+          return getCategory() == c;
       }
-      return getCategory() == c;
+      return false;
     }
 
     mutable std::list<Operand> m_Operands;
