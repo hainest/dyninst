@@ -267,7 +267,7 @@ namespace Dyninst { namespace InstructionAPI {
         return true;
       }
     }
-    return !m_InsnOp.getImplicitMemReads().empty();
+    return false;
   }
 
   DYNINST_EXPORT bool Instruction::writesMemory() const {
@@ -277,7 +277,7 @@ namespace Dyninst { namespace InstructionAPI {
         return true;
       }
     }
-    return !m_InsnOp.getImplicitMemWrites().empty();
+    return false;
   }
 
   DYNINST_EXPORT void
@@ -286,8 +286,6 @@ namespace Dyninst { namespace InstructionAPI {
         curOperand != m_Operands.end(); ++curOperand) {
       curOperand->addEffectiveReadAddresses(memAccessors);
     }
-    std::copy(m_InsnOp.getImplicitMemReads().begin(), m_InsnOp.getImplicitMemReads().end(),
-              std::inserter(memAccessors, memAccessors.begin()));
   }
 
   DYNINST_EXPORT void
@@ -296,8 +294,6 @@ namespace Dyninst { namespace InstructionAPI {
         curOperand != m_Operands.end(); ++curOperand) {
       curOperand->addEffectiveWriteAddresses(memAccessors);
     }
-    std::copy(m_InsnOp.getImplicitMemWrites().begin(), m_InsnOp.getImplicitMemWrites().end(),
-              std::inserter(memAccessors, memAccessors.begin()));
   }
 
   DYNINST_EXPORT Operand Instruction::getPredicateOperand() const {
