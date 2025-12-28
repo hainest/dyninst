@@ -307,6 +307,9 @@ class DYNINST_EXPORT SymtabCodeSource : public CodeSource, public boost::lockabl
     bool nonReturning(Address func_entry);
     bool nonReturningSyscall(int num);
 
+    void addRegion(CodeRegion *);
+    void removeRegion(CodeRegion *);
+
     bool resizeRegion(SymtabAPI::Region *, Address newDiskSize);
 
     Address baseAddress() const;
@@ -341,6 +344,9 @@ class DYNINST_EXPORT SymtabCodeSource : public CodeSource, public boost::lockabl
     void startTimer(const std::string& /*name*/) const; 
     void stopTimer(const std::string& /*name*/) const;
     bool findCatchBlockByTryRange(Address /*given try address*/, std::set<Address> & /* catch start */)  const;
+
+    bool usesCompressedInstructionFormat() const;
+
  private:
     void init(hint_filt *, bool);
     void init_regions(hint_filt *, bool);
@@ -349,11 +355,8 @@ class DYNINST_EXPORT SymtabCodeSource : public CodeSource, public boost::lockabl
     void init_try_blocks();
 
     CodeRegion * lookup_region(const Address addr) const;
-    void removeRegion(CodeRegion *); // removes from region tree
 
     void overlapping_warn(const char * file, unsigned line) const;
-
-    bool usesCompressedInstructionFormat() const;
 
     // statistics
     bool init_stats();

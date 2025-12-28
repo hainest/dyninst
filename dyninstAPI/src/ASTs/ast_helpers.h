@@ -16,6 +16,8 @@
 #elif defined(DYNINST_CODEGEN_ARCH_AARCH64)
 #include "emit-aarch64.h"
 #include "inst-aarch64.h"
+#elif defined(DYNINST_CODEGEN_ARCH_RISCV64)
+#include "emit-riscv64.h"
 #elif defined(DYNINST_CODEGEN_ARCH_AMDGPU_GFX908)
 #include "emit-amdgpu.h"
 #else
