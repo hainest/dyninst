@@ -1,0 +1,29 @@
+name: MacOS Test
+
+on:
+  pull_request:
+     types: [opened, synchronize, reopened, ready_for_review]
+     branches:
+        - master
+  workflow_dispatch:
+
+jobs:
+
+  mac-test:
+    runs-on: macos-latest
+    steps:
+      - run: |
+          #system_profiler SPHardwareDataType
+          #system_profiler SPSoftwareDataType
+          
+          #echo "Clang"
+          #clang++ --version
+          
+          #echo -e "\nSome system libs"
+          #otool -L $(which clang++)
+          
+          #echo -e "\nbinutils"
+          #ld -v
+          
+          #echo
+          #brew config
