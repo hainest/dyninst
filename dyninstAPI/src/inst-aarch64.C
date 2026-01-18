@@ -29,6 +29,7 @@
  */
 
 #include "common/src/headers.h"
+#include "common/src/math.h"
 #include "dyninstAPI/h/BPatch_memoryAccess_NP.h"
 #include "dyninstAPI/src/image.h"
 #include "dyninstAPI/src/dynProcess.h"
@@ -59,8 +60,6 @@ using namespace boost::assign;
 #include <sstream>
 
 #include "dyninstAPI/h/BPatch_memoryAccess_NP.h"
-
-extern bool isPowerOf2(int value, int &result);
 
 #define DISTANCE(x, y)   ((x<y) ? (y-x) : (x-y))
 

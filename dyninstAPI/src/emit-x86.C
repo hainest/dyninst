@@ -36,6 +36,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "compiler_annotations.h"
+#include "common/src/math.h"
 #include "dyninstAPI/src/codegen.h"
 #include "dyninstAPI/src/function.h"
 #include "dyninstAPI/src/emit-x86.h"
@@ -56,6 +57,22 @@
 #include "liveness.h"
 #include "RegisterConversion.h"
 #include "unaligned_memory_access.h"
+
+static bool can_optimize_as_shift(RegValue val, uint8_t max_num_bits) {
+  if(!isPowerOf2(val)) {
+    return false;
+  }
+
+  // number of bits, n, such that src2imm = 2^n
+  boost::optional<uint64_t> n = Dyninst::ilog2(val, max_num_bits);
+
+  if(!n) {
+    return false;
+  }
+
+  // Can the result fit in a single register without overflowing?
+  return *n < max_num_bits;
+}
 
 #if defined(DYNINST_CODEGEN_ARCH_X86_64)
 
@@ -227,9 +244,6 @@ void EmitterIA32::emitRelOpImm(unsigned op, Register dest, Register src1, RegVal
    gen.rs()->freeRegister(src2);
 }
 
-// where is this defined?
-extern bool isPowerOf2(int value, int &result);
-
 void EmitterIA32::emitTimesImm(Register dest, Register src1, RegValue src2imm, codeGen &gen)
 {
    int result;
@@ -242,12 +256,13 @@ void EmitterIA32::emitTimesImm(Register dest, Register src1, RegValue src2imm, c
       return;
    }
 
-
-   if (isPowerOf2(src2imm, result) && result <= MAX_IMM8) {
+   if (can_optimize_as_shift(src2imm, MAX_IMM8)) {
       // sal dest, result
       if (src1 != dest)
          emitMovRegToReg(dest_r, src1_r, gen);
-      emitOpExtRegImm8(0xC1, 4, dest_r, static_cast<char>(result), gen);
+
+      auto exponent = static_cast<uint8_t>(Dyninst::ilog2_32(src2imm));
+      emitOpExtRegImm8(0xC1, 4, dest_r, exponent, gen);
    }
    else {
       // imul src1 * src2imm -> dest_r
@@ -261,7 +276,7 @@ void EmitterIA32::emitDivImm(Register dest, Register src1, RegValue src2imm, cod
    if (src2imm == 1)
       return;
 
-   if (isPowerOf2(src2imm, result) && result <= MAX_IMM8) {
+   if (can_optimize_as_shift(src2imm)) {
       RealRegister src1_r = gen.rs()->loadVirtual(src1, gen);
       RealRegister dest_r = gen.rs()->loadVirtualForWrite(dest, gen);
 
@@ -1369,7 +1384,7 @@ void EmitterAMD64::emitTimesImm(Register dest, Register src1, RegValue src2imm, 
    int result = -1;
 
    gen.markRegDefined(dest);
-   if (isPowerOf2(src2imm, result) && result <= MAX_IMM8) {
+   if (can_optimize_as_shift(src2imm)) {
       // immediate is a power of two - use a shift
       // mov %src1, %dest (if needed)
       if (src1 != dest) {
@@ -1389,7 +1404,7 @@ void EmitterAMD64::emitDivImm(Register dest, Register src1, RegValue src2imm, co
 {
    int result = -1;
    gen.markRegDefined(dest);
-   if (isPowerOf2(src2imm, result) && result <= MAX_IMM8) {
+   if (can_optimize_as_shift(src2imm)) {
       // divisor is a power of two - use a shift instruction
       // mov %src1, %dest (if needed)
       if (src1 != dest) {
