@@ -586,15 +586,6 @@ bool xmmCapable()
 }
 #endif
 
-bool baseTramp::generateSaves(codeGen& gen, registerSpace*) {
-   return gen.codeEmitter()->emitBTSaves(this, gen);
-}
-
-bool baseTramp::generateRestores(codeGen &gen, registerSpace*) {
-
-   return gen.codeEmitter()->emitBTRestores(this, gen);
-}
-
 /****************************************************************************/
 /****************************************************************************/
 /****************************************************************************/
