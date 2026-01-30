@@ -373,6 +373,7 @@ endif()
 list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/ASTs")
 list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/registerSpace")
 list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/trampolines")
+list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/codegen/emitter")
 
 foreach(t ${dyninstAPI_TARGETS})
   if(DYNINST_OS_Windows)
