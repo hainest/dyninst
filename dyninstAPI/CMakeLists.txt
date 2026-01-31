@@ -348,6 +348,6 @@ foreach(t ${dyninstAPI_TARGETS})
   target_include_directories(
     ${t}
     PUBLIC
-      "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/trampolines>;${CMAKE_CURRENT_SOURCE_DIR}/src/registerSpace>"
+      "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/trampolines;${CMAKE_CURRENT_SOURCE_DIR}/src/registerSpace>"
     )
 endforeach()
