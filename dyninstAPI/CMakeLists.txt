@@ -383,7 +383,7 @@ foreach(t ${dyninstAPI_TARGETS})
   endif()
 
   list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/trampolines")
-  list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/ASTs>")
+  list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/ASTs")
   list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/registerSpace")
   target_include_directories(${t} PUBLIC "$<BUILD_INTERFACE:${_inc_dirs}>")
   unset(_inc_dirs)

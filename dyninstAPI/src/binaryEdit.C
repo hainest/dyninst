@@ -53,6 +53,8 @@
 
 using namespace Dyninst::SymtabAPI;
 
+namespace CallNode = Dyninst::DyninstAPI::CallNode;
+
 
 // Reading and writing get somewhat interesting. We are building
 // a false address space - that of the "inferior" binary we're editing. 
@@ -967,7 +969,7 @@ namespace {
 static void add_handler(instPoint *pt, func_instance *add_me) {
   std::vector<AstNodePtr> args;
   // no args, just add
-  AstNodePtr snip = AstNode::funcCallNode(add_me, args);
+  AstNodePtr snip = CallNode::call(add_me, args);
   auto instrumentation = pt->pushFront(snip);
   instrumentation->disableRecursiveGuard();
 }
