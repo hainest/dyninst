@@ -175,86 +175,6 @@ bool parse_func::isPLTFunction() {
            obj()->cs()->linkage().end();
 }
 
-int parse_block_count = 0;
-
-/*
- * For CFGFactory::mksink only 
- */
-parse_block::parse_block(
-        CodeObject * obj, 
-        CodeRegion * reg,
-        Address addr) :
-    Block(obj,reg,addr),
-    needsRelocation_(false),
-    blockNumber_(0),
-    unresolvedCF_(false),
-    abruptEnd_(false)
-{
-     
-}
-
-parse_block::parse_block(
-        parse_func * func, 
-        CodeRegion * reg,
-        Address firstOffset) :
-    Block(func->obj(),reg,firstOffset, func),
-    needsRelocation_(false),
-    blockNumber_(0),
-    unresolvedCF_(false),
-    abruptEnd_(false)
-{ 
-    // basic block IDs are unique within images.
-    blockNumber_ = func->img()->getNextBlockID();
-#if defined(ROUGH_MEMORY_PROFILE)
-    parse_block_count++;
-    if ((parse_block_count % 100) == 0)
-        fprintf(stderr, "parse_block_count: %d (%d)\n",
-                parse_block_count, parse_block_count*sizeof(parse_block));
-#endif
-}
-
-void parse_block::debugPrint() {
-   // no looping if we're not printing anything
-    if(!dyn_debug_parsing)
-        return;
-
-    parsing_printf("Block %d: starts 0x%lx, last 0x%lx, end 0x%lx\n",
-                   blockNumber_,
-                   start(),
-                   lastInsnAddr(),
-                   end());
-
-    parsing_printf("  Sources:\n");
-    const Block::edgelist & srcs = sources();
-    Block::edgelist::const_iterator sit = srcs.begin();
-    unsigned s = 0;
-    for ( ; sit != srcs.end(); ++sit) {
-        parse_block * src = static_cast<parse_block*>((*sit)->src());
-        parsing_printf("    %u: block %d (%s)\n",
-                       s, src->blockNumber_,
-                       static_cast<image_edge*>(*sit)->getTypeString());
-        ++s;
-    }
-    parsing_printf("  Targets:\n");
-    const Block::edgelist & trgs = sources();
-    Block::edgelist::const_iterator tit = trgs.begin();
-    unsigned t = 0;
-    for( ; tit != trgs.end(); ++tit) {
-        parse_block * trg = static_cast<parse_block*>((*tit)->trg());
-        parsing_printf("    %u: block %d (%s)\n",
-                       t, trg->blockNumber_,
-                       static_cast<image_edge*>(*tit)->getTypeString());
-        ++t;
-    }
-}
-
-void *parse_block::getPtrToInstruction(Address addr) const {
-    if (addr < start()) return NULL;
-    if (addr >= end()) return NULL;
-    // XXX all potential parent functions have the same image
-    return region()->getPtrToInstruction(addr);
-}
-
 /* Returns NULL if the address is not within a block belonging to this function.
    Why do we even bother returning NULL if the address is outside of this
    function? FIXME check whether we can do away with that.
@@ -284,98 +204,6 @@ void *parse_func::getPtrToInstruction(Address addr) const {
     return isrc()->getPtrToInstruction(addr);
 }
 
-bool parse_block::isEntryBlock(parse_func * f) const
-{
-    return f->entryBlock() == this;
-} 
-
-/*
- * True if the block has a return edge, or a call that does
- * not return (i.e., a tail call or non-returning call)
- */
-bool parse_block::isExitBlock()
-{
-    const Block::edgelist & trgs = targets();
-    if(trgs.empty()) {
-        return false;
-    }
-
-    Edge * e = *trgs.begin();
-    if (e->type() == RET) {
-        return true;
-    }
-
-    if (!e->interproc()) {
-        return false;
-    }
-
-    if (e->type() == CALL && trgs.size() > 1) {
-        // there's a CALL edge and at least one other edge, 
-        // it's an exit block if there is no CALL_FT edge
-        for(Block::edgelist::const_iterator eit = ++(trgs.begin());
-            eit != trgs.end();
-            eit++)
-        {
-            if ((*eit)->type() == CALL_FT && !(*eit)->sinkEdge()) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool parse_block::isCallBlock()
-{
-    const Block::edgelist & trgs = targets();
-    if(!trgs.empty())
-    {
-        for (Block::edgelist::const_iterator eit = trgs.begin();
-             eit != trgs.end();
-             eit++) 
-        {
-            if ((*eit)->type() == CALL) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-bool parse_block::isIndirectTailCallBlock()
-{
-    const Block::edgelist & trgs = targets();
-    if(!trgs.empty())
-    {
-        for (Block::edgelist::const_iterator eit = trgs.begin();
-             eit != trgs.end();
-             eit++) 
-        {
-            if ((*eit)->type() == INDIRECT && (*eit)->interproc()) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-image *parse_block::img()
-{
-    vector<Function*> funcs;
-    getFuncs(funcs);
-    return static_cast<parse_func*>(funcs[0])->img();
-}
-
-parse_func *parse_block::getEntryFunc() const {
-    parse_func *ret =
-        static_cast<parse_func*>(obj()->findFuncByEntry(region(),start()));
-
-    // sanity check
-    if(ret && ret->entryBlock() != this) {
-        parsing_printf("[%s:%d] anomaly: block [%lx,%lx) is not entry for "
-                       "func at %lx\n",
-            FILE__,__LINE__,start(),end(),ret->addr());
-    }
-    return ret;
-}
-
 parse_block * parse_func::entryBlock() { 
     if (!parsed()) image_->analyzeIfNeeded();
     return static_cast<parse_block*>(entry());
@@ -396,23 +224,6 @@ void parse_func::addParRegion(Address begin, Address end, parRegType t)
     iPar->setLastInsn(end);
     parRegionsList.push_back(iPar);
 }
-
-void parse_block::getInsns(Insns &insns, Address base) {
-   using namespace InstructionAPI;
-   Offset off = firstInsnOffset();
-   const unsigned char *ptr = (const unsigned char *)getPtrToInstruction(off);
-   if (ptr == NULL) return;
-
-   InstructionDecoder d(ptr, getSize(),obj()->cs()->getArch());
-
-   while (off < endOffset()) {
-      Instruction insn = d.decode();
-
-      insns[off + base] = insn;
-      off += insn.size();
-   }
-}
-
 
 /* This function is static.
  *
@@ -495,44 +306,6 @@ ParseAPI::FuncReturnStatus parse_func::init_retstatus() const
 void parse_func::setHasWeirdInsns(bool wi)
 {
    hasWeirdInsns_ = wi;
-}
-
-void parse_block::setUnresolvedCF(bool newVal) 
-{ 
-   unresolvedCF_ = newVal;
-}
-
-parse_func *parse_block::getCallee() {
-   for (edgelist::const_iterator iter = targets().begin(); iter != targets().end(); ++iter) {
-      if ((*iter)->type() == ParseAPI::CALL) {
-         parse_block *t = static_cast<parse_block *>((*iter)->trg());
-         return t->getEntryFunc();
-      }
-   }
-   return NULL;
-}
-
-std::pair<bool, Address> parse_block::callTarget() {
-   using namespace InstructionAPI;
-   Offset off = lastInsnOffset();
-   const unsigned char *ptr = (const unsigned char *)getPtrToInstruction(off);
-   if (ptr == NULL) return std::make_pair(false, 0);
-   InstructionDecoder d(ptr, endOffset() - lastInsnOffset(), obj()->cs()->getArch());
-   Instruction insn = d.decode();
-
-   // Bind PC to that insn
-   // We should build a free function to do this...
-   
-   Expression::Ptr cft = insn.getControlFlowTarget();
-   if (cft) {
-      Expression::Ptr pc(new RegisterAST(MachRegister::getPC(obj()->cs()->getArch())));
-      cft->bind(pc.get(), Result(u64, lastInsnAddr()));
-      Result res = cft->eval();
-      if (!res.defined) return std::make_pair(false, 0);
-   
-      return std::make_pair(true, res.convert<Address>());
-   }
-   return std::make_pair(false, 0);
 }
 
 bool parse_func::hasUnresolvedCF() {

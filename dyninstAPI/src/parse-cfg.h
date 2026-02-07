@@ -33,6 +33,8 @@
 #ifndef IMAGE_FUNC_H
 #define IMAGE_FUNC_H
 
+#include "parse_block.h"
+
 #include <assert.h>
 #include <list>
 #include <map>
@@ -62,101 +64,8 @@ class pdmodule;
 class parse_block;
 class image_edge;
 
-class parse_block : public codeRange, public ParseAPI::Block  {
-    friend class parse_func;
-    friend class DynCFGFactory;
- private:
-    parse_block(ParseAPI::CodeObject *, ParseAPI::CodeRegion*, Address);
- public:
-    parse_block(parse_func*,ParseAPI::CodeRegion*,Address);
-    ~parse_block() = default;
 
-    // just pass through to Block
-    Address firstInsnOffset() const;
-    Address lastInsnOffset() const;
-    Address endOffset() const;
-    Address getSize() const;
 
-    // cfg access & various predicates 
-    bool isShared() const { return containingFuncs() > 1; }
-    bool isExitBlock();
-    bool isCallBlock();
-    bool isIndirectTailCallBlock();
-    bool isEntryBlock(parse_func * f) const;
-    parse_func *getEntryFunc() const;  // func starting with this bock
-
-    bool unresolvedCF() const { return unresolvedCF_; }
-    bool abruptEnd() const { return abruptEnd_; }
-    void setUnresolvedCF(bool newVal);
-    void setAbruptEnd(bool newVal) { abruptEnd_ = newVal; }
-
-    // misc utility
-    int id() const { return blockNumber_; }
-    void debugPrint();
-    image *img();
-    
-    // Find callees
-    parse_func *getCallee();
-    // Returns the address of our callee (if we're a call block, of course)
-    std::pair<bool, Address> callTarget();
-
-    // instrumentation-related
-    bool needsRelocation() const { return needsRelocation_; }
-    void markAsNeedingRelocation() { needsRelocation_ = true; }
-
-    // codeRange implementation
-    void *getPtrToInstruction(Address addr) const;
-    Address get_address() const { return firstInsnOffset(); }
-    unsigned get_size() const { return getSize(); }
-
-    // etc.
-    struct compare {
-        bool operator()(parse_block * const &b1,
-                        parse_block * const &b2) const {
-            if(b1->firstInsnOffset() < b2->firstInsnOffset())
-                return true;
-            if(b2->firstInsnOffset() < b1->firstInsnOffset())
-                return false;
-
-            // XXX the remainder is debugging, and should be removed
-            if(b1 != b2)
-                fprintf(stderr,"error: two blocks (%p,%p) at 0x%lx\n",
-                    (void*)b1,(void*)b2,b1->firstInsnOffset());
-
-            assert(b1 == b2);
-            return false;
-        }
-    };
-
-    // The provided parameter is a magic offset to add to each instruction's
-    // address; we do this to avoid a copy when getting Insns from block_instances
-    void getInsns(Insns &instances, Address offset = 0);
-
- private:
-    using Block::getInsns;
-    bool needsRelocation_;
-    int blockNumber_;
-
-    bool unresolvedCF_;
-    bool abruptEnd_;
-};
-
-inline Address 
-parse_block::firstInsnOffset() const {
-    return ParseAPI::Block::start(); 
-}
-inline Address 
-parse_block::lastInsnOffset() const {
-    return ParseAPI::Block::lastInsnAddr();
-}
-inline Address 
-parse_block::endOffset() const {
-    return ParseAPI::Block::end();
-}
-inline Address 
-parse_block::getSize() const {
-    return ParseAPI::Block::size();
-}
 
 class image_edge : public ParseAPI::Edge {
     friend class parse_block;
