@@ -128,7 +128,7 @@ set(_private_headers
     src/pdwinnt.h
     src/PointHandler.h
     src/RegisterConversion.h
-    src/registerSpace.h
+    src/registerSpace/registerSpace.h
     src/regTracker.h
     src/syscallNotification.h
     src/trapMappings.h
@@ -181,7 +181,6 @@ set(_sources
     src/parse-cfg.C
     src/pcEventHandler.C
     src/pcEventMuxer.C
-    src/registerSpace.C
     src/regTracker.C
     src/variable.C
     src/BPatch.C
@@ -212,6 +211,7 @@ set(_sources
     src/Parsing-arch.C
     src/Parsing.C
     src/Patching.C
+    src/registerSpace/registerSpace.C
     src/Relocation/CFG/RelocBlock.C
     src/Relocation/CFG/RelocEdge.C
     src/Relocation/CFG/RelocGraph.C
@@ -267,6 +267,7 @@ if(DYNINST_CODEGEN_ARCH_I386 OR DYNINST_CODEGEN_ARCH_X86_64)
     APPEND
     _sources
     src/RegisterConversion-x86.C
+    src/registerSpace/registerSpace-x86.C
     src/Relocation/Widgets/CFWidget-x86.C
     src/Relocation/Widgets/PCWidget-x86.C
     src/inst-x86.C
@@ -282,6 +283,7 @@ elseif(DYNINST_CODEGEN_ARCH_PPC64LE)
     src/inst-power.C
     src/codegen-power.C
     src/parse-power.C
+    src/registerSpace/registerSpace-ppc.C
     src/RegisterConversion-ppc.C
     src/Relocation/Widgets/CFWidget-ppc.C
     src/Relocation/Widgets/PCWidget-ppc.C
@@ -295,6 +297,7 @@ elseif(DYNINST_CODEGEN_ARCH_AARCH64)
     src/codegen-aarch64.C
     src/parse-aarch64.C
     src/RegisterConversion-aarch64.C
+    src/registerSpace/registerSpace-aarch64.C
     src/Relocation/Widgets/CFWidget-aarch64.C
     src/Relocation/Widgets/PCWidget-aarch64.C
     src/trampolines/baseTramp-aarch64.C)
@@ -305,6 +308,7 @@ elseif(DYNINST_CODEGEN_ARCH_AMDGPU_GFX908)
     src/inst-amdgpu.C
     src/emit-amdgpu.C
     src/codegen-amdgpu.C
+    src/registerSpace/registerSpace-amdgpu.C
     src/parse-amdgpu.C
     src/RegisterConversion-amdgpu.C
     src/Relocation/Widgets/CFWidget-amdgpu.C
@@ -378,9 +382,9 @@ foreach(t ${dyninstAPI_TARGETS})
       ${t} PRIVATE "DYNINST_COMPILER_SEARCH_DIRS=${DYNINST_COMPILER_SEARCH_DIRS}")
   endif()
 
-  target_include_directories(
-    ${t}
-    PUBLIC
-      "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/trampolines;${CMAKE_CURRENT_SOURCE_DIR}/src/ASTs>"
-    )
+  list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/trampolines")
+  list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/ASTs>")
+  list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/registerSpace")
+  target_include_directories(${t} PUBLIC "$<BUILD_INTERFACE:${_inc_dirs}>")
+  unset(_inc_dirs)
 endforeach()
