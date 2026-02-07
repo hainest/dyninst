@@ -243,25 +243,3 @@ void parse_func::calcUsedRegs()
 #include "image.h"
 
 using namespace Dyninst::SymtabAPI;
-
-func_instance *mapped_object::findGlobalConstructorFunc(const std::string &ctorHandler) {
-    using namespace Dyninst::InstructionAPI;
-
-    const std::vector<func_instance *> *ctorFuncs = findFuncVectorByMangled(ctorHandler);
-    if( ctorFuncs != NULL ) {
-        return ctorFuncs->at(0);
-    }
-
-    return NULL;
-}
-
-func_instance *mapped_object::findGlobalDestructorFunc(const std::string &dtorHandler) {
-    using namespace Dyninst::InstructionAPI;
-
-    const std::vector<func_instance *> *ctorFuncs = findFuncVectorByMangled(dtorHandler);
-    if( ctorFuncs != NULL ) {
-        return ctorFuncs->at(0);
-    }
-    return NULL;
-}
-
