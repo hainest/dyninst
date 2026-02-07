@@ -3,6 +3,7 @@
 #include "image.h"
 #include "parse-cfg.h"
 #include "parse_block.h"
+#include "image_edge.h"
 
 #include <vector>
 

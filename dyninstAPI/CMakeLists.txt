@@ -102,6 +102,7 @@ set(_private_headers
     src/hybridAnalysis.h
     src/IAPI_to_AST.h
     src/image.h
+    src/image_edge.h
     src/infHeap.h
     src/inst-aarch64.h
     src/inst.h
@@ -173,6 +174,7 @@ set(_sources
     src/hybridInstrumentation.C
     src/hybridOverwrites.C
     src/image.C
+    src/image_edge.C
     src/infHeap.C
     src/inst.C
     src/instPoint.C

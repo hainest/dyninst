@@ -33,6 +33,7 @@
 #ifndef IMAGE_FUNC_H
 #define IMAGE_FUNC_H
 
+#include "image_edge.h"
 #include "parse_block.h"
 
 #include <assert.h>
@@ -62,29 +63,10 @@ using namespace Dyninst;
 class pdmodule;
 
 class parse_block;
-class image_edge;
 
 
 
 
-class image_edge : public ParseAPI::Edge {
-    friend class parse_block;
- public:
-    image_edge(parse_block *source, 
-               parse_block *target, 
-               EdgeTypeEnum type) :
-    ParseAPI::Edge(source,target,type)
-   { }
-
-    // MSVC++ 2003 does not properly support covariant return types
-    // in overloaded methods
-#if !defined _MSC_VER || _MSC_VER > 1310 
-   virtual parse_block * src() const { return (parse_block*)ParseAPI::Edge::src(); }
-   virtual parse_block * trg() const { return (parse_block*)ParseAPI::Edge::trg(); }
-#endif
-
-   const char * getTypeString();
-};
 
 #include "ast.h"
 
