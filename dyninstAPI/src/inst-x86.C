@@ -141,18 +141,6 @@ void emitJcc(int condition, int offset,
 /****************************************************************************/
 /****************************************************************************/
 
-/**
- * tramp_pre_frame_size is the amount of space the base trampoline allocates
- * on the stack before setting up a stack frame.  It's needed to stack
- * walk out of base tramps.  Should be treated as a constant, but the
- * C++ scoping rules for const are stupid.
- **/
-
-int tramp_pre_frame_size_32 = 36; //Stack space allocated by 'pushf; pusha'
-
-int tramp_pre_frame_size_64 = 8 + 16 * 8 + AMD64_RED_ZONE; // stack space allocated by pushing flags and 16 GPRs
-                                                // and skipping the 128-byte red zone
-
 bool can_do_relocation(PCProcess *proc,
                        const std::vector<std::vector<Frame> > &stackWalks,
                        func_instance *instrumented_func)
