@@ -337,9 +337,6 @@ class parse_func : public ParseAPI::Function
 
    bool isLeafFunc();
 
-   bool writesFPRs(unsigned level = 0);
-
-
    void invalidateLiveness() { livenessCalculated_ = false; }
    void calcBlockLevelLiveness();
 
@@ -360,11 +357,6 @@ class parse_func : public ParseAPI::Function
    pdmodule *mod_{nullptr};	/* pointer to file that defines func. */
    image *image_{nullptr};
    bool OMPparsed_{false};              /* Set true in parseOMPFunc */
-
-   /////  Variables for liveness Analysis
-   enum regUseState { unknown, used, unused };
-   regUseState containsFPRWrites_{unknown};   // floating point registers
-   regUseState containsSPRWrites_{unknown};   // stack pointer registers
 
    ///////////////////// CFG and function body
    bool containsSharedBlocks_{false};  // True if one or more blocks in this
