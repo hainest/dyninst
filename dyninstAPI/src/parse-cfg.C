@@ -94,15 +94,11 @@ parse_func::parse_func(
   image_(i),
   usedRegisters(NULL),
   containsFPRWrites_(unknown),
-  containsSPRWrites_(unknown),
-  containsSharedBlocks_(false),
   hasWeirdInsns_(false),
   prevBlocksUnresolvedCF_(0),
   unresolvedCF_(UNSET_CF),
   init_retstatus_(UNSET),
-  o7_live(false),
   saves_return_addr_(false),
-  livenessCalculated_(false),
   isPLTFunction_(false),
   containsPowerPreamble_(false),
   noPowerPreambleFunc_(NULL)
@@ -219,11 +215,6 @@ parse_block::parse_block(
                 parse_block_count, parse_block_count*sizeof(parse_block));
 #endif
 }
-
-parse_block::~parse_block() {
-
-}
-
 
 void parse_block::debugPrint() {
    // no looping if we're not printing anything
