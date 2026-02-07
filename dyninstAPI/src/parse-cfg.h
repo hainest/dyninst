@@ -184,11 +184,6 @@ class image_edge : public ParseAPI::Edge {
 };
 
 #include "ast.h"
-class parse_func_registers {
- public:
-  std::set<Register> generalPurposeRegisters;
-  std::set<Register> floatingPointRegisters;
-};
 
 class parse_func : public ParseAPI::Function
 {
@@ -340,9 +335,6 @@ class parse_func : public ParseAPI::Function
    /****************************************/
    bool isPLTFunction();
 
-   std::set<Register> * usedGPRs() { calcUsedRegs(); return &(usedRegisters->generalPurposeRegisters);}
-   std::set<Register> * usedFPRs() { calcUsedRegs(); return &(usedRegisters->floatingPointRegisters);}
-
    bool isLeafFunc();
 
    bool writesFPRs(unsigned level = 0);
@@ -362,9 +354,6 @@ class parse_func : public ParseAPI::Function
 
 
  private:
-   void calcUsedRegs();/* Does one time calculation of registers used in a function, if called again
-                          it just refers to the stored values and returns that */
-
    ///////////////////// Basic func info
    SymtabAPI::Function *func_{nullptr};		/* pointer to the underlying symtab Function */
 
@@ -374,7 +363,6 @@ class parse_func : public ParseAPI::Function
 
    /////  Variables for liveness Analysis
    enum regUseState { unknown, used, unused };
-   parse_func_registers * usedRegisters{nullptr};
    regUseState containsFPRWrites_{unknown};   // floating point registers
    regUseState containsSPRWrites_{unknown};   // stack pointer registers
 
