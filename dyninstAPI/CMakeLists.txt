@@ -184,7 +184,6 @@ set(_sources
     src/parRegion.C
     src/parse_block.C
     src/parse_func.C
-    src/parse-cfg.C
     src/pcEventHandler.C
     src/pcEventMuxer.C
     src/regTracker.C
