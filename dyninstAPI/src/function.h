@@ -41,7 +41,7 @@
 #include <vector>
 #include "codegen.h"
 #include "codeRange.h"
-#include "parse-cfg.h"
+#include "parse_func.h"
 
 #include "bitArray.h"
 
@@ -145,9 +145,10 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
 
   Address getPtrAddress() const {return ptrAddr_;}
 
-  // Not defined here so we don't have to play header file magic
-  // Not const; we can add names via the Dyninst layer
-  parse_func *ifunc() const { return SCAST_PF(func_); }
+  parse_func* ifunc() const {
+    return dynamic_cast<parse_func*>(func_);
+  }
+
   mapped_module *mod() const { return mod_; }
   mapped_object *obj() const;
 

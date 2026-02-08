@@ -121,6 +121,7 @@ set(_private_headers
     src/os.h
     src/parRegion.h
     src/parse_block.h
+    src/parse_func.h
     src/parse-cfg.h
     src/Parsing.h
     src/patch.h
@@ -182,6 +183,7 @@ set(_sources
     src/mapped_object.C
     src/parRegion.C
     src/parse_block.C
+    src/parse_func.C
     src/parse-cfg.C
     src/pcEventHandler.C
     src/pcEventMuxer.C
