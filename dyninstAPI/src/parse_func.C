@@ -124,8 +124,7 @@ void parse_func::addParRegion(Dyninst::Address begin, Dyninst::Address end,
   parRegionsList.push_back(iPar);
 }
 
-/* This function is static.
- *
+/* 
  * Find the blocks that are reachable from the seed blocks
  * if the except blocks are not part of the CFG
  */
@@ -163,9 +162,6 @@ void parse_func::getReachableBlocks(const std::set<parse_block *> &exceptBlocks,
       parse_block *targB = (parse_block *)(*tIter)->trg();
       if (CALL != (*tIter)->type() && false == (*tIter)->sinkEdge() &&
           visited.end() == visited.find(targB))
-      // reachBlocks.end() == reachBlocks.find(targB) &&
-      // exceptBlocks.end() == exceptBlocks.find(targB) &&
-      // seedBlocks.end() == seedBlocks.find(targB) )
       {
         worklist.push_back(targB);
         reachBlocks.insert(targB);
