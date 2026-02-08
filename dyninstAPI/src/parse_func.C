@@ -14,22 +14,12 @@
 namespace dsym = Dyninst::SymtabAPI;
 namespace parse = Dyninst::ParseAPI;
 
-#if defined(ROUGH_MEMORY_PROFILE)
-int parse_func_count = 0;
-#endif
-
 parse_func::parse_func(dsym::Function *func, pdmodule *m, image *i,
                        parse::CodeObject *obj, parse::CodeRegion *reg,
                        InstructionSource *isrc, FuncSource src)
     : Function(func->getOffset(), func->getFirstSymbol()->getMangledName(), obj,
                reg, isrc),
       func_(func), mod_(m), image_(i) {
-#if defined(ROUGH_MEMORY_PROFILE)
-  parse_func_count++;
-  if ((parse_func_count % 100) == 0)
-    fprintf(stderr, "parse_func_count: %d (%d)\n", parse_func_count,
-            parse_func_count * sizeof(parse_func));
-#endif
   _src = src;
   func->setData(this);
 }

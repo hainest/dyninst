@@ -73,13 +73,6 @@ func_instance::func_instance(parse_func *f,
      _powerPreambleFunc(NULL)
 {
   assert(f);
-#if defined(ROUGH_MEMORY_PROFILE)
-  func_instance_count++;
-  if ((func_instance_count % 1000) == 0)
-    fprintf(stderr, "func_instance_count: %d (%d)\n",
-            func_instance_count, func_instance_count*sizeof(func_instance));
-#endif
-
     parsing_printf("%s: creating new proc-specific function at 0x%lx\n",
                    symTabName().c_str(), addr_);
 #if defined(cap_stack_mods)

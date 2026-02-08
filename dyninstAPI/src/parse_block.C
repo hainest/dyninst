@@ -9,11 +9,6 @@
 
 namespace parse = Dyninst::ParseAPI;
 
-#if defined(ROUGH_MEMORY_PROFILE)
-#include <cstdio>
-static int parse_block_count = 0;
-#endif
-
 Dyninst::Address parse_block::firstInsnOffset() const {
   return ParseAPI::Block::start();
 }
@@ -33,13 +28,6 @@ parse_block::parse_block(parse_func *func, parse::CodeRegion *reg,
 
   // basic block IDs are unique within images.
   blockNumber_ = func->img()->getNextBlockID();
-
-#if defined(ROUGH_MEMORY_PROFILE)
-  parse_block_count++;
-  if ((parse_block_count % 100) == 0)
-    fprintf(stderr, "parse_block_count: %d (%d)\n", parse_block_count,
-            parse_block_count * sizeof(parse_block));
-#endif
 }
 
 void parse_block::debugPrint() {

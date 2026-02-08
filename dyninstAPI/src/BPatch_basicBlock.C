@@ -50,8 +50,6 @@
 #include "mapped_object.h"
 #include "addressSpace.h"
 
-int bpatch_basicBlock_count = 0;
-
 BPatch_basicBlock::BPatch_basicBlock(block_instance *ib, BPatch_flowGraph *fg):
   iblock(ib),
   flowGraph(fg),
@@ -61,15 +59,7 @@ BPatch_basicBlock::BPatch_basicBlock(block_instance *ib, BPatch_flowGraph *fg):
   immediatePostDominator(NULL),
   sourceBlocks(NULL),
   instructions(NULL)
-{
-
-#if defined(ROUGH_MEMORY_PROFILE)
-  bpatch_basicBlock_count++;
-  if ((bpatch_basicBlock_count % 10) == 0)
-    fprintf(stderr, "bpatch_basicBlock_count: %d (%d)\n",
-            bpatch_basicBlock_count, bpatch_basicBlock_count*sizeof(BPatch_basicBlock));
-#endif
-}
+{}
 
 //destructor of the class BPatch_basicBlock
 BPatch_basicBlock::~BPatch_basicBlock(){
