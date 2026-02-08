@@ -43,8 +43,8 @@ public:
              Dyninst::ParseAPI::EdgeTypeEnum type)
       : Dyninst::ParseAPI::Edge(source, target, type) {}
 
-  virtual parse_block *src() const;
-  virtual parse_block *trg() const;
+  parse_block *src() const;
+  parse_block *trg() const;
   const char *getTypeString();
 };
 
