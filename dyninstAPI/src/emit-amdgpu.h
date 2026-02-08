@@ -31,6 +31,7 @@
 #ifndef _EMIT_AMDGPU_H
 #define _EMIT_AMDGPU_H
 
+#include "codegen/emitter/RegControl.h"
 #include "common/src/headers.h"
 #include "dyninstAPI/src/ast.h"
 #include "baseTramp.h"

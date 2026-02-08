@@ -82,7 +82,7 @@ bool PCWidget::PCtoReg(const codeGen &templ, const RelocBlock *t, CodeBuffer &bu
 }
 
 #include "dyninstAPI/src/registerSpace.h"
-#include "dyninstAPI/src/emit-aarch64.h"
+#include "emit-aarch64.h"
 bool IPPatch::apply(codeGen &gen, CodeBuffer *) {
   relocation_cerr << "\t\t IPPatch::apply" << endl;
   relocation_cerr << "\t\t\t Generating IPPatch for target address " << std::hex << addr << ", CodeGen current address " << std::hex << gen.currAddr() << " and register number " << reg << endl;

@@ -65,6 +65,7 @@ set(_private_headers
     src/codegen.h
     src/codegen-power.h
     src/codegen-x86.h
+    src/codegen/emitter/RegControl.h
     src/codeRange.h
     src/debug.h
     src/dynProcess.h
@@ -341,6 +342,10 @@ foreach(t ${dyninstAPI_TARGETS})
       ${t} PRIVATE "DYNINST_COMPILER_SEARCH_DIRS=${DYNINST_COMPILER_SEARCH_DIRS}")
   endif()
 
-  target_include_directories(
-    ${t} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/trampolines>")
+  list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/trampolines")
+  list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/codegen/emitter")
+
+  target_include_directories(${t} PUBLIC "$<BUILD_INTERFACE:${_inc_dirs}>")
+
+  unset(_inc_dir)
 endforeach()
