@@ -38,7 +38,7 @@
 #include "dyninstAPI/src/instPoint.h"
 #include "baseTramp.h"
 #include "AstNode.h"
-#include "dyninstAPI/src/emitter.h"
+#include "emitter.h"
 
 class codeGen;
 

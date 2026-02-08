@@ -1,6 +1,6 @@
 #include "Architecture.h"
 #include "dyninstAPI/src/binaryEdit.h"
-#include "dyninstAPI/src/emit-x86.h"
+#include "emit-x86.h"
 #include "registerSpace.h"
 #include "emitter_test.h"
 

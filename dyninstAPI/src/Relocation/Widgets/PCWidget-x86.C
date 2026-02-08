@@ -40,7 +40,7 @@
 #include "dyninstAPI/src/RegisterConversion.h"
 #include "registerSpace.h"
 
-#include "dyninstAPI/src/emitter.h"
+#include "emitter.h"
 
 #include "unaligned_memory_access.h"
 #include <cstdint>

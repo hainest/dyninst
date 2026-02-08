@@ -80,6 +80,12 @@ set(_private_headers
     src/BPatch_libInfo.h
     src/BPatch_memoryAccessAdapter.h
     src/BPatch_private.h
+    src/codegen/emitters/emit-amdgpu.h
+    src/codegen/emitters/emit-aarch64.h
+    src/codegen/emitters/emit-amdgpu.h
+    src/codegen/emitters/emit-power.h
+    src/codegen/emitters/emitter.h
+    src/codegen/emitters/emit-x86.h
     src/codegen-amdgpu.h
     src/codegen-aarch64.h
     src/codegen.h
@@ -89,12 +95,6 @@ set(_private_headers
     src/debug.h
     src/dynProcess.h
     src/dynThread.h
-    src/emit-amdgpu.h
-    src/emit-aarch64.h
-    src/emit-amdgpu.h
-    src/emit-power.h
-    src/emitter.h
-    src/emit-x86.h
     src/frameChecker.h
     src/frame.h
     src/freebsd.h
@@ -276,7 +276,7 @@ if(DYNINST_CODEGEN_ARCH_I386 OR DYNINST_CODEGEN_ARCH_X86_64)
     src/Relocation/Widgets/CFWidget-x86.C
     src/Relocation/Widgets/PCWidget-x86.C
     src/inst-x86.C
-    src/emit-x86.C
+    src/codegen/emitters/emit-x86.C
     src/codegen-x86.C
     src/IAPI_to_AST.C
     src/trampolines/baseTramp-x86.C)
@@ -296,7 +296,7 @@ elseif(DYNINST_CODEGEN_ARCH_AARCH64)
     APPEND
     _sources
     src/inst-aarch64.C
-    src/emit-aarch64.C
+    src/codegen/emitters/emit-aarch64.C
     src/codegen-aarch64.C
     src/RegisterConversion-aarch64.C
     src/registerSpace/registerSpace-aarch64.C
@@ -308,7 +308,7 @@ elseif(DYNINST_CODEGEN_ARCH_AMDGPU_GFX908)
     APPEND
     _sources
     src/inst-amdgpu.C
-    src/emit-amdgpu.C
+    src/codegen/emitters/emit-amdgpu.C
     src/codegen-amdgpu.C
     src/registerSpace/registerSpace-amdgpu.C
     src/RegisterConversion-amdgpu.C
@@ -386,6 +386,7 @@ foreach(t ${dyninstAPI_TARGETS})
   list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/trampolines")
   list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/ASTs")
   list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/registerSpace")
+  list(APPEND _inc_dirs "${CMAKE_CURRENT_SOURCE_DIR}/src/codegen/emitters")
   target_include_directories(${t} PUBLIC "$<BUILD_INTERFACE:${_inc_dirs}>")
   unset(_inc_dirs)
 endforeach()

@@ -51,10 +51,10 @@ using namespace Dyninst::ParseAPI;
 #include "dyninstAPI/src/function.h"
 #include "dyninstAPI/src/parse-cfg.h"
 #include "dyninstAPI/src/mapped_object.h"
-#include "dyninstAPI/src/emitter.h"
+#include "emitter.h"
 #if defined(DYNINST_CODEGEN_ARCH_X86_64)
 // For 32/64-bit mode knowledge
-#include "dyninstAPI/src/emit-x86.h"
+#include "emit-x86.h"
 #endif
 
 using namespace Dyninst;
