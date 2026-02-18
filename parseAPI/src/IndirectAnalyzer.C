@@ -390,14 +390,13 @@ bool IndirectControlFlowAnalyzer::IsZeroExtend(Assignment::Ptr memLoc) {
 }
 
 bool IndirectControlFlowAnalyzer::FindJunkInstruction(Address addr) {
-  unsigned size = block->region()->offset() + block->region()->length() - addr;
+  unsigned num_bytes_to_check = block->region()->offset() + block->region()->length() - addr;
   auto buffer = reinterpret_cast<const unsigned char *>(func->isrc()->getPtrToInstruction(addr));
-  const arch = block->region()->getArch();
+  const auto arch = block->region()->getArch();
 
-  InstructionDecoder dec(buffer, size, arch);
+  InstructionDecoder dec(buffer, num_bytes_to_check, arch);
 
   auto insn = dec.decode();
-
   if (!insn.isValid()) {
     return true;
   }
@@ -413,20 +412,33 @@ bool IndirectControlFlowAnalyzer::FindJunkInstruction(Address addr) {
    * for this, we assume that a single `0x0000` is a valid instruction,
    * but more than one is padding (i.e., junk).
    */
-  bool seen_zero_insn = false;
-  do {
-    if (i.size() == 2 && i.rawByte(0) == 0x00 && i.rawByte(1) == 0x00) {
-      if (seen_zero_insn) {
-        return true;
-      }
-      seen_zero_insn = true;
-      continue;
+  int num_zero_insns = 0;
+
+  /*
+   * InstructionDecoder::decode returns an invalid instruction to signal
+   * the end of parsing the buffer. Since we are explicitly looking for
+   * invalid instructions, we need to differentiate between a "real" invalid
+   * instruction and decoding the last instruction in the block.
+   */
+  auto num_bytes_decoded = insn.size();
+
+  while (num_bytes_decoded <= num_bytes_to_check) {
+    insn = dec.decode();
+    if (!insn.isValid()) {
+      return true;
     }
 
-    insn = dec.decode() if (!i.isValid()) { return true; }
+    num_bytes_decoded += insn.size();
+
+    if (insn.size() == 2 && insn.rawByte(0) == 0x00 &&
+        insn.rawByte(1) == 0x00) {
+      num_zero_insns++;
+    }
+
+    if (num_zero_insns >= 2) {
+      return true;
+    }
   }
 
   return false;
 }
-
-
