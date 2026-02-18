@@ -392,19 +392,42 @@ bool IndirectControlFlowAnalyzer::IsZeroExtend(Assignment::Ptr memLoc) {
 bool IndirectControlFlowAnalyzer::FindJunkInstruction(Address addr) {
     unsigned size = block->region()->offset() + block->region()->length() - addr; 
     auto buffer = reinterpret_cast<const unsigned char *>(func->isrc()->getPtrToInstruction(addr));
-    InstructionDecoder dec(buffer,size,block->region()->getArch());
-    Dyninst::InsnAdapter::IA_IAPI* ahPtr = Dyninst::InsnAdapter::IA_IAPI::makePlatformIA_IAPI(func->obj()->cs()->getArch(), dec, addr, func->obj(), block->region(), func->isrc(), NULL);
-
-    while (!ahPtr->hasCFT()) {
-        Instruction i = ahPtr->current_instruction();
-        if (!i.isValid()) {
-            return true;
-        }
-        if (i.size() == 2 && i.rawByte(0) == 0x00 && i.rawByte(1) == 0x00) {
-            return true;
-        }
-        ahPtr->advance();
+    const arch = block->region()->getArch();
+    
+    InstructionDecoder dec(buffer,size,arch);
+    
+    auto insn = dec.decode();
+    
+    if(!insn.isValid()) {
+      return true;
     }
-    delete ahPtr;
+    
+    if(!(arch == Dyninst::Arch_x86 || arch == Dyninst::Arch_x86_64)) {
+      return false;
+    }
+        
+    /* 
+     * On x86, compilers often emit a sequence of zeros to pad a function
+     * to a particular alignment. However, the bytes `0x0000` correspond
+     * to the valid instruction `add byte ptr ds:[rax], al`. To account
+     * for this, we assume that a single `0x0000` is a valid instruction,
+     * but more than one is padding (i.e., junk).
+     */
+     bool seen_zero_insn = false;
+     do {
+      if(i.size() == 2 && i.rawByte(0) == 0x00 && i.rawByte(1) == 0x00) {
+        if(seen_zero_insn) {
+          return true;
+        }
+        seen_zero_insn = true;
+        continue;
+      }
+
+     insn = dec.decode()
+      if(!i.isValid()) {
+        return true;
+      }
+    }
+
     return false;
 }
