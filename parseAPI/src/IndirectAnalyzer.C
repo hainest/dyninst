@@ -391,7 +391,7 @@ bool IndirectControlFlowAnalyzer::IsZeroExtend(Assignment::Ptr memLoc) {
 
 bool IndirectControlFlowAnalyzer::FindJunkInstruction(Address addr) {
     unsigned size = block->region()->offset() + block->region()->length() - addr; 
-    const unsigned char* buffer = (const unsigned char *)(func->isrc()->getPtrToInstruction(addr));
+    auto buffer = reinterpret_cast<const unsigned char *>(func->isrc()->getPtrToInstruction(addr));
     InstructionDecoder dec(buffer,size,block->region()->getArch());
     Dyninst::InsnAdapter::IA_IAPI* ahPtr = Dyninst::InsnAdapter::IA_IAPI::makePlatformIA_IAPI(func->obj()->cs()->getArch(), dec, addr, func->obj(), block->region(), func->isrc(), NULL);
 
