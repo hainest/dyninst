@@ -35,6 +35,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include "codegen/emitter/RegControl.h"
 #include "compiler_annotations.h"
 #include "dyninstAPI/src/codegen.h"
 #include "dyninstAPI/src/function.h"

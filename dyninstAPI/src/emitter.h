@@ -38,6 +38,7 @@
 
 #include <assert.h>
 #include <vector>
+#include "codegen/emitter/RegControl.h"
 #include "common/src/headers.h"
 #include "dyninstAPI/src/instPoint.h"
 #include "baseTramp.h"

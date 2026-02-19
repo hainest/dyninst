@@ -32,6 +32,7 @@
  * emit-amdgpu.C - AMD GPU mi{25,50,100,200,300}  code generators (emitters)
  */
 
+#include "codegen/emitter/RegControl.h"
 #include "dyninstAPI/src/emit-amdgpu.h"
 #include "dyninstAPI/src/registerSpace.h"
 #include "arch-amdgpu.h"

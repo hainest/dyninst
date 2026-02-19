@@ -40,6 +40,7 @@
 #include "dyn_register.h"
 #include "codegen.h" // codeBufIndex_t 
 #include "dyninstAPI/src/ast.h" // astNodePtr
+#include "codegen/emitter/RegControl.h"
 
 namespace Dyninst {
    namespace PatchAPI {
@@ -146,12 +147,6 @@ public:
  * Dyninst::Address or a Dyninst::Register or nothing of value.  The following family of
  * functions replace "emit" with more strongly typed versions.
  */
-
-typedef enum gnenum {
-   rc_before_jump,
-   rc_after_jump,
-   rc_no_control
-} RegControl;
 
 // The return value is a magic "hand this in when we update" black box;
 // emitA handles emission of things like ifs that need to be updated later.
