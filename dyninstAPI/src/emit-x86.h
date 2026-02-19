@@ -38,6 +38,7 @@
 
 #include <assert.h>
 #include <vector>
+#include "codegen/RegControl.h"
 #include "common/src/headers.h"
 #include "common/src/arch-x86.h"
 #include "dyninstAPI/src/instPoint.h"

@@ -39,6 +39,7 @@
 #include <assert.h>
 #include "codeGenAST.h"
 #include <vector>
+#include "codegen/RegControl.h"
 #include "common/src/headers.h"
 #include "dyninstAPI/src/instPoint.h"
 #include "baseTramp.h"

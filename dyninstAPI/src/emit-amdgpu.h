@@ -31,6 +31,7 @@
 #ifndef _EMIT_AMDGPU_H
 #define _EMIT_AMDGPU_H
 
+#include "codegen/RegControl.h"
 #include "baseTramp.h"
 #include "dyninstAPI/src/instPoint.h"
 #include <assert.h>

@@ -29,6 +29,7 @@
  */
 
 #include "common/src/headers.h"
+#include "codegen/RegControl.h"
 #include "dyninstAPI/h/BPatch_memoryAccess_NP.h"
 #include "dyninstAPI/src/image.h"
 #include "dyninstAPI/src/dynProcess.h"

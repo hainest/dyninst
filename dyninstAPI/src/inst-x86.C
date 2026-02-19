@@ -35,6 +35,7 @@
 #include <iomanip>
 #include <cstdint>
 #include <limits.h>
+#include "codegen/RegControl.h"
 #include "common/src/headers.h"
 #include "compiler_annotations.h"
 #include "compiler_diagnostics.h"

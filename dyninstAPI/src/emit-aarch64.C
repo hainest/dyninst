@@ -54,6 +54,7 @@
 #include "RegisterConversion.h"
 */
 
+#include "codegen/RegControl.h"
 #include "dyninstAPI/src/inst-aarch64.h"
 #include "dyninstAPI/src/emit-aarch64.h"
 #include "registerSpace.h"
