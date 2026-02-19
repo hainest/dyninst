@@ -1,14 +1,10 @@
 include_guard(GLOBAL)
 
-include(DyninstLinkProperties)
+include(DyninstCheckStaticExeSupported)
+dyninst_check_static_exe_supported(LANGUAGES CXX)
 
-# Use PIE when POSITION_INDEPENDENT_CODE is used for executables
-if(POLICY CMP0083)
-  cmake_policy(SET CMP0083 NEW)
-endif()
-
-include(CheckPIESupported)
-check_pie_supported()
+include(DyninstCheckPIESupported)
+dyninst_check_pie_supported(LANGUAGES CXX)
 
 set(DYNINST_REGRESSIONTEST_EXECUTABLES "")
 set(DYNINST_REGRESSIONTEST_LIBRARIES "")
@@ -47,8 +43,10 @@ foreach(main_t "hasmain" "none")
 endforeach()
 
 # Test static libraries
-if(DYNINST_CXX_STATIC_LINK)
-  make_lib_test(STATIC "staticlib")
+make_lib_test(STATIC "staticlib")
+
+if(DYNINST_CXX_STATIC_EXE_SUPPORTED)
+  set(_static_link "staticlink")
 endif()
 
 # Test executables
