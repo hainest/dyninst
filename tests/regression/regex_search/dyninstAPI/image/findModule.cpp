@@ -1,5 +1,5 @@
 #include "dyninstAPI/src/image.h"
-#include "test_binaries.h"
+#include "regex_search.h"
 
 #include <array>
 #include <cstdlib>

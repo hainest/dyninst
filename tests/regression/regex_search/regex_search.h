@@ -1,5 +1,5 @@
-#ifndef DYNINST_TESTS_REGRESSION_BINARIES_TEST_BINARIES_H
-#define DYNINST_TESTS_REGRESSION_BINARIES_TEST_BINARIES_H
+#ifndef DYNINST_TESTS_REGRESSION_REGEX_SEARCH_H
+#define DYNINST_TESTS_REGRESSION_REGEX_SEARCH_H
 
 #include <array>
 #include <string>
@@ -26,14 +26,20 @@ namespace {
   constexpr auto SHOULD_FAIL = true;
 
   // clang-format off
+
+  /* mapped_object::findModule
+   * 
+   *  1. is case-insensitive when doing a regex match
+   *  2. allows for the extended POSIX '*' and '?' characters
+   */
   const std::array<test_t, 8> module_tests = {{
-    test_t(R"(regression_test_binaries\.cpp)"),
-    test_t("regression_test_binaries"),
-    test_t(R"(REGRESSION_TEST_BINARIES\.CPP)"),
-    test_t("REGRESSION_TEST"),
-    test_t(R"(.*regression_TEST.*)"),
-    test_t(R"(regression_TE.T_bin.+\.cpp)"),
-    test_t(R"(regression_test_binaries\..*)"),
+    test_t(R"(regex_search\.cpp)"),
+    test_t("regex_search*"),
+    test_t(R"(REGEX_SEARCH\.CPP)"),
+    test_t("REGEX_SEARCH"),
+    test_t(R"(.*regex_SEARCH.*)"),
+    test_t(R"(regex_SE.R.+\.cpp)"),
+    test_t(R"(regex_search\..*)"),
     test_t(R"([[:digit:]])", SHOULD_FAIL)
   }};
 
@@ -46,13 +52,18 @@ namespace {
     test_t(R"(foo[[:digit:]]+)"),
     test_t(R"(FOO)"),
     test_t("test1"),
-    test_t(R"(Dyninst::RegressionTests::test1)"),
-    test_t(R"(RegressionTests::test1)"),
-    test_t(R"(dyninst::regressiontests::test1)"),
-    test_t("_ZN7Dyninst15RegressionTests5test1Ev"),
+    test_t(R"(Dyninst::RegexTests::test1)"),
+    test_t(R"(RegexTests::test1)"),
+    test_t(R"(dyninst::regextests::test1)"),
+    test_t("_ZN7Dyninst11RegexSearch5test1Ev"),
     test_t(R"([[:digit:]])", SHOULD_FAIL)
   }};
 
+  /* AddressSpace::findObject
+   * 
+   *  1. is case-insensitive when doing a regex match
+   *  2. allows for the extended POSIX '*' and '?' characters
+   */
   const std::array<std::string, 5> dependency_libraries = {{
     R"(libc\.so.*)",
     R"(libc.*)",
@@ -60,6 +71,7 @@ namespace {
     R"(ld-linux-.*\.so.*)",
     R"(ld-linux.*)"
   }};
+
   // clang-format on
 
 }
