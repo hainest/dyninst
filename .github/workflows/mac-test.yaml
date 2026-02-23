@@ -14,7 +14,15 @@ jobs:
     steps:
       - run: |
           set -evx
-          brew install elfutils
+          wget https://sourceware.org/elfutils/ftp/0.194/elfutils-0.194.tar.bz2
+          tar -xf elfutils-0.194.tar.bz2
+          cd elfutils-0.194
+          ./configure --disable-silent-rules --disable-libdebuginfod --disable-debuginfod --program-prefix=elfutils- --with-bzlib --with-lzma --with-zlib --with-zstd --prefix=$PWD/install
+          make
+          make install
+          ls -R $PWD/install
+          
+          #brew install elfutils
           #system_profiler SPHardwareDataType
           #system_profiler SPSoftwareDataType
           
