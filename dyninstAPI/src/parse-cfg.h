@@ -277,8 +277,6 @@ class parse_func : public ParseAPI::Function
    // Initiate parsing on this function
    bool parse();
  
-   const std::vector<image_parRegion*> &parRegions();
-
    bool isInstrumentable();
    bool hasUnresolvedCF();
 

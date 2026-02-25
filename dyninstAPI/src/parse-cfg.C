@@ -167,12 +167,6 @@ Address parse_func::getEndOffset() {
     }
 }
 
-
-const std::vector<image_parRegion *> &parse_func::parRegions() {
-  if (!parsed()) image_->analyzeIfNeeded();
-  return parRegionsList;
-}
-
 bool parse_func::isPLTFunction() {
     return obj()->cs()->linkage().find(addr()) !=
            obj()->cs()->linkage().end();

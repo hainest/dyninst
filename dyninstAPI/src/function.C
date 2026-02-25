@@ -517,13 +517,6 @@ const std::vector< int_parRegion* > &func_instance::parRegions()
   if (parallelRegions_.size() > 0)
     return parallelRegions_;
 
-  for (unsigned int i = 0; i < ifunc()->parRegions().size(); i++)
-    {
-      image_parRegion * imPR = ifunc()->parRegions()[i];
-      //int_parRegion * iPR = new int_parRegion(imPR, baseAddr, this);
-      int_parRegion * iPR = new int_parRegion(imPR, addr_, this);
-      parallelRegions_.push_back(iPR);
-    }
   return parallelRegions_;
 }
 
