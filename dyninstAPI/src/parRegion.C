@@ -151,35 +151,12 @@ void image_parRegion::setClauseLoc(const char *key, Dyninst::Address value)
   clauses[key] = value;
 }
 
-int_parRegion::int_parRegion(image_parRegion *ip, Dyninst::Address baseAddr, func_instance * iFunc)
-{
-  ip_ = ip;
-  addr_ = baseAddr + ip->get_address();
-  endAddr_ = addr_ + ip->getSize();
-  intFunc_ = iFunc;
-}
-
-int_parRegion::~int_parRegion()
-{}
-
-
-int int_parRegion::getClause(const char * key)
-{
-  return  ip_->getClause(key);   
-}
-
 int image_parRegion::getClause(const char * key)
 {
   if (clauses.find(key) != clauses.end())
     return clauses[key];
   else
     return -1;
-}
-
-
-Dyninst::Address int_parRegion::getClauseLoc(const char * key)
-{
-  return  ip_->getClauseLoc(key);   
 }
 
 Dyninst::Address image_parRegion::getClauseLoc(const char * key)
@@ -189,28 +166,4 @@ Dyninst::Address image_parRegion::getClauseLoc(const char * key)
   else
     return 0;
 }
-
-
-int int_parRegion::replaceOMPParameter(const char * key, int value)
-{
-  //  parReg->replaceOMPParameter(key,value);
-  
-  Dyninst::Address writeAddy = getClauseLoc(key);
-
-  Dyninst::Address writeValue = 0x39000000;
-
-  if (value > 0 )
-    writeValue += (unsigned) value;
-
-  AddressSpace * p = intFunc_->proc();
-
-  //printf("About to write value 0x%x to address 0x%x\n", writeValue, writeAddy);
-  
-  if (!p->writeDataSpace((void *) writeAddy, sizeof(writeValue), &writeValue))
-    fprintf(stderr, "%s[%d]:  writeDataSpace failed\n", FILE__, __LINE__);
-  
-  return 0;
-}
-
-
 

@@ -106,33 +106,6 @@ class image_parRegion : public codeRange {
 };
 
 
-class int_parRegion {
- public:
-  int_parRegion(image_parRegion *ip, Dyninst::Address baseAddr, func_instance * );
-  ~int_parRegion();
-
-  Dyninst::Address firstInsnAddr() {return addr_;}
-  Dyninst::Address endAddr() {return endAddr_;}
-
-  const image_parRegion * imagePar() const { return ip_; }
-  
-  void printDetails() { ip_->printDetails(); }
-
-  const func_instance * intFunc() { return intFunc_;}
-
-  int getClause(const char * key);
-  Dyninst::Address getClauseLoc(const char * key);
-
-  int replaceOMPParameter(const char * key, int value);
-
-  Dyninst::Address addr_; /* Absolute address of start of region */
-  Dyninst::Address endAddr_; /* Dyninst::Address of end of region */
-
-  func_instance * intFunc_;
-
-  image_parRegion *ip_;
-};
-
 
 
 
