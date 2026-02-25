@@ -358,7 +358,6 @@ class parse_func : public ParseAPI::Function
 
    //  OpenMP (and other parallel language) support
    std::vector<image_parRegion*> parRegionsList; /* vector of all parallel regions within function */
-    void addParRegion(Address begin, Address end, parRegType t);
    // End OpenMP support
 
    bool hasWeirdInsns_{false};    // true if we stopped the parse at a
