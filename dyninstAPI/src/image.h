@@ -117,8 +117,6 @@ class lineTable;
 class parse_func;
 class image_variable;
 
-class image_parRegion;
-
 class Frame;
 
 class pdmodule;

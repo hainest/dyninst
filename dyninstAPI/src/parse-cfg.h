@@ -41,7 +41,6 @@
 #include <vector>
 #include <string>
 #include "codeRange.h"
-#include "parRegion.h"
 #include <unordered_map>
 #include "symtabAPI/h/Symbol.h"
 #include "bitArray.h"
