@@ -354,10 +354,6 @@ class parse_func : public ParseAPI::Function
    parse_func_registers * usedRegisters{nullptr};
    regUseState containsFPRWrites_{unknown};   // floating point registers
 
-   //  OpenMP (and other parallel language) support
-   std::vector<image_parRegion*> parRegionsList; /* vector of all parallel regions within function */
-   // End OpenMP support
-
    bool hasWeirdInsns_{false};    // true if we stopped the parse at a
 								  // weird instruction (e.g., arpl)
    size_t prevBlocksUnresolvedCF_{}; // num func blocks when calculated
