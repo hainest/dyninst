@@ -512,14 +512,6 @@ Offset func_instance::addrToOffset(const Address a) const {
    return a - (addr() - ifunc()->getOffset());
 }
 
-const std::vector< int_parRegion* > &func_instance::parRegions()
-{
-  if (parallelRegions_.size() > 0)
-    return parallelRegions_;
-
-  return parallelRegions_;
-}
-
 bool func_instance::consistency() const {
    // 1) Check for 1:1 block relationship in
    //    the block list and block map

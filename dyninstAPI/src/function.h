@@ -236,8 +236,6 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   ////////////////////////////////////////////////
 
 
-  const std::vector< int_parRegion* > &parRegions();
-
   unsigned getNumDynamicCalls();
 
   // Fill the <callers> vector with pointers to the statically-determined
