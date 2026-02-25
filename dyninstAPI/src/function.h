@@ -374,9 +374,6 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
                                 that last caused the handler to be invoked. */
   Address handlerFaultAddrAddr_;
 
-  //////////////////////////  Parallel Regions
-  std::vector<int_parRegion*> parallelRegions_; /* pointer to the parallel regions */
-
   void addblock_instance(block_instance *instance);
 
 #if defined(os_windows)

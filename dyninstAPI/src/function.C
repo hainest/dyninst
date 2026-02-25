@@ -153,8 +153,6 @@ func_instance::~func_instance() {
    // We _do_ delete context instPoints, though
    // Except that should get taken care of normally since the
    // structures are static. 
-   for (unsigned i = 0; i < parallelRegions_.size(); i++)
-      delete parallelRegions_[i];
    if (wrapperSym_ != NULL) {
       delete wrapperSym_;
    }
