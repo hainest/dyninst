@@ -200,20 +200,6 @@ bool BPatch_image::getProcedures(BPatch_Vector<BPatch_function*> &procs, bool in
    return some_succeeded;
 }
 
-
-BPatch_Vector<BPatch_parRegion *> *BPatch_image::getParRegions(bool incUninstrumentable)
-{
-   BPatch_Vector<BPatch_function *> procList;
-   bool result = getProcedures(procList, incUninstrumentable);
-   if (!result)
-      return NULL;
-
-   BPatch_Vector<BPatch_parRegion *> *parRegionList = new BPatch_Vector<BPatch_parRegion *>;
-   if (parRegionList == NULL) return NULL;
-
-   return parRegionList;
-}
-
 /*
  * BPatch_image::getGlobalVariables
  *
