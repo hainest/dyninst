@@ -26,7 +26,6 @@ set(_public_headers
     h/BPatch_memoryAccess_NP.h
     h/BPatch_module.h
     h/BPatch_object.h
-    h/BPatch_parRegion.h
     h/BPatch_point.h
     h/BPatch_process.h
     h/BPatch_Set.h
@@ -163,7 +162,6 @@ set(_sources
     src/BPatch_memoryAccessAdapter.C
     src/BPatch_module.C
     src/BPatch_object.C
-    src/BPatch_parRegion.C
     src/BPatch_point.C
     src/BPatch_process.C
     src/BPatch_snippet.C
