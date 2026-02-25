@@ -1518,11 +1518,6 @@ image::~image()
     createdVariables.clear();
     exportedVariables.clear();
 
-   
-    for (i = 0; i < parallelRegions.size(); i++)
-      delete parallelRegions[i];
-    parallelRegions.clear();
-
     // Finally, remove us from the image list.
     allImages.erase(
         std::remove_if(allImages.begin(), allImages.end(),
