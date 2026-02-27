@@ -64,7 +64,10 @@ namespace Dyninst { namespace InstructionAPI {
 
     void updateMnemonic(std::string new_mnemonic) { mnemonic = std::move(new_mnemonic); }
 
-    DYNINST_EXPORT bool operator==(Operation const&) const;
+    DYNINST_EXPORT bool operator==(Operation const& rhs) const {
+      return operationID == rhs.operationID &&
+             mnemonic == rhs.mnemonic;
+    }
 
     bool isVectorInsn{};
     bool isMultiInsnCall{};
