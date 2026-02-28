@@ -28,177 +28,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// $Id: registerSpace.h,v 1.18 2008/06/19 19:53:37 legendre Exp $
-
 #ifndef REGISTER_SPACE_H
 #define REGISTER_SPACE_H
 
-#include <stdio.h>
-#include <string>
-#include <assert.h>
-#include <vector>
 #include <map>
 #include <set>
+#include <string>
 #include <unordered_map>
-#include "dyn_register.h"
-#include "inst.h" // callWhen...
+#include <vector>
 
 #include "bitArray.h"
-
-class codeGen;
-class instPoint;
-class AddressSpace;
-class parse_block;
-class baseTramp;
-
-// A class to retain information about where the original register can be found. It can be in one of the following states:
-// 1) Unsaved, and available via the register itself;
-// 2) Saved in a frame, e.g., a base tramp;
-// 3) Pushed on the stack at a relative offset from the current stack pointer.
-// 4) TODO: we could subclass this and make "get me the current value" a member function; not sure it's really worth it for the minimal amount of memory multiple types will use.
-
-// We also need a better way of tracking what state a register is in. Here's some possibilities, not at all mutually independent:
-
-// Live at the start of instrumentation, or dead;
-// Used during the generation of a subexpression
-// Currently reserved by another AST, but we could recalculate if necessary
-// At a function call node, is it carrying a value?
-
-// Terminology:
-// "Live" : contains a value outside of instrumentation, and so must be saved before use
-// "Used" : used by instrumentation code.
-
-class RealRegister {
-   //This is currently only used on x86_32 to represent the
-   // virtual/real register difference.  'Dyninst::Register' still refers
-   // to virtual registers on this platform.  Contained in a struct
-   // so that no one can accidently cast a Dyninst::Register into a RealRegister
-   friend class registerSpace;
-   signed int r;
- public:
-   RealRegister() { r = 0; }
-   explicit RealRegister(int reg) { r = reg; }
-   int reg() const { return r; }
-};
+#include "dyn_register.h"
+#include "inst.h"
+#include "RealRegister.h"
+#include "registerSlot.h"
 
 #if defined(DYNINST_CODEGEN_ARCH_X86_64)
 #include "inst-x86.h"
 #endif
 
-class registerSlot {
- public:
-   int alloc_num; //MATT TODO: Remove
-    const Dyninst::Register number;    // what register is it, using our Dyninst::Register enum
-    const std::string name;
-
-    typedef enum { deadAlways, deadABI, liveAlways } initialLiveness_t;
-    const initialLiveness_t initialState;
-
-    // Are we off limits for allocation in this particular instance?
-    bool offLimits;
-
-    typedef enum { invalid, GPR, FPR, SPR, SGPR, VGPR, realReg} regType_t;
-    const regType_t type;
-
-    ////////// Code generation
-
-    int refCount;      	// == 0 if free
-
-    typedef enum { live, spilled, dead } livenessState_t;
-    livenessState_t liveState;
-
-    bool keptValue;     // Are we keeping this (as long as we can) to save
-    // the pre-calculated value? Note: refCount can be 0 and
-    // this still set.
-
-    bool beenUsed;      // Has this register been used by generated code?
-
-    // New version of "if we were saved, then where?" It's a pair - true/false,
-    // then offset from the "zeroed" stack pointer.
-    typedef enum { unspilled, framePointer } spillReference_t;
-    spillReference_t spilledState;
-    int saveOffset; // Offset where this register can be
-                    // retrieved.
-    // AMD-64: this is the number of words
-    // POWER: this is the number of bytes
-    // I know it's inconsistent, but it's easier this way since POWER
-    // has some funky math.
-
-    //////// Member functions
-
-    unsigned encoding() const;
-
-    void cleanSlot();
-
-    void markUsed(bool incRefCount) {
-        assert(offLimits == false);
-        assert(refCount == 0);
-        assert(liveState != live);
-
-        if (incRefCount)
-            refCount = 1;
-        beenUsed = true;
-    }
-
-    // Default is just fine
-    // registerSlot(const registerSlot &r)
-
-    void debugPrint(const char *str = NULL);
-
-    // Don't want to use this...
-    registerSlot() :
-       alloc_num(0),
-        number(Dyninst::Null_Register),
-        name("DEFAULT REGISTER"),
-        initialState(deadAlways),
-        offLimits(true),
-        type(invalid),
-        refCount(0),
-        liveState(live),
-        keptValue(false),
-        beenUsed(false),
-        spilledState(unspilled),
-        saveOffset(-1)
-        {}
-
-    registerSlot(Dyninst::Register num,
-                 std::string name_,
-                 bool offLimits_,
-                 initialLiveness_t initial,
-                 regType_t type_) :
-       alloc_num(0),
-        number(num),
-        name(name_),
-        initialState(initial),
-        offLimits(offLimits_),
-        type(type_),
-        refCount(0),
-        liveState(live),
-        keptValue(false),
-        beenUsed(false),
-        spilledState(unspilled),
-        saveOffset(-1) {}
-
-};
-
+class codeGen;
 class instPoint;
-
-typedef struct {
-   bool is_allocatable;
-   bool been_used;
-   int last_used;
-   registerSlot *contains;
-} RealRegsState;
-
-
-class regState_t {
- public:
-   regState_t();
-   int pc_rel_offset;
-   int timeline;
-   int stack_height;
-   std::vector<RealRegsState> registerStates;
-};
+class AddressSpace;
+class baseTramp;
 
 class registerSpace {
    friend class baseTramp;
@@ -212,26 +64,23 @@ class registerSpace {
 
  public:
     // Pre-set unknown register state:
-    // Everything is live...
-    static registerSpace *conservativeRegSpace(AddressSpace *proc);
     // Everything is dead...
     static registerSpace *optimisticRegSpace(AddressSpace *proc);
     // IRPC-specific - everything live for now
     static registerSpace *irpcRegSpace(AddressSpace *proc);
     // Aaand instPoint-specific
     static registerSpace *actualRegSpace(instPoint *iP);
-    // DO NOT DELETE THESE.
-    static registerSpace *savedRegSpace(AddressSpace *proc);
 
     static registerSpace *getRegisterSpace(AddressSpace *proc);
     static registerSpace *getRegisterSpace(unsigned addr_width);
 
-    registerSpace();
+    registerSpace() = default;
+    registerSpace(const registerSpace &) = delete;
+    ~registerSpace();
+    registerSpace &operator=(const registerSpace &src) = delete;
 
     static void createRegisterSpace(std::vector<registerSlot *> &registers);
     static void createRegisterSpace64(std::vector<registerSlot *> &registers);
-
-    ~registerSpace();
 
     // Read the value in register souce from wherever we've stored it in
     // memory (including the register itself), and stick it in actual register
@@ -258,17 +107,10 @@ class registerSpace {
     // to touch)
     Dyninst::Register getScratchRegister(codeGen &gen, std::vector<Dyninst::Register> &excluded, bool noCost = true, bool realReg = false);
 
-
-    bool trySpecificRegister(codeGen &gen, Dyninst::Register reg, bool noCost = true);
-
-    bool saveAllRegisters(codeGen &gen, bool noCost);
-    bool restoreAllRegisters(codeGen &gen, bool noCost);
-
     // For now, we save registers elsewhere and mark them here.
     bool markSavedRegister(Dyninst::Register num, int offsetFromFP);
     bool markSavedRegister(RealRegister num, int offsetFromFP);
 
-    //
     bool markKeptRegister(Dyninst::Register num);
 
     // Things that will be modified implicitly by anything else we
@@ -290,8 +132,8 @@ class registerSpace {
 
     // Check to see if the register is free
     // DO NOT USE THIS!!!! to tell if you can use a register as
-    // a scratch register; do that with trySpecificRegister
-    // or allocateSpecificRegister. This is _ONLY_ to determine
+    // a scratch register; do that with allocateSpecificRegister.
+    // This is _ONLY_ to determine
     // if a register should be saved (e.g., over a call).
     bool isFreeRegister(Dyninst::Register k);
 
@@ -303,22 +145,12 @@ class registerSpace {
     // and call this routine to correct this.
     void incRefCount(Dyninst::Register k);
 
-    // Reset when the regSpace is reset - marked offlimits for
-    // allocation.
-    bool markReadOnly(Dyninst::Register k);
-    bool readOnlyRegister(Dyninst::Register k);
-    // Make sure that no registers remain allocated, except "to_exclude"
-    // Used for assertion checking.
-    void checkLeaks(Dyninst::Register to_exclude);
-
     int getAddressWidth() { return addr_width; }
     void debugPrint();
-    void printAllocedRegisters();
 
     int numGPRs() const { return GPRs_.size(); }
     int numFPRs() const { return FPRs_.size(); }
     int numSPRs() const { return SPRs_.size(); }
-    int numRegisters() const { return registers_.size(); }
 
     std::vector <registerSlot *> &GPRs() { return GPRs_; }
     std::vector <registerSlot *> &FPRs() { return FPRs_; }
@@ -344,7 +176,6 @@ class registerSpace {
      * allocates and uses virtual registers, these methods provide mappings from
      * virtual registers to real registers.
      **/
- public:
     //Put VReg into RReg
     RealRegister loadVirtual(registerSlot *virt_r, codeGen &gen);
     RealRegister loadVirtual(Dyninst::Register virt_r, codeGen &gen);
@@ -369,8 +200,8 @@ class registerSpace {
     void markVirtualDead(Dyninst::Register num);
     bool spilledAnything();
 
-    Dyninst::Register pc_rel_reg;
-    int pc_rel_use_count;
+    Dyninst::Register pc_rel_reg{Dyninst::Null_Register};
+    int pc_rel_use_count{};
     int& pc_rel_offset();
     void incStack(int val);
     int getInstFrameSize();
@@ -383,7 +214,7 @@ class registerSpace {
     void pushNewRegState();
 
  private:
-    int instFrameSize_;  // How much stack space we allocate for
+    int instFrameSize_{};// How much stack space we allocate for
                          // instrumentation before a frame is set up.
 
     std::vector<regState_t *> regStateStack;
@@ -406,26 +237,12 @@ class registerSpace {
     void movVRegToReal(registerSlot *v_reg, RealRegister r, codeGen &gen);
     void movRegToReg(RealRegister dest, RealRegister src, codeGen &gen);
 
-    unsigned savedFlagSize;
-
- private:
-
-    registerSpace(const registerSpace &);
-
-    registerSlot &getRegisterSlot(Dyninst::Register reg);
-
     registerSlot *findRegister(Dyninst::Register reg);
     registerSlot *findRegister(RealRegister reg);
 
-    bool spillRegister(Dyninst::Register reg, codeGen &gen, bool noCost);
     bool stealRegister(Dyninst::Register reg, codeGen &gen, bool noCost);
 
-    bool restoreRegister(Dyninst::Register reg, codeGen &gen, bool noCost);
-    bool popRegister(Dyninst::Register reg, codeGen &gen, bool noCost);
-
     bool markSavedRegister(registerSlot *num, int offsetFromFP);
-
-    int currStackPointer;
 
     // This structure is permanently tainted by its association with
     // virtual registers...
@@ -446,9 +263,6 @@ class registerSpace {
     static void initialize32();
     static void initialize64();
 
-
-    registerSpace &operator=(const registerSpace &src);
-
     typedef enum {arbitrary, ABI_boundary, allSaved} rs_location_t;
 
     // Specialize liveness as represented by a bit array
@@ -457,7 +271,10 @@ class registerSpace {
     void specializeSpace(const bitArray &);
     bool checkLive(Dyninst::Register reg, const bitArray &liveRegs);
 
-    unsigned addr_width;
+    unsigned addr_width{};
+
+    // Everything is live...
+    static registerSpace *conservativeRegSpace(AddressSpace *proc);
 
  public:
 #if defined(DYNINST_CODEGEN_ARCH_POWER)
@@ -504,15 +321,6 @@ class registerSpace {
 
     int framePointer() { return RegisterConstants::s33; }
 #endif
-
-    // Create a map of register names to register numbers
-    std::map<std::string, Dyninst::Register> registersByName;
-    // The reverse map can be handled by doing a rs[x]->name
-
-    Dyninst::Register getRegByName(const std::string name);
-    std::string getRegByNumber(Dyninst::Register num);
-    void getAllRegisterNames(std::vector<std::string> &ret);
-
 
 };
 

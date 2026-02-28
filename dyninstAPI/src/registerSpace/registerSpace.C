@@ -69,76 +69,6 @@
 registerSpace *registerSpace::globalRegSpace_ = NULL;
 registerSpace *registerSpace::globalRegSpace64_ = NULL;
 
-void registerSlot::cleanSlot() {
-    // number does not change
-    refCount = 0;
-    //liveState = live;
-    //liveState does not change
-    keptValue = false;
-    beenUsed = false;
-    // initialState doesn't change
-    // offLimits doesn't change
-    spilledState = unspilled;
-    saveOffset = 0;
-    // type doesn't change
-}
-
-unsigned registerSlot::encoding() const {
-    // Should write this for all platforms when the encoding is done.
-#if defined(DYNINST_CODEGEN_ARCH_POWER)
-    switch (type) {
-    case GPR:
-        return registerSpace::GPR(number);
-        break;
-    case FPR:
-        return registerSpace::FPR(number);
-        break;
-    case SPR:
-        return registerSpace::SPR(number);
-        break;
-    default:
-        assert(0);
-        return Null_Register;
-        break;
-    }
-#elif defined(DYNINST_CODEGEN_ARCH_I386) || defined(DYNINST_CODEGEN_ARCH_X86_64)
-    // Should do a mapping here from entire register space to "expected" encodings.
-    return number;
-#elif defined(DYNINST_CODEGEN_ARCH_AARCH64) 
-    switch (type) {
-        case GPR:
-            return registerSpace::GPR(number);
-            break;
-        case FPR:
-            return registerSpace::FPR(number);
-            break;
-        default:
-            assert(0);
-            return Null_Register;
-            break;
-    }
-#elif defined(DYNINST_CODEGEN_ARCH_AMDGPU_GFX908)
-    switch (type) {
-      case SGPR:
-            return registerSpace::SGPR(number);
-            break;
-      case VGPR:
-            return registerSpace::VGPR(number);
-            break;
-/*      case AGPR:
-            return registerSpace::AGPR(number);
-            break;*/
-      default:
-            assert(0);
-            return Null_Register;
-            break;
-    }
-#else
-    assert(0);
-    return 0;
-#endif
-}
-
 registerSpace *registerSpace::getRegisterSpace(unsigned width) {
     if (globalRegSpace_ == NULL) initialize();
     registerSpace *ret = (width == 4) ? globalRegSpace_ : globalRegSpace64_;
@@ -166,16 +96,10 @@ registerSpace *registerSpace::optimisticRegSpace(AddressSpace *proc) {
 }
 
 registerSpace *registerSpace::irpcRegSpace(AddressSpace *proc) {
-   registerSpace *rspace = savedRegSpace(proc);
+   registerSpace *rspace = getRegisterSpace(proc);
+   rspace->specializeSpace(allSaved);
    rspace->initRealRegSpace();
    return rspace;
-}
-
-registerSpace *registerSpace::savedRegSpace(AddressSpace *proc) {
-    registerSpace *ret = getRegisterSpace(proc);
-    ret->specializeSpace(allSaved);
-    ret->initRealRegSpace();
-    return ret;
 }
 
 registerSpace *registerSpace::actualRegSpace(instPoint *iP)
@@ -195,27 +119,8 @@ registerSpace *registerSpace::actualRegSpace(instPoint *iP)
       ret->initRealRegSpace();
       return ret;
    }
-    // Use one of the other registerSpaces...
-    // If we're entry/exit/call site, return the optimistic version
-    /*    if (iP->getPointType() == functionEntry)
-        return optimisticRegSpace(iP->proc());
-    if (iP->getPointType() == functionExit)
-        return optimisticRegSpace(iP->proc());
-    if (iP->getPointType() == callSite)
-    return optimisticRegSpace(iP->proc());*/
 
     return conservativeRegSpace(iP->proc());
-}
-
-
-registerSpace::registerSpace() :
-    pc_rel_reg(0),
-    pc_rel_use_count(0),
-    instFrameSize_(0),
-    savedFlagSize(0),
-    currStackPointer(0),
-    addr_width(0)
-{
 }
 
 registerSpace::~registerSpace()
@@ -260,8 +165,6 @@ void registerSpace::createRegSpaceInt(std::vector<registerSlot *> &registers,
 
         rs->registers_[reg] = registers[i];
 
-        rs->registersByName[registers[i]->name] = registers[i]->number;
-
         switch (registers[i]->type) {
         case registerSlot::GPR: {
         case registerSlot::SGPR:
@@ -295,31 +198,6 @@ void registerSpace::createRegSpaceInt(std::vector<registerSlot *> &registers,
 
 }
 
-bool registerSpace::trySpecificRegister(codeGen &gen, Register num,
-					bool noCost)
-{
-  auto iter = registers_.find(num);
-  if (iter == registers_.end()) return false;
-  registerSlot *reg = iter->second;
-
-  if (reg->offLimits) return false;
-  else if (reg->refCount > 0) return false;
-  else if (reg->liveState == registerSlot::live) {
-     if (!spillRegister(num, gen, noCost)) {
-        return false;
-     }
-  }
-  else if (reg->keptValue) {
-     return false;
-  }
-
-  reg->markUsed(true);
-
-  regalloc_printf("Allocated register %u\n", num.getId());
-
-  return true;
-}
-
 bool registerSpace::allocateSpecificRegister(codeGen &gen, Register num,
 					     bool noCost)
 {
@@ -343,10 +221,8 @@ bool registerSpace::allocateSpecificRegister(codeGen &gen, Register num,
       return false;
     }
     else if (reg->liveState == registerSlot::live) {
-      if (!spillRegister(num, gen, noCost)) {
 	regalloc_printf("Error: specific register could not be spilled!\n");
 	return false;
-      }
     }
     else if (reg->keptValue) {
       if (!stealRegister(num, gen, noCost)) {
@@ -370,8 +246,6 @@ Register registerSpace::getScratchRegister(codeGen &gen, bool noCost, bool realR
 }
 
 Register registerSpace::getScratchRegister(codeGen &gen, std::vector<Register> &excluded, bool noCost, bool realReg) {
-  static int num_allocs = 0;
-
   std::vector<registerSlot *> couldBeStolen;
   std::vector<registerSlot *> couldBeSpilled;
 
@@ -425,16 +299,6 @@ Register registerSpace::getScratchRegister(codeGen &gen, std::vector<Register> &
         break;
     }
 
-    if (toUse == NULL) {
-        // Argh. Let's assume spilling is cheaper
-        for (unsigned i = 0; i < couldBeSpilled.size(); i++) {
-            if (spillRegister(couldBeSpilled[i]->number, gen, noCost)) {
-                toUse = couldBeSpilled[i];
-                break;
-            }
-        }
-    }
-
     // Still?
     if (toUse == NULL) {
         for (unsigned i = 0; i < couldBeStolen.size(); i++) {
@@ -450,9 +314,6 @@ Register registerSpace::getScratchRegister(codeGen &gen, std::vector<Register> &
       // debugPrint();
         return Null_Register;
     }
-
-    toUse->alloc_num = num_allocs;
-    num_allocs++;
 
   toUse->markUsed(false);
 
@@ -477,13 +338,6 @@ Register registerSpace::allocateRegister(codeGen &gen,
   }
   regalloc_printf("Allocated register %u\n", reg.getId());
   return reg;
-}
-
-bool registerSpace::spillRegister(Register reg, codeGen &, bool /*noCost*/) {
-  assert(!registers_[reg]->offLimits);
-
-  //assert(0 && "Unimplemented!");
-  return false;
 }
 
 bool registerSpace::stealRegister(Register reg, codeGen &gen, bool /*noCost*/) {
@@ -537,7 +391,6 @@ bool registerSpace::checkVolatileRegisters(codeGen &,
 #if defined(DYNINST_CODEGEN_ARCH_X86_64) || defined(DYNINST_CODEGEN_ARCH_I386)
 bool registerSpace::saveVolatileRegisters(codeGen &gen)
 {
-    savedFlagSize = 0;
     if (!checkVolatileRegisters(gen, registerSlot::live))
         return false;
 
@@ -583,7 +436,6 @@ bool registerSpace::saveVolatileRegisters(codeGen &gen)
 
     }
 
-    savedFlagSize = addr_width;
     return true;
 }
 #else
@@ -666,8 +518,8 @@ void registerSpace::forceFreeRegister(Register num)
 }
 
 // DO NOT USE THIS!!!! to tell if you can use a register as
-// a scratch register; do that with trySpecificRegister
-// or allocateSpecificRegister. This is _ONLY_ to determine
+// a scratch register; do that with allocateSpecificRegister
+// This is _ONLY_ to determine
 // if a register should be saved (e.g., over a call).
 bool registerSpace::isFreeRegister(Register num) {
     registerSlot *reg = findRegister(num);
@@ -698,27 +550,6 @@ void registerSpace::cleanSpace() {
     for (unsigned i=0; i<realRegisters_.size(); i++) {
        realRegisters_[i]->cleanSlot();
     }
-}
-
-bool registerSpace::restoreAllRegisters(codeGen &, bool) {
-    assert(0);
-    return true;
-}
-
-bool registerSpace::restoreRegister(Register, codeGen &, bool /*noCost*/)
-{
-    assert(0);
-    return true;
-}
-
-bool registerSpace::popRegister(Register, codeGen &, bool) {
-    assert(0);
-    return true;
-}
-
-bool registerSpace::markReadOnly(Register) {
-    assert(0);
-    return true;
 }
 
 bool registerSpace::readProgramRegister(codeGen &gen,
@@ -866,15 +697,7 @@ bool registerSpace::markSavedRegister(registerSlot *s, int offsetFromFP) {
     if (s == NULL)  {
         // We get this on platforms where we save registers we don't use in
         // code generation... like, say, RSP or RBP on AMD-64.
-        //fprintf(stderr, "ERROR: unable to find register %d\n", num);
         return false;
-    }
-
-    if (s->spilledState != registerSlot::unspilled) {
-        // Things to do... add this check in, yo. Right now we don't clean
-        // properly.
-
-//        assert(0);
     }
 
     s->liveState = registerSlot::spilled;
@@ -888,7 +711,7 @@ void registerSlot::debugPrint(const char *prefix) {
     if (!dyn_debug_regalloc) return;
 
 	if (prefix) fprintf(stderr, "%s", prefix);
-	fprintf(stderr, "Num: %u, name %s, type %s, refCount %d, liveState %s, beenUsed %d, initialState %s, offLimits %d, keptValue %d, alloc %d\n",
+	fprintf(stderr, "Num: %u, name %s, type %s, refCount %d, liveState %s, beenUsed %d, initialState %s, offLimits %d, keptValue %d\n",
                 number.getId(),
                 name.c_str(),
                 (type == GPR) ? "GPR" : ((type == FPR) ? "FPR" : "SPR"),
@@ -897,8 +720,7 @@ void registerSlot::debugPrint(const char *prefix) {
                 beenUsed,
                 (initialState == deadAlways) ? "always dead" : ((initialState == deadABI) ? "ABI dead" : "always live"),
                 offLimits,
-                keptValue,
-                alloc_num);
+                keptValue);
 }
 
 void registerSpace::debugPrint() {
@@ -908,8 +730,6 @@ void registerSpace::debugPrint() {
   fprintf(stderr, "Beginning debug print of registerSpace at %p...", (void*)this);
   fprintf(stderr, "GPRs: %ld, FPRs: %ld, SPRs: %ld\n",
 	  (long) GPRs_.size(), (long) FPRs_.size(), (long) SPRs_.size());
-  fprintf(stderr, "Stack pointer is at %d\n",
-	  currStackPointer);
   fprintf(stderr, "Register dump:");
   fprintf(stderr, "=====GPRs=====\n");
   for (unsigned i = 0; i < GPRs_.size(); i++) {
@@ -1005,27 +825,6 @@ std::vector<registerSlot *>& registerSpace::trampRegs()
 
 registerSlot *registerSpace::operator[](Register reg) {
     return registers_[reg];
-}
-
-
-// Big honkin' name->register map
-
-void registerSpace::getAllRegisterNames(std::vector<std::string> &ret) {
-    // Currently GPR only
-    for (unsigned i = 0; i < GPRs_.size(); i++) {
-        ret.push_back(GPRs_[i]->name);
-    }
-}
-
-Register registerSpace::getRegByName(const std::string name) {
-    map<std::string,Register>::iterator cur = registersByName.find(name);
-    if (cur == registersByName.end())
-        return Null_Register;
-    return (*cur).second;
-}
-
-std::string registerSpace::getRegByNumber(Register reg) {
-    return registers_[reg]->name;
 }
 
 // If we have defined realRegisters_ (IA-32 and 32-bit mode AMD-64)
