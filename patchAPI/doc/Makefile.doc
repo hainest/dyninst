@@ -8,8 +8,8 @@ DEP=patchapi.tex \
 	section/5_api_modification.tex \
 	section/6_api_plugin.tex \
 	section/7_dyninst.tex \
-	../../common/doc/manual_frontpage.tex \
-	../../common/doc/manual_commands.tex
+	../../docs/manual_frontpage.tex \
+	../../docs/manual_commands.tex
 
 $(MAIN).pdf: $(DEP)
 	$(TEX) $(MAIN)
