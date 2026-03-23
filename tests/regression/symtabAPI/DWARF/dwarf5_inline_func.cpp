@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
   st::FunctionBase *f{};
   symtab->getContainingInlinedFunction(offset_of_main, f);
-  
+
   if (!f) {
     std::cerr << "No inlined function found in 'main' (0x: " << std::hex
               << offset_of_main << "\n";
