@@ -76,9 +76,37 @@ class InstructionDecoderImpl
         boost::shared_ptr<Instruction> makeInstruction(entryID opcode, const char* mnem, unsigned int decodedSize,
                                      const unsigned char* raw);
 
-        Operation m_Operation;
-        Architecture m_Arch;
+    template<typename... Args>
+    void add_operand(Args... args) {
+      m_Operands.emplace_back(args...);
+    }
 
+    template<typename... Args>
+    void add_cft_target(Args... args) {
+      m_CFT_Targets.emplace_back(args...);
+    }
+
+    void add_successor(Expression::Ptr e, bool isCall, bool isIndirect, bool isConditional,
+                       bool isFallthrough, bool isImplicit = false) {
+      add_cft_target(e, isCall, isIndirect, isConditional, isFallthrough);
+      if(!isFallthrough) {
+        add_operand(e, OP_READ, !OP_WRITTEN, isImplicit);
+      }
+    }
+
+    static constexpr bool CFT_CALL = true;
+    static constexpr bool CFT_INDIRECT = true;
+    static constexpr bool CFT_CONDITIONAL = true;
+    static constexpr bool CFT_FALLTHROUGH = true;
+
+    static constexpr bool OP_READ = true;
+    static constexpr bool OP_WRITTEN = true;
+    static constexpr bool OP_IMPLICIT = true;
+
+    Operation m_Operation;
+    Architecture m_Arch;
+    std::vector<Operand> m_Operands;
+    std::vector<Instruction::CFT> m_CFT_Targets;
 };
 
 }
