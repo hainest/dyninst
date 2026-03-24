@@ -1,0 +1,57 @@
+name: DWARF quality tests
+
+# Taken from https://github.com/woodard/dwqual
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # 3AM on Monday
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  get-oses:
+    runs-on: ubuntu-latest
+    needs: check-if-needed
+    outputs:
+      latest: ${{ steps.all.outputs.latest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - id: all
+        uses: ./.github/actions/os-versions
+
+  whichvars:
+    runs-on: ubuntu-latest
+    needs: [get-oses, get-compilers]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.get-oses.outputs.latest) }}
+    permissions:
+      packages: read
+    container:
+      image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    name: 
+    steps:
+      - name: build ${{ github.job }}
+        shell: bash
+        run: |
+          set -ex
+          
+          
+
+          # clang needs llvm-ar to do LTO
+          libs=
+          if test ${{ matrix.opt }} = "DYNINST_ENABLE_LTO" \
+               -a ${{ matrix.compiler }} = "clang"; then
+           libs="llvm"
+          fi
+          echo "value=${libs}" >> $GITHUB_OUTPUT
