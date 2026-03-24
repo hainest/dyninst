@@ -34,6 +34,9 @@
 #include "InstructionDecoderImpl.h"
 #include "common/src/ia32_locations.h"
 
+#include <memory>
+#include <unordered_map>
+
 namespace NS_x86 {
   struct ia32_operand;
   class ia32_instruction;
@@ -73,18 +76,23 @@ namespace Dyninst { namespace InstructionAPI {
     void doIA32Decode(InstructionDecoder::buffer& b);
     bool isDefault64Insn();
     void decodeOpcode(InstructionDecoder::buffer&);
-
     bool decodeOperands(const Instruction* insn_to_complete);
+    void setup_implicit_operands();
+    std::vector<Operand> get_implicit_register_operands();
+    std::vector<Operand> const& get_implicit_memory_operands();
 
-    ia32_locations* locs;
-    NS_x86::ia32_instruction* decodedInstruction;
-    bool sizePrefixPresent;
-    bool addrSizePrefixPresent;
-    bool is64BitMode;
+    ia32_locations* locs{};
+    NS_x86::ia32_instruction* decodedInstruction{};
+    bool sizePrefixPresent{false};
+    bool addrSizePrefixPresent{false};
+    bool is64BitMode{false};
     prefixEntryID prefixID{prefix_none};
     bool isVectorInsn{false};
-    Result_Type addrWidth;
+    Result_Type addrWidth{};
     int segPrefix{};
+    std::once_flag data_initialized;
+    std::unordered_map<entryID, std::vector<Operand>> implicit_register_operands;
+    std::unordered_map<entryID, std::vector<Operand>> implicit_memory_operands;
   };
 }}
 

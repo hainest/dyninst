@@ -84,7 +84,6 @@ namespace Dyninst { namespace InstructionAPI {
     bool isVectorInsn{};
 
   private:
-    std::once_flag data_initialized;
     void SetUpNonOperandData();
 
     mutable registerSet otherRead;

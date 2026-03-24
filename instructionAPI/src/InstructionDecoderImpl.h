@@ -42,6 +42,18 @@ namespace Dyninst
 {
 namespace InstructionAPI
 {
+
+namespace {
+  constexpr bool CFT_CALL = true;
+  constexpr bool CFT_INDIRECT = true;
+  constexpr bool CFT_CONDITIONAL = true;
+  constexpr bool CFT_FALLTHROUGH = true;
+
+  constexpr bool OP_READ = true;
+  constexpr bool OP_WRITTEN = true;
+  constexpr bool OP_IMPLICIT = true;
+}
+
 class InstructionDecoderImpl
 {
     public:
@@ -93,15 +105,6 @@ class InstructionDecoderImpl
             add_operand(e, OP_READ, !OP_WRITTEN, isImplicit);
           }
         }
-
-        static constexpr bool CFT_CALL = true;
-        static constexpr bool CFT_INDIRECT = true;
-        static constexpr bool CFT_CONDITIONAL = true;
-        static constexpr bool CFT_FALLTHROUGH = true;
-
-        static constexpr bool OP_READ = true;
-        static constexpr bool OP_WRITTEN = true;
-        static constexpr bool OP_IMPLICIT = true;
 
         Operation m_Operation;
         Architecture m_Arch;

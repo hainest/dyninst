@@ -36,14 +36,31 @@
 #include "Register.h"
 #include "common/src/arch-x86.h"
 #include "registers/abstract_regs.h"
+#include "registers/register_set.h"
 #include "registers/x86_64_regs.h"
 #include "registers/x86_regs.h"
 #include "unaligned_memory_access.h"
+
+#include "BinaryFunction.h"
+#include "Immediate.h"
+#include "Register.h"
+#include "registers/x86_64_regs.h"
+#include "registers/x86_regs.h"
+#include "concurrent.h"
 
 #include <boost/make_shared.hpp>
 
 using namespace std;
 using namespace NS_x86;
+
+namespace std {
+  template<>
+  struct hash<Dyninst::MachRegister> {
+    std::size_t operator()(Dyninst::MachRegister r) const noexcept {
+      return r.val();
+    }
+  };
+}
 
 static bool getVectorizationInfo(ia32_entry* e) {
   for(int i = 0; i < 3; i++) {
@@ -154,8 +171,9 @@ namespace Dyninst { namespace InstructionAPI {
   }
 
   DYNINST_EXPORT InstructionDecoder_x86::InstructionDecoder_x86(Architecture a)
-      : InstructionDecoderImpl(a), locs(NULL), decodedInstruction(NULL), sizePrefixPresent(false),
-        addrSizePrefixPresent(false), is64BitMode{a == Arch_x86_64} {}
+      : InstructionDecoderImpl(a), is64BitMode{a == Arch_x86_64} {
+        std::call_once(data_initialized, [this](){setup_implicit_operands();});
+      }
 
   DYNINST_EXPORT InstructionDecoder_x86::~InstructionDecoder_x86() {
     free(decodedInstruction);
@@ -1791,13 +1809,16 @@ namespace Dyninst { namespace InstructionAPI {
     int imm_index = 0; // handle multiple immediate operands
     if(!decodedInstruction || !decodedInstruction->getEntry())
       return false;
-    unsigned int opsema = decodedInstruction->getEntry()->opsema;
-    unsigned int semantics = opsema & 0xFF;
-    unsigned int implicit_operands = sGetImplicitOPs(decodedInstruction->getEntry()->impl_dec);
-    InstructionDecoder::buffer b(insn_to_complete->ptr(), insn_to_complete->size());
 
-    if(decodedInstruction->getEntry()->getID() == e_ret_near ||
-       decodedInstruction->getEntry()->getID() == e_ret_far) {
+    if(m_EntryID == e_endbr32 || m_EntryID == e_endbr64) {
+      insn_to_complete->m_Operands.clear();
+      return true;
+    }
+
+    auto const& implicit_registers = get_implicit_register_operands();
+    auto const& implicit_memory = get_implicit_memory_operands();
+
+    if(m_EntryID == e_ret_near || m_EntryID == e_ret_far) {
       /************************************************************************
        *  AMD64 Architecture Programmer’s Manual Volume 3. Version 3.33. Nov 2021
        *
@@ -1816,30 +1837,35 @@ namespace Dyninst { namespace InstructionAPI {
       add_successor(action, !CFT_CALL, CFT_INDIRECT, !CFT_CONDITIONAL, !CFT_FALLTHROUGH, OP_IMPLICIT);
     }
 
-    if(insn_to_complete->getOperation().getID() == e_endbr32 ||
-       insn_to_complete->getOperation().getID() == e_endbr64) {
-      insn_to_complete->m_Operands.clear();
-      return true;
-    }
+    auto *entry = decodedInstruction->getEntry();
+    unsigned int opsema = entry->opsema;
+    unsigned int semantics = opsema & 0xFF;
+    unsigned int implicit_operands = sGetImplicitOPs(entry->impl_dec);
+    InstructionDecoder::buffer b(insn_to_complete->ptr(), insn_to_complete->size());
 
     for(int i = 0; i < 3; i++) {
-      if(decodedInstruction->getEntry()->operands[i].admet == 0 &&
-         decodedInstruction->getEntry()->operands[i].optype == 0)
-        break;
+      auto const& op = entry->operands[i];
 
-      if(!decodeOneOperand(b, decodedInstruction->getEntry()->operands[i], imm_index,
-                           insn_to_complete, readsOperand(semantics, i),
-                           writesOperand(semantics, i), implicitOperand(implicit_operands, i))) {
+      if(op.admet == 0 && op.optype == 0) {
+        break;
+      }
+
+      const auto read = readsOperand(semantics, i);
+      const auto written = writesOperand(semantics, i);
+      const auto implicit = implicitOperand(implicit_operands, i);
+
+      const bool res = decodeOneOperand(b, op, imm_index, insn_to_complete, read, written, implicit);
+      if(!res) {
         return false;
       }
     }
 
     /* Does this instruction have a 4th operand? */
     if(semantics >= s4OP) {
-      if(decodedInstruction->getEntry()->operands[3].admet != 0 ||
-         decodedInstruction->getEntry()->operands[3].optype != 0) {
+      if(entry->operands[3].admet != 0 ||
+         entry->operands[3].optype != 0) {
         // Special handling for FMA4 instructions
-        if(!decodeOneOperand(b, decodedInstruction->getEntry()->operands[3], imm_index,
+        if(!decodeOneOperand(b, entry->operands[3], imm_index,
                              insn_to_complete, readsOperand(semantics, 3),
                              writesOperand(semantics, 3), implicitOperand(implicit_operands, 3))) {
           return false;
@@ -1888,6 +1914,194 @@ namespace Dyninst { namespace InstructionAPI {
     insn.m_Operands = std::move(m_Operands);
 
     return insn;
+  }
+
+  void InstructionDecoder_x86::setup_implicit_operands() {
+
+    implicit_register_operands.reserve(68);
+    implicit_memory_operands.reserve(9);
+
+    auto pc = makeRegisterExpression(MachRegister::getPC(m_Arch));
+    auto sp = makeRegisterExpression(MachRegister::getStackPointer(m_Arch));
+    auto fp = makeRegisterExpression(MachRegister::getFramePointer(m_Arch));
+    auto esi = makeRegisterExpression(is64BitMode ? x86::esi : x86_64::rsi);
+    auto edi = makeRegisterExpression(is64BitMode ? x86::edi : x86_64::rdi);
+
+    implicit_memory_operands[e_pop].emplace_back(sp, OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+    implicit_memory_operands[e_popal].emplace_back(sp, OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+    implicit_memory_operands[e_popaw].emplace_back(sp, OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+    implicit_memory_operands[e_push].emplace_back(sp, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_memory_operands[e_pushal].emplace_back(sp, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_memory_operands[e_call].emplace_back(sp, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_memory_operands[e_ret_near].emplace_back(sp, OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+    implicit_memory_operands[e_ret_far].emplace_back(sp, OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+    implicit_memory_operands[e_leave].emplace_back(sp, OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+
+    implicit_register_operands[e_call].emplace_back(pc, OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_call].emplace_back(sp, OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_cmpsb].emplace_back(esi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_cmpsb].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_cmpsd].emplace_back(esi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_cmpsd].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_cmpsw].emplace_back(esi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_cmpsw].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_enter].emplace_back(sp, OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_enter].emplace_back(fp, OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_insb].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_insd].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_insw].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_ja].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jae].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jb].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jb_jnaej_j].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jbe].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jcxz_jec].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_je].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jg].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jge].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jl].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jle].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jmp].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jnb_jae_j].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jne].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jno].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jnp].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jns].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jo].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_jp].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_js].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_leave].emplace_back(fp, OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_leave].emplace_back(sp, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_lodsb].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_lodsd].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_lodsw].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_loop].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_loope].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_loopne].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_movsb].emplace_back(esi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_movsb].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_movsd].emplace_back(esi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_movsd].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_movsw].emplace_back(esi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_movsw].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_outsb].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_outsd].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_outsw].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_ret_far].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_ret_far].emplace_back(sp, OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_ret_near].emplace_back(pc, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_ret_near].emplace_back(sp, OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_scasb].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_scasd].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_scasw].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_stosb].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_stosd].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    implicit_register_operands[e_stosw].emplace_back(edi, !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+  }
+
+  std::vector<Operand> const& InstructionDecoder_x86::get_implicit_memory_operands() {
+    return implicit_memory_operands[m_EntryID];
+  }
+
+  std::vector<Operand> InstructionDecoder_x86::get_implicit_register_operands() {
+    std::vector<Operand> operands;
+
+    if(prefixID == prefix_rep || prefixID == prefix_repnz) {
+      if(prefixID == prefix_repnz) {
+        auto zf = makeRegisterExpression(is64BitMode ? x86::zf : x86_64::zf);
+        operands.emplace_back(std::move(zf), OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+      }
+      auto df = makeRegisterExpression(is64BitMode ? x86::df : x86_64::df);
+      operands.emplace_back(std::move(df), OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+      auto ecx = makeRegisterExpression(is64BitMode ? x86::ecx : x86_64::rcx);
+      operands.emplace_back(std::move(ecx), OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    }
+
+    switch(segPrefix) {
+      case PREFIX_SEGCS: {
+        auto cs = makeRegisterExpression(is64BitMode ? x86::cs : x86_64::cs);
+        operands.emplace_back(std::move(cs), OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+        break;
+      }
+      case PREFIX_SEGDS: {
+        auto ds = makeRegisterExpression(is64BitMode ? x86::ds : x86_64::ds);
+        operands.emplace_back(std::move(ds), OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+        break;
+      }
+      case PREFIX_SEGES: {
+        auto es = makeRegisterExpression(is64BitMode ? x86::es : x86_64::es);
+        operands.emplace_back(std::move(es), OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+        break;
+      }
+      case PREFIX_SEGFS: {
+        auto fs = makeRegisterExpression(is64BitMode ? x86::fs : x86_64::fs);
+        operands.emplace_back(std::move(fs), OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+        break;
+      }
+      case PREFIX_SEGGS: {
+        auto gs = makeRegisterExpression(is64BitMode ? x86::gs : x86_64::gs);
+        operands.emplace_back(std::move(gs), OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+        break;
+      }
+      case PREFIX_SEGSS: {
+        auto ss = makeRegisterExpression(is64BitMode ? x86::ss : x86_64::ss);
+        operands.emplace_back(std::move(ss), OP_READ, !OP_WRITTEN, OP_IMPLICIT);
+        break;
+      }
+    }
+
+    if(m_EntryID == e_push) {
+      // special case for push: we write at the new value of the SP.
+      if(addrWidth == Result_Type{}) {
+        addrWidth = is64BitMode ? u32 : u64;
+      }
+
+      Result dummy(addrWidth, 0);
+      auto imm = Immediate::makeImmediate(Result(s8, -dummy.size()));
+      auto sp = makeRegisterExpression(MachRegister::getStackPointer(m_Arch));
+      auto adder = boost::make_shared<BinaryFunction::addResult>();
+      auto push_addr = boost::make_shared<BinaryFunction>(std::move(sp), std::move(imm), addrWidth, std::move(adder));
+      operands.emplace_back(std::move(push_addr), !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+    }
+
+    auto found = ia32_instruction::getFlagTable().find(m_EntryID);
+    if(found != ia32_instruction::getFlagTable().end()) {
+      std::unordered_map<MachRegister, MachRegister> xlat = {
+        {x86::cf, x86_64::cf},
+        {x86::pf, x86_64::pf},
+        {x86::af, x86_64::af},
+        {x86::zf, x86_64::zf},
+        {x86::sf, x86_64::sf},
+        {x86::tf, x86_64::tf},
+        {x86::df, x86_64::df},
+        {x86::of, x86_64::of},
+        {x86::nt_, x86_64::nt_},
+        {x86::if_, x86_64::if_},
+        {x86::rf, x86_64::rf},
+      };
+
+      {
+        register_set read;
+        for(auto const& f : found->second.readFlags) {
+          read.insert(f);
+        }
+        for(auto const& f : found->second.writtenFlags) {
+          auto r = makeRegisterExpression(xlat[f]);
+          if(read.contains(f)) {
+            // Read and written
+            operands.emplace_back(std::move(r), OP_READ, OP_WRITTEN, OP_IMPLICIT);
+          } else {
+            // Only written
+            operands.emplace_back(std::move(r), !OP_READ, OP_WRITTEN, OP_IMPLICIT);
+          }
+        }
+      }
+
+      for(auto const& op : implicit_register_operands[m_EntryID]) {
+        operands.push_back(op);
+      }
+    }
+    return operands;
   }
 
 }}
