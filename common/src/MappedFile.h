@@ -39,7 +39,7 @@ class MappedFile {
      static dyn_hash_map<std::string, MappedFile *> mapped_files;
 
    public:
-      DYNINST_EXPORT static MappedFile *createMappedFile(std::string const& fullpath_);
+      DYNINST_EXPORT static MappedFile *createMappedFile(std::string fullpath_);
       DYNINST_EXPORT static MappedFile *createMappedFile(void *map_loc, unsigned long size_, const std::string &name);
       DYNINST_EXPORT static void closeMappedFile(MappedFile *&mf);
 

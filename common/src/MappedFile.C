@@ -34,7 +34,7 @@ using namespace std;
 
 dyn_hash_map<std::string, MappedFile *> MappedFile::mapped_files;
 
-MappedFile *MappedFile::createMappedFile(std::string const& fullpath_)
+MappedFile *MappedFile::createMappedFile(std::string fullpath_)
 {
    fullpath_ = Dyninst::filesystem::canonicalize(std::move(fullpath_));
 
