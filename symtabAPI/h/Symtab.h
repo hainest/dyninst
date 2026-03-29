@@ -117,7 +117,7 @@ class DYNINST_EXPORT Symtab : public LookupInterface,
       NotDefensive,
       Defensive} def_t; 
 
-   static bool openFile(Symtab *&obj, std::string const& filename,
+   static bool openFile(Symtab *&obj, std::string filename,
                                       def_t defensive_binary = NotDefensive);
    static bool openFile(Symtab *&obj, void *mem_image, size_t size, 
                                       std::string const& name, def_t defensive_binary = NotDefensive);

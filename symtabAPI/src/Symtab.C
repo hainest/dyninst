@@ -1358,7 +1358,7 @@ Symtab *Symtab::findOpenSymtab(std::string const& filename)
 	return NULL;
 }
 
-bool Symtab::openFile(Symtab *&obj, std::string const& filename, def_t def_binary)
+bool Symtab::openFile(Symtab *&obj, std::string filename, def_t def_binary)
 {
    filename = Dyninst::filesystem::canonicalize(std::move(filename));
    bool err = false;
