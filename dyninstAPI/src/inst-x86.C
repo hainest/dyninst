@@ -143,14 +143,6 @@ void emitJcc(int condition, int offset,
  *
  **************************************************************/
 
-bool doNotOverflow(int64_t value)
-{
-    if (value <= INT_MAX && value >= INT_MIN) return true;
-    return false;
-}
-
-
-
 /* build the MOD/RM byte of an instruction */
 static inline unsigned char makeModRMbyte(unsigned Mod, unsigned Reg,
                                           unsigned RM)
