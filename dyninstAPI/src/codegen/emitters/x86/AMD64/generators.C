@@ -46,20 +46,20 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
     // returning since we account for it in the rex prefix
 
     // "R" register - extension to ModRM reg field
-    if(r && *r & 0x08) {
+    if(r && (*r & 0x08)) {
       rex |= 0x04;
       *r = r->getId() & 0x07;
     }
 
     // "X" register - extension to SIB index field
-    if(x && *x & 0x08) {
+    if(x && (*x & 0x08)) {
       rex |= 0x02;
       *x = x->getId() & 0x07;
     }
 
     // "B" register - extension to ModRM r/m field, SIB base field,
     // or opcode reg field
-    if(b && *b & 0x08) {
+    if(b && (*b & 0x08)) {
       rex |= 0x01;
       *b = b->getId() & 0x07;
     }
