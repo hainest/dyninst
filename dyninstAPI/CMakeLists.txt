@@ -82,7 +82,7 @@ set(_sources
     src/variable.C)
 
 if(DYNINST_CODEGEN_ARCH_I386 OR DYNINST_CODEGEN_ARCH_X86_64)
-  list(APPEND _sources src/addressSpace-x86.C src/inst-x86.C src/emit-x86.C)
+  list(APPEND _sources src/addressSpace-x86.C src/inst-x86.C)
 
   if(DYNINST_CODEGEN_ARCH_I386)
     list(APPEND _sources src/addressSpace-IA32.C)
