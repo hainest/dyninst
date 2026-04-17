@@ -11,7 +11,7 @@
 #include "emit-power.h"
 #include "inst-power.h"
 #elif defined(DYNINST_CODEGEN_ARCH_I386) || defined(DYNINST_CODEGEN_ARCH_X86_64)
-#include "emit-x86.h"
+#include "codegen/emitters/x86/Emitterx86.h"
 #include "inst-x86.h"
 #elif defined(DYNINST_CODEGEN_ARCH_AARCH64)
 #include "emit-aarch64.h"

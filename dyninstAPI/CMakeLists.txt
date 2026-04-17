@@ -94,7 +94,6 @@ set(_private_headers
     src/emit-amdgpu.h
     src/emit-power.h
     src/emitter.h
-    src/emit-x86.h
     src/frameChecker.h
     src/frame.h
     src/freebsd.h

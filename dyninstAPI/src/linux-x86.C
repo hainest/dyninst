@@ -49,7 +49,6 @@
 #include "dyninstAPI/src/debug.h"
 #include "common/src/dyninst_filesystem.h"
 #include "dyninstAPI/src/inst-x86.h"
-#include "dyninstAPI/src/emit-x86.h"
 #include "registers/x86_regs.h"
 #include "registers/x86_64_regs.h"
 #include "dyninstAPI/src/mapped_object.h" 

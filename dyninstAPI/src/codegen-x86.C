@@ -45,7 +45,6 @@
 #include "Instruction.h"
 #include "codegen/emitters/x86/AMD64/generators.h"
 
-#include "emit-x86.h"
 #include "inst-x86.h"
 
 #include "StackMod/StackAccess.h"

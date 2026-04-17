@@ -53,7 +53,7 @@ using namespace Dyninst::ParseAPI;
 #include "dyninstAPI/src/emitter.h"
 #if defined(DYNINST_CODEGEN_ARCH_X86_64)
 // For 32/64-bit mode knowledge
-#include "dyninstAPI/src/emit-x86.h"
+//#include "dyninstAPI/src/emit-x86.h"
 #endif
 
 using namespace Dyninst;

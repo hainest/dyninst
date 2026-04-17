@@ -18,7 +18,7 @@
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be usefuemitMoveRegToRegl,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
@@ -39,7 +39,7 @@
 #include "dyninstAPI/src/function.h"
 #include "dyninstAPI/src/mapped_object.h"
 #include "registerSpace.h"
-
+#include "emitter.h"
 #include "dyninstAPI/h/BPatch.h"
 #include "dyninstAPI/src/BPatch_collections.h"
 #include "dyninstAPI/h/BPatch_type.h"
@@ -57,7 +57,6 @@
 #include "dyninstAPI/src/emit-power.h"
 #elif defined(DYNINST_CODEGEN_ARCH_I386) || defined(DYNINST_CODEGEN_ARCH_X86_64)
 #include "dyninstAPI/src/inst-x86.h"
-#include "dyninstAPI/src/emit-x86.h"
 #elif defined(DYNINST_CODEGEN_ARCH_AARCH64)
 #include "dyninstAPI/src/inst-aarch64.h"
 #include "dyninstAPI/src/emit-aarch64.h"
