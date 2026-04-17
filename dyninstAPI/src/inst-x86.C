@@ -37,6 +37,9 @@
 #include <limits.h>
 #include "codegen/RegControl.h"
 #include "codegen/emitters/x86/IA32/EmitterIA32Dyn.h"
+#include "codegen/emitters/x86/IA32/EmitterIA32Stat.h"
+#include "codegen/emitters/x86/AMD64/EmitterAMD64Dyn.h"
+#include "codegen/emitters/x86/AMD64/EmitterAMD64Stat.h"
 #include "common/src/headers.h"
 #include "compiler_annotations.h"
 #include "compiler_diagnostics.h"
@@ -49,7 +52,6 @@
 #include "codegen/codegen.h"
 #include "dyninstAPI/src/inst-x86.h"
 #include "trampolines/baseTramp.h"
-#include "dyninstAPI/src/emit-x86.h"
 #include "patching/instPoint.h" // includes instPoint-x86.h
 #include "registers/x86_regs.h"
 #include "registers/x86_64_regs.h"

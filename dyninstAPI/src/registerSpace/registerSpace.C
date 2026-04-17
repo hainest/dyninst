@@ -55,7 +55,6 @@
 #include "dyninstAPI/src/inst-power.h"
 #elif defined(DYNINST_CODEGEN_ARCH_I386) || defined(DYNINST_CODEGEN_ARCH_X86_64)
 #include "dyninstAPI/src/inst-x86.h"
-#include "dyninstAPI/src/emit-x86.h"
 #elif defined(DYNINST_CODEGEN_ARCH_AARCH64)
 #include "dyninstAPI/src/inst-aarch64.h"
 #include "codegen/emitters/aarch64/EmitterAarch64.h"

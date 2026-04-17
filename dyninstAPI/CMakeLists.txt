@@ -44,7 +44,6 @@ set(_private_headers
     src/debug.h
     src/emit-amdgpu.h
     src/emitter.h
-    src/emit-x86.h
     src/freebsd.h
     src/function_cache.h
     src/hybridAnalysis.h
