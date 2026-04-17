@@ -25,6 +25,8 @@ extern bool isPowerOf2(int value, int &result);
 
 static int extra_space_check{};
 
+constexpr static auto IA32_STACK_ALIGNMENT = 16;
+
 namespace Dyninst { namespace DyninstAPI {
 
   bool EmitterIA32::clobberAllFuncCall(registerSpace *rs, func_instance *callee) {
