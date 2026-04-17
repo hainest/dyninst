@@ -4,8 +4,11 @@
 #include "dyninstAPI/src/emit-x86.h"
 #include "registerSpace.h"
 #include "emitter_test.h"
+#include "codegen/emitters/x86/AMD64/generators.h"
 
 using codeGenASTPtr = Dyninst::DyninstAPI::codeGenASTPtr;
+
+namespace amd64 = Dyninst::DyninstAPI::AMD64;
 
 int main() {
   using Dyninst::verify_emitter;
@@ -224,43 +227,43 @@ int main() {
   }});
 
   // Add immediate to value in memory at [rax]
-  emitAddRM64(REGNUM_EAX, 0x12345678, true, gen);
+  amd64::emitAddRM64(REGNUM_EAX, 0x12345678, true, gen);
   failed |= !verify_emitter(gen, emitter_buffer_t<8>{{
     0x48,  0x48, 0x81, 0x0, 0x78, 0x56, 0x34, 0x12,  // add qword ptr [rax], 0x12345678
   }});
 
   // Load immediate into memory location [rax + 0x20]
-  emitMovImmToRM64(REGNUM_EAX, 0x20, 0x12345678, true, gen);
+  amd64::emitMovImmToRM64(REGNUM_EAX, 0x20, 0x12345678, true, gen);
   failed |= !verify_emitter(gen, emitter_buffer_t<7>{{
     0xc7, 0x40, 0x20, 0x78, 0x56, 0x34, 0x12  // mov dword ptr [rax + 0x20], 0x12345678
   }});
 
   // Load address 0x20 bytes ahead of current address
-  emitMovPCRMToReg64(REGNUM_EAX, 0x20, 0x8, gen, false);
+  amd64::emitMovPCRMToReg64(REGNUM_EAX, 0x20, 0x8, gen, false);
   failed |= !verify_emitter(gen, emitter_buffer_t<7>{{
     0x48, 0x8d, 0x05, 0x19, 0x0, 0x0, 0x0  // lea rax, [rip + 0x19]
   }});
 
   // Load value at the address 0x20 bytes ahead of current address
-  emitMovPCRMToReg64(REGNUM_EAX, 0x20, 0x8, gen, true);
+  amd64::emitMovPCRMToReg64(REGNUM_EAX, 0x20, 0x8, gen, true);
   failed |= !verify_emitter(gen, emitter_buffer_t<7>{{
     0x48, 0x8b, 0x05, 0x19, 0x0, 0x0, 0x0  // mov rax, qword ptr [rip + 0x19]
   }});
 
   // Load rsi into rax
-  emitMovRegToReg64(REGNUM_EAX, REGNUM_ESI, true, gen);
+  amd64::emitMovRegToReg64(REGNUM_EAX, REGNUM_ESI, true, gen);
   failed |= !verify_emitter(gen, emitter_buffer_t<3>{{
     0x48, 0x8b, 0xc6  // mov rax, rsi
   }});
 
   // Load value at top of stack into rax
-  emitPopReg64(REGNUM_EAX, gen);
+  amd64::emitPopReg64(REGNUM_EAX, gen);
   failed |= !verify_emitter(gen, emitter_buffer_t<1>{{
     0x58  // pop rax
   }});
 
   // Store rax on stack
-  emitPushReg64(REGNUM_EAX, gen);
+  amd64::emitPushReg64(REGNUM_EAX, gen);
   failed |= !verify_emitter(gen, emitter_buffer_t<1>{{
     0x50  // push rax
   }});
