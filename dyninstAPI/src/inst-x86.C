@@ -1348,7 +1348,7 @@ Emitter *AddressSpace::getEmitter()
    static Dyninst::DyninstAPI::EmitterIA32Stat emitter32Stat;
 
 #if defined(DYNINST_CODEGEN_ARCH_X86_64)
-   static EmitterAMD64Dyn emitter64Dyn;
+   static Dyninst::DyninstAPI::EmitterAMD64Dyn emitter64Dyn;
    static EmitterAMD64Stat emitter64Stat;
 
    if (getAddressWidth() == 8) {
