@@ -41,7 +41,7 @@ namespace Dyninst { namespace DyninstAPI {
 
   class EmitterAMD64Dyn : public EmitterAMD64 {
   public:
-    bool emitCallInstruction(codeGen &gen, func_instance *target, Register ret);
+    bool emitCallInstruction(codeGen &gen, func_instance *target, Register ret) override;
   };
 
 }}
