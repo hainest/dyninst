@@ -127,8 +127,6 @@ bool emitPop(RealRegister reg, codeGen &gen);
 
 
 void emitJump(unsigned disp32, codeGen &gen);
-void emitJccR8(int condition_code, char jump_offset,
-               codeGen &gen);
 void emitJcc(int condition, int offset, codeGen &gen, bool willRegen=true);
 void emitPushImm(unsigned int imm, codeGen &gen);
 void emitAddMemImm32(Dyninst::Address dest, int imm, codeGen &gen);

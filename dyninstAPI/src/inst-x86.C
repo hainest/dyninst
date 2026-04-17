@@ -96,14 +96,6 @@ class InsertNops;
 /****************************************************************************/
 /****************************************************************************/
 
-void emitJccR8(int condition_code, char jump_offset,
-               codeGen &gen) {
-    GET_PTR(insn, gen);
-    append_memory_as_byte(insn, condition_code);
-    append_memory_as_byte(insn, jump_offset);
-    SET_PTR(insn, gen);
-}
-
 // VG(8/15/02): nicer jcc: condition is the tttn field.
 // Because we generate jumps twice, once with bogus 0
 // offset, and then with the right offset, the instruction
