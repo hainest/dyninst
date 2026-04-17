@@ -52,6 +52,7 @@
 #include "codegen/emitters/x86/IA32/EmitterIA32Stat.h"
 #include "codegen/emitters/x86/AMD64/EmitterAMD64.h"
 #include "codegen/emitters/x86/AMD64/EmitterAMD64Dyn.h"
+#include "codegen/emitters/x86/AMD64/EmitterAMD64Stat.h"
 
 class codeGen;
 class registerSpace;
@@ -64,15 +65,6 @@ using codeGenASTPtr = Dyninst::DyninstAPI::codeGenASTPtr;
 
 #if defined(DYNINST_CODEGEN_ARCH_X86_64)
 
-class EmitterAMD64Stat : public Dyninst::DyninstAPI::EmitterAMD64 {
- public:
-    ~EmitterAMD64Stat() {}
-    
-    virtual bool emitPLTCall(func_instance *dest, codeGen &gen);
-    virtual bool emitPLTJump(func_instance *dest, codeGen &gen);
-
-    bool emitCallInstruction(codeGen &gen, func_instance *target, Register ret);
-};
 
 #endif
 

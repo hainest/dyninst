@@ -1349,7 +1349,7 @@ Emitter *AddressSpace::getEmitter()
 
 #if defined(DYNINST_CODEGEN_ARCH_X86_64)
    static Dyninst::DyninstAPI::EmitterAMD64Dyn emitter64Dyn;
-   static EmitterAMD64Stat emitter64Stat;
+   static Dyninst::DyninstAPI::EmitterAMD64Stat emitter64Stat;
 
    if (getAddressWidth() == 8) {
        if (proc()) {
@@ -1477,14 +1477,6 @@ void emitRestoreO(codeGen &gen)
    append_memory_as_byte(insn, 0x80);
    append_memory_as_byte(insn, 0xC0);
    append_memory_as_byte(insn, 0x7f);
-   SET_PTR(insn, gen);
-}
-
-void emitCallRel32(unsigned disp32, codeGen &gen)
-{
-   GET_PTR(insn, gen);
-   append_memory_as_byte(insn, 0xE8);
-   append_memory_as(insn, uint32_t{disp32});
    SET_PTR(insn, gen);
 }
 

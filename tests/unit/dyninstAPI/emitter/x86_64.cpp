@@ -5,10 +5,12 @@
 #include "registerSpace.h"
 #include "emitter_test.h"
 #include "codegen/emitters/x86/AMD64/generators.h"
+#include "codegen/emitters/x86/AMD64/EmitterAMD64Stat.h"
 
 using codeGenASTPtr = Dyninst::DyninstAPI::codeGenASTPtr;
 
-namespace amd64 = Dyninst::DyninstAPI::AMD64;
+namespace dd = Dyninst::DyninstAPI;
+namespace amd64 = dd::AMD64;
 
 int main() {
   using Dyninst::verify_emitter;
@@ -29,7 +31,7 @@ int main() {
   gen.setAddrSpace(&bin_edit);
   gen.setRegisterSpace(rs);
 
-  auto *emitter = static_cast<EmitterAMD64Stat*>(gen.emitter());
+  auto *emitter = static_cast<dd::EmitterAMD64Stat*>(gen.emitter());
 
   bool failed = false;
 

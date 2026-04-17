@@ -1,4 +1,5 @@
 #include "arch-regs-x86.h"
+#include "codegen/emitters/x86/generators.h"
 #include "EmitterIA32Stat.h"
 #include "function.h"
 #include "inst-x86.h"
@@ -36,7 +37,7 @@ namespace Dyninst { namespace DyninstAPI {
     } else {
       dest = callee->addr();
       Address src = gen.currAddr() + 5;
-      emitCallRel32(dest - src, gen);
+      x86::emitCallRel32(dest - src, gen);
     }
 
     gen.rs()->freeRegister(placeholder1);

@@ -74,4 +74,11 @@ namespace Dyninst { namespace DyninstAPI { namespace x86 {
     }
   }
 
+  void emitCallRel32(unsigned disp32, codeGen &gen) {
+    GET_PTR(insn, gen);
+    append_memory_as_byte(insn, 0xE8);
+    append_memory_as(insn, uint32_t{disp32});
+    SET_PTR(insn, gen);
+  }
+
 }}}
