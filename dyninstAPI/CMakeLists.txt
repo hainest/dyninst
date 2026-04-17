@@ -292,7 +292,6 @@ if(DYNINST_CODEGEN_ARCH_I386 OR DYNINST_CODEGEN_ARCH_X86_64)
     src/Relocation/Widgets/CFWidget-x86.C
     src/Relocation/Widgets/PCWidget-x86.C
     src/inst-x86.C
-    src/emit-x86.C
     src/codegen-x86.C
     src/IAPI_to_AST.C
     src/trampolines/baseTramp-x86.C)
