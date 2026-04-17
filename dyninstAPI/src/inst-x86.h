@@ -67,7 +67,6 @@
 
 #define TRAMP_FRAME_SIZE ((NUM_VIRTUAL_REGISTERS+1)*4)
 
-#define IA32_STACK_ALIGNMENT     16
 #define AMD64_STACK_ALIGNMENT    32  // This is extremely conservative.
                                      // 16 may be enough.
 class codeGen;
