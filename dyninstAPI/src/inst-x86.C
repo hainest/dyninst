@@ -137,48 +137,6 @@ void emitJcc(int condition, int offset,
 /****************************************************************************/
 /****************************************************************************/
 
-bool can_do_relocation(PCProcess *proc,
-                       const std::vector<std::vector<Frame> > &stackWalks,
-                       func_instance *instrumented_func)
-{
-   bool can_do_reloc = true;
-
-   // for every vectors of frame, ie. thread stack walk, make sure can do
-   // relocation
-   Address begAddr = instrumented_func->addr();
-   for (unsigned walk_itr = 0; walk_itr < stackWalks.size(); walk_itr++) {
-     std::vector<func_instance *> stack_funcs =
-       proc->pcsToFuncs(stackWalks[walk_itr]);
-     
-     // for every frame in thread stack walk
-     for(unsigned i=0; i<stack_funcs.size(); i++) {
-       func_instance *stack_func = stack_funcs[i];
-       Address pc = stackWalks[walk_itr][i].getPC();
-       
-       if( stack_func == instrumented_func ) {
-	 // Catchup doesn't occur on instPoinst in relocated function when
-	 // the original function is on the stack.  This leads to the
-	 // timer never being called for timer metrics.  A solution still
-	 // needs to be worked out.
-	 if(pc >= begAddr && pc <= begAddr+JUMP_REL32_SZ) {
-	   // can't relocate since within first five bytes
-	   can_do_reloc = false;
-	 } else {
-             // Need to check whether each entry point has enough room
-             // to patch in a jump; technically, this is only needed
-             // if we're _in_ the function as control may transfer to
-             // the middle of the jump(s) out.
-
-             assert(0);
-         }
-	 break;
-       }
-     }
-   }
-   
-   return can_do_reloc;
-}
-
 /**************************************************************
  *
  *  code generator for x86
