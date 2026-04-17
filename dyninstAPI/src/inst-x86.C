@@ -923,11 +923,6 @@ bool emitPop(RealRegister reg, codeGen &gen) {
 /****************************************************************************/
 /****************************************************************************/
 
-int getMaxJumpSize()
-{
-  return JUMP_REL32_SZ;
-}
-
 bool emitAddSignedImm(Address addr, long int imm, codeGen &gen) {
    gen.codeEmitter()->emitAddSignedImm(addr, imm, gen);
    return true;
