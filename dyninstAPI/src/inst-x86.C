@@ -143,16 +143,6 @@ void emitJcc(int condition, int offset,
  *
  **************************************************************/
 
-
-
-
-#define MAX_BRANCH	(static_cast<uint32_t>(1)<<31)
-
-Address getMaxBranch() {
-  return (Address)MAX_BRANCH;
-}
-
-
 bool doNotOverflow(int64_t value)
 {
     if (value <= INT_MAX && value >= INT_MIN) return true;

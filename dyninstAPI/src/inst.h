@@ -211,8 +211,6 @@ Dyninst::Register emitFuncCall(opCode op, codeGen &gen,
 					  bool noCost, 
                       func_instance *func);
 
-extern Dyninst::Address getMaxBranch();
-
 // find these internal functions before finding any other functions
 // extern std::unordered_map<std::string, unsigned> tagDict;
 
