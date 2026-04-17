@@ -42,9 +42,6 @@ namespace Dyninst { namespace DyninstAPI {
 
   class EmitterAMD64 : public Emitterx86 {
   public:
-    EmitterAMD64() = default;
-    virtual ~EmitterAMD64() = default;
-
     bool clobberAllFuncCall(registerSpace *rs, func_instance *callee);
 
     void emitAddSignedImm(Address addr, int imm, codeGen &gen, bool noCost);
