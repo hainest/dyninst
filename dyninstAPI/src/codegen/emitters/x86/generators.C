@@ -60,6 +60,13 @@ namespace Dyninst { namespace DyninstAPI { namespace x86 {
     SET_PTR(insn, gen);
   }
 
+  void emitCallRel32(unsigned disp32, codeGen &gen) {
+    GET_PTR(insn, gen);
+    append_memory_as_byte(insn, 0xE8);
+    append_memory_as(insn, uint32_t{disp32});
+    SET_PTR(insn, gen);
+  }
+
   void emitSegPrefix(Register segReg, codeGen &gen) {
     switch(segReg) {
       case REGNUM_FS:
@@ -72,13 +79,6 @@ namespace Dyninst { namespace DyninstAPI { namespace x86 {
         assert(0 && "Segment register not handled");
         return;
     }
-  }
-
-  void emitCallRel32(unsigned disp32, codeGen &gen) {
-    GET_PTR(insn, gen);
-    append_memory_as_byte(insn, 0xE8);
-    append_memory_as(insn, uint32_t{disp32});
-    SET_PTR(insn, gen);
   }
 
 }}}
