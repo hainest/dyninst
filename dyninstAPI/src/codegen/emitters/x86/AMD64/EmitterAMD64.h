@@ -152,9 +152,6 @@ namespace Dyninst { namespace DyninstAPI {
 
     bool emitXorRegSegReg(Register dest, Register base, int disp, codeGen &gen);
 
-  protected:
-    virtual bool emitCallInstruction(codeGen &gen, func_instance *target, Register ret) = 0;
-
   private:
     // clobberAllFuncCall can be expensive, so don't re-analyze functions
     Dyninst::DyninstAPI::function_cache clobbered_functions;
