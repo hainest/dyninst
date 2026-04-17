@@ -41,10 +41,10 @@ namespace Dyninst { namespace DyninstAPI {
 
   class EmitterAMD64Stat : public EmitterAMD64 {
   public:
-    virtual bool emitPLTCall(func_instance *dest, codeGen &gen);
-    virtual bool emitPLTJump(func_instance *dest, codeGen &gen);
+    bool emitPLTCall(func_instance *dest, codeGen &gen) override;
+    bool emitPLTJump(func_instance *dest, codeGen &gen) override;
 
-    bool emitCallInstruction(codeGen &gen, func_instance *target, Register ret);
+    bool emitCallInstruction(codeGen &gen, func_instance *target, Register ret) override;
   };
 
 }}
