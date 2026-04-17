@@ -1030,14 +1030,6 @@ void emitRestoreO(codeGen &gen)
    SET_PTR(insn, gen);
 }
 
-void emitCallRel32(unsigned disp32, codeGen &gen)
-{
-   GET_PTR(insn, gen);
-   append_memory_as_byte(insn, 0xE8);
-   append_memory_as(insn, uint32_t{disp32});
-   SET_PTR(insn, gen);
-}
-
 void emitJump(unsigned disp32, codeGen &gen)
 {
    GET_PTR(insn, gen);

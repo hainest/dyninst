@@ -16,7 +16,7 @@ namespace Dyninst { namespace DyninstAPI {
       signed long disp = callee->addr() - (gen.currAddr() + 5);
       int disp_i = (int)disp;
       if(disp == (signed long)disp_i) {
-        emitCallRel32(disp_i, gen);
+        x86::emitCallRel32(disp_i, gen);
         return true;
       }
     }

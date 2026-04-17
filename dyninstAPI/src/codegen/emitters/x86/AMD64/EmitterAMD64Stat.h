@@ -28,24 +28,25 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef DYNINST_DYNINSTAPI_CODEGEN_EMITTERS_X86_GENERATORS_H
-#define DYNINST_DYNINSTAPI_CODEGEN_EMITTERS_X86_GENERATORS_H
+#ifndef DYNINSTAPI_CODEGEN_EMITTERS_X86_AMD64_EMITTERAMD64STAT_H
+#define DYNINSTAPI_CODEGEN_EMITTERS_X86_AMD64_EMITTERAMD64STAT_H
+
+#include "codegen/emitters/x86/AMD64/EmitterAMD64.h"
 
 /*
- *  Generic generators for IA32 and AMD64
+ *  Instruction emitter for static instrumentation on AMD64
  */
 
-#include "codegen/codegen.h"
-#include "dyntypes.h"
+namespace Dyninst { namespace DyninstAPI {
 
-namespace Dyninst { namespace DyninstAPI { namespace x86 {
+  class EmitterAMD64Stat : public EmitterAMD64 {
+  public:
+    virtual bool emitPLTCall(func_instance *dest, codeGen &gen);
+    virtual bool emitPLTJump(func_instance *dest, codeGen &gen);
 
-  void emitAddMem(Address addr, int imm, codeGen &gen);
+    bool emitCallInstruction(codeGen &gen, func_instance *target, Register ret);
+  };
 
-  void emitCallRel32(unsigned disp32, codeGen &gen);
-
-  void emitSegPrefix(Register segReg, codeGen &gen);
-
-}}}
+}}
 
 #endif
