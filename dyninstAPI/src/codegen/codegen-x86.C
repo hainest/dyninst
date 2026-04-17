@@ -1,3 +1,4 @@
+
 /*
  * See the dyninst/COPYRIGHT file for copyright information.
  * 
@@ -42,6 +43,7 @@
 #include "arch-regs-x86.h"
 #include "InstructionDecoder.h"
 #include "Instruction.h"
+#include "codegen/emitters/x86/AMD64/generators.h"
 
 #include "emit-x86.h"
 #include "inst-x86.h"
@@ -520,8 +522,8 @@ bool insnCodeGen::modifyData(Dyninst::Address targetAddr, instruction &insn, cod
         is_data_abs64 = true;
         pointer_reg = (mod_rm & 0x38) != 0 ? 0 : 3;
         SET_PTR(newInsn, gen);
-        emitPushReg64(pointer_reg, gen);
-        emitMovImmToReg64(pointer_reg, targetAddr, true, gen);
+        Dyninst::DyninstAPI::AMD64::emitPushReg64(pointer_reg, gen);
+        Dyninst::DyninstAPI::AMD64::emitMovImmToReg64(pointer_reg, targetAddr, true, gen);
         REGET_PTR(newInsn, gen);
     }
 #endif
@@ -575,7 +577,7 @@ bool insnCodeGen::modifyData(Dyninst::Address targetAddr, instruction &insn, cod
     if (is_data_abs64) {
         // Cleanup on aisle pointer_reg...
         assert(pointer_reg != (Dyninst::Register)-1);
-        emitPopReg64(pointer_reg, gen);
+        Dyninst::DyninstAPI::AMD64::emitPopReg64(pointer_reg, gen);
     }
 #endif
 

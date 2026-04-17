@@ -30,6 +30,14 @@ if(DYNINST_CODEGEN_ARCH_I386 OR DYNINST_CODEGEN_ARCH_X86_64)
     emitters/x86/IA32/EmitterIA32Dyn.C
     emitters/x86/IA32/EmitterIA32Stat.C)
 
+  if(DYNINST_CODEGEN_ARCH_X86_64)
+    list(APPEND _headers emitters/x86/AMD64/EmitterAMD64.h
+         emitters/x86/AMD64/generators.h)
+
+    list(APPEND _sources emitters/x86/AMD64/EmitterAMD64.C
+         emitters/x86/AMD64/generators.C)
+  endif()
+
 elseif(DYNINST_CODEGEN_ARCH_AARCH64)
   list(
     APPEND
