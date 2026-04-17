@@ -1326,11 +1326,6 @@ bool AddressSpace::getDynamicCallSiteArgs(InstructionAPI::Instruction insn,
 /****************************************************************************/
 /****************************************************************************/
 
-int getMaxJumpSize()
-{
-  return JUMP_REL32_SZ;
-}
-
 /**
  * Fills in an indirect function pointer at 'addr' to point to 'f'.
  **/
