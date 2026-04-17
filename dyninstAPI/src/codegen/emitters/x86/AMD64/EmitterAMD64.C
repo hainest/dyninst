@@ -33,6 +33,8 @@ static int extra_space_check{};
 // in 8-byte quadwords
 #define GPR_SAVE_REGION_OFFSET 18
 
+static constexpr auto AMD64_RED_ZONE = 0x80;
+
 static Register amd64_arg_regs[] = {REGNUM_RDI, REGNUM_RSI, REGNUM_RDX,
                                     REGNUM_RCX, REGNUM_R8,  REGNUM_R9};
 #define AMD64_ARG_REGS (sizeof(amd64_arg_regs) / sizeof(Register))

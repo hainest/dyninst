@@ -68,8 +68,6 @@
 #define IA32_STACK_ALIGNMENT     16
 #define AMD64_STACK_ALIGNMENT    32  // This is extremely conservative.
                                      // 16 may be enough.
-#define AMD64_RED_ZONE         0x80
-
 class codeGen;
 
 void emitAddressingMode(unsigned base, unsigned index,
