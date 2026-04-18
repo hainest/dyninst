@@ -6,6 +6,7 @@
 #include "codegen/emitters/x86/generators.h"
 #include "codegen/emitters/x86/IA32/EmitterIA32.h"
 #include "codegen/RegControl.h"
+#include "common/src/math.h"
 #include "debug.h"
 #include "function.h"
 #include "image.h"
@@ -21,9 +22,23 @@
 #include <cstdio>
 #include <limits>
 
-extern bool isPowerOf2(int value, int &result);
-
 static int extra_space_check{};
+
+static bool can_optimize_as_shift(RegValue val, uint8_t max_num_bits) {
+  if(!isPowerOf2(val)) {
+    return false;
+  }
+
+  // number of bits, n, such that src2imm = 2^n
+  boost::optional<uint64_t> n = Dyninst::ilog2(val, max_num_bits);
+
+  if(!n) {
+    return false;
+  }
+
+  // Can the result fit in a single register without overflowing?
+  return *n < max_num_bits;
+}
 
 namespace Dyninst { namespace DyninstAPI {
 
@@ -594,12 +609,11 @@ namespace Dyninst { namespace DyninstAPI {
 
   void EmitterIA32::emitDivImm(Register dest, Register src1, RegValue src2imm, codeGen &gen,
                                bool s) {
-    int result;
     if(src2imm == 1) {
       return;
     }
 
-    if(isPowerOf2(src2imm, result) && result <= MAX_IMM8) {
+    if(can_optimize_as_shift(src2imm, MAX_IMM8)) {
       RealRegister src1_r = gen.rs()->loadVirtual(src1, gen);
       RealRegister dest_r = gen.rs()->loadVirtualForWrite(dest, gen);
 
@@ -1087,12 +1101,13 @@ namespace Dyninst { namespace DyninstAPI {
       return;
     }
 
-    if(isPowerOf2(src2imm, result) && result <= MAX_IMM8) {
+    if(can_optimize_as_shift(src2imm, MAX_IMM8)) {
       // sal dest, result
       if(src1 != dest) {
         emitMovRegToReg(dest_r, src1_r, gen);
       }
-      emitOpExtRegImm8(0xC1, 4, dest_r, static_cast<char>(result), gen);
+      auto exponent = static_cast<uint8_t>(Dyninst::ilog2_32(src2imm));
+      emitOpExtRegImm8(0xC1, 4, dest_r, exponent, gen);
     } else {
       // imul src1 * src2imm -> dest_r
       emitOpRegRegImm(0x69, dest_r, src1_r, src2imm, gen);
