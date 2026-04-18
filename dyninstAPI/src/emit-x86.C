@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include "codegen/RegControl.h"
 #include "compiler_annotations.h"
+#include "common/src/math.h"
 #include "dyninstAPI/src/codegen.h"
 #include "dyninstAPI/src/function.h"
 #include "dyninstAPI/src/emit-x86.h"
@@ -59,8 +60,21 @@
 #include "unaligned_memory_access.h"
 #include "codegen/emitters/x86/generators.h"
 
-// where is this defined?
-extern bool isPowerOf2(int value, int &result);
+static bool can_optimize_as_shift(RegValue val, uint8_t max_num_bits) {
+  if(!isPowerOf2(val)) {
+    return false;
+  }
+
+  // number of bits, n, such that src2imm = 2^n
+  boost::optional<uint64_t> n = Dyninst::ilog2(val, max_num_bits);
+
+  if(!n) {
+    return false;
+  }
+
+  // Can the result fit in a single register without overflowing?
+  return *n < max_num_bits;
+}
 
 #if defined(DYNINST_CODEGEN_ARCH_X86_64)
 
@@ -580,7 +594,7 @@ void EmitterAMD64::emitTimesImm(Register dest, Register src1, RegValue src2imm, 
    int result = -1;
 
    gen.markRegDefined(dest);
-   if (isPowerOf2(src2imm, result) && result <= MAX_IMM8) {
+   if (can_optimize_as_shift(src2imm)) {
       // immediate is a power of two - use a shift
       // mov %src1, %dest (if needed)
       if (src1 != dest) {
@@ -600,7 +614,7 @@ void EmitterAMD64::emitDivImm(Register dest, Register src1, RegValue src2imm, co
 {
    int result = -1;
    gen.markRegDefined(dest);
-   if (isPowerOf2(src2imm, result) && result <= MAX_IMM8) {
+   if (can_optimize_as_shift(src2imm)) {
       // divisor is a power of two - use a shift instruction
       // mov %src1, %dest (if needed)
       if (src1 != dest) {
