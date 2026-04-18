@@ -35,6 +35,7 @@
 
 #include "codegen/RegControl.h"
 #include "common/src/headers.h"
+#include "common/src/math.h"
 #include "dyninstAPI/h/BPatch_memoryAccess_NP.h"
 #include "dyninstAPI/src/image.h"
 #include "dyninstAPI/src/dynProcess.h"
@@ -64,8 +65,6 @@
 
 using codeGenASTPtr = Dyninst::DyninstAPI::codeGenASTPtr;
 using operandAST = Dyninst::DyninstAPI::operandAST;
-
-extern bool isPowerOf2(int value, int &result);
 
 /*
  * Saving and restoring registers
@@ -645,10 +644,25 @@ void EmitterPOWER::emitImm(opCode op, Dyninst::Register src1, RegValue src2imm, 
         insnCodeGen::generateImm(gen, iop, dest, src1, src2imm);
         return;
         break;
-        
-    case timesOp:
-       if (isPowerOf2(src2imm,result) && (result < (int) (gen.width() * 8))) {
-            insnCodeGen::generateLShift(gen, src1, result, dest);
+    case timesOp: {
+       const auto res = [&]() -> std::tuple<bool,int> {
+         if(!isPowerOf2(src2imm)) {
+           return {false, -1};
+         }
+         // number of bits, n, such that src2imm = 2^n
+         const int n = Dyninst::ilog2(src2imm);
+         
+         // Can the result fit in a single register without overflowing?
+         bool fits = n < (static_cast<int>(gen.width()) * 8);
+         
+         return {fits, n};
+       }();
+       
+       const bool is_simple_shift = std::get<0>(res);
+       const int num_bits = std::get<1>(res);
+
+       if (is_simple_shift) {
+            insnCodeGen::generateLShift(gen, src1, num_bits, dest);
             return;
         }
         else {
@@ -659,7 +673,7 @@ void EmitterPOWER::emitImm(opCode op, Dyninst::Register src1, RegValue src2imm, 
             return;
         }
         break;
-        
+    }
     case divOp: {
             Dyninst::Register dest2 = gen.rs()->getScratchRegister(gen);
             emitVload(loadConstOp, src2imm, dest2, dest2, gen);
