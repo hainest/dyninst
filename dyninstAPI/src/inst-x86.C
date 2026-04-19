@@ -405,7 +405,7 @@ void emitMovPCRMToReg(RealRegister dest, int offset, codeGen &gen, bool deref_re
          emitMovMToReg(dest, target, gen);
       }
       else {
-         emitMovImmToReg(dest, target, gen);
+         cgx86::emitMovImmToReg(dest, target, gen);
       }
       return;
    }
@@ -541,15 +541,6 @@ void emitMovMWToReg(RealRegister dest, int disp, codeGen &gen)
    append_memory_as_byte(insn, 0xBF);
    SET_PTR(insn, gen);
    emitAddressingMode(Null_Register, disp, dest.reg(), gen);
-}
-
-// emit MOV reg, imm32
-void emitMovImmToReg(RealRegister dest, int imm, codeGen &gen)
-{
-   GET_PTR(insn, gen);
-   append_memory_as_byte(insn, 0xB8 + dest.reg());
-   append_memory_as(insn, int32_t{imm});
-   SET_PTR(insn, gen);
 }
 
 // emit MOV r/m32, imm32
@@ -1137,7 +1128,7 @@ void emitImm(opCode op, Dyninst::Register src1, RegValue src2imm, Dyninst::Regis
       // dest has the address where src1 is to be stored
       // src1 is an immediate value
       // src2 is a "scratch" register, we don't need it in this architecture
-      emitMovImmToReg(RealRegister(REGNUM_EAX), dest, gen);
+      cgx86::emitMovImmToReg(RealRegister(REGNUM_EAX), dest, gen);
       emitMovImmToRM(RealRegister(REGNUM_EAX), 0, src1, gen);
    } else {
       unsigned opcode1;

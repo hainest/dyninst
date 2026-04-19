@@ -99,7 +99,6 @@ void emitMovMWToReg(RealRegister dest, int disp, codeGen &gen);
 void emitMovRegToM(int disp, RealRegister src, codeGen &gen);
 void emitMovRegToMB(int disp, RealRegister dest, codeGen &gen);
 void emitMovRegToMW(int disp, RealRegister dest, codeGen &gen);
-void emitMovImmToReg(RealRegister dest, int imm, codeGen &gen);
 void emitMovImmToRM(RealRegister base, int disp, int imm, codeGen &gen);
 void emitMovRegToRM(RealRegister base, int disp, RealRegister src, codeGen &gen);
 void emitMovRMToReg(RealRegister dest, RealRegister base, int disp, codeGen &gen);

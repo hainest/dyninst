@@ -28,7 +28,7 @@ namespace Dyninst { namespace DyninstAPI {
     gen.rs()->noteVirtualInReal(placeholder2, RealRegister(REGNUM_EDX));
 
     if(gen.startAddr() == (Address)-1) {
-      emitMovImmToReg(RealRegister(REGNUM_EAX), callee->addr(), gen);
+      x86::emitMovImmToReg(RealRegister(REGNUM_EAX), callee->addr(), gen);
       emitOpExtReg(CALL_RM_OPC1, CALL_RM_OPC2, RealRegister(REGNUM_EAX), gen);
     } else {
       Address dest = callee->addr();

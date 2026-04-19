@@ -290,6 +290,8 @@ if(DYNINST_CODEGEN_ARCH_I386 OR DYNINST_CODEGEN_ARCH_X86_64)
     src/codegen/emitters/x86/Emitterx86.h
     src/codegen/emitters/x86/generators.C
     src/codegen/emitters/x86/generators.h
+    src/codegen/emitters/x86/generators/mov_register.C
+    src/codegen/emitters/x86/generators/mov_register.h
     src/RegisterConversion-x86.C
     src/registerSpace/registerSpace-x86.C
     src/Relocation/Widgets/CFWidget-x86.C

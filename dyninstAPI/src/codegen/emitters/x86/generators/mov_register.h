@@ -28,29 +28,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef DYNINST_DYNINSTAPI_CODEGEN_EMITTERS_X86_GENERATORS_H
-#define DYNINST_DYNINSTAPI_CODEGEN_EMITTERS_X86_GENERATORS_H
-
-/*
- *  Generic generators for IA32 and AMD64
- */
+#ifndef DYNINST_DYNINSTAPI_CODEGEN_EMITTERS_X86_GENERATORS_MOV_REGISTER_H
+#define DYNINST_DYNINSTAPI_CODEGEN_EMITTERS_X86_GENERATORS_MOV_REGISTER_H
 
 #include "codegen.h"
-#include "dyntypes.h"
-#include "registerSpace/RealRegister.h"
-#include "codegen/emitters/x86/generators/mov_register.h"
+#include "dyn_register.h"
+#include "registerSpace/registerSpace.h"
 
 namespace Dyninst { namespace DyninstAPI { namespace x86 {
 
-  void emitAddMem(Address addr, int imm, codeGen &gen);
-
-  void emitCallRel32(unsigned disp32, codeGen &gen);
-
-  void emitSegPrefix(Register segReg, codeGen &gen);
-
-  /* emit a simple one-byte instruction */
-  void emitSimpleInsn(unsigned opcode, codeGen &gen);
+  // emit MOV reg, imm32
+  void emitMovImmToReg(RealRegister dest, int imm, codeGen &gen);
 
 }}}
 
 #endif
+

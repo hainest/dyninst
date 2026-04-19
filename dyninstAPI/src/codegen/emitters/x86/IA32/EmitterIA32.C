@@ -573,7 +573,7 @@ namespace Dyninst { namespace DyninstAPI {
       }
     } else {
       RealRegister dest_r = gen.rs()->loadVirtualForWrite(dest, gen);
-      emitMovImmToReg(dest_r, imm, gen);
+      x86::emitMovImmToReg(dest_r, imm, gen);
     }
   }
 
@@ -765,7 +765,7 @@ namespace Dyninst { namespace DyninstAPI {
 
   void EmitterIA32::emitLoadConst(Register dest, Address imm, codeGen &gen) {
     RealRegister r = gen.rs()->loadVirtualForWrite(dest, gen);
-    emitMovImmToReg(r, imm, gen);
+    x86::emitMovImmToReg(r, imm, gen);
   }
 
   void EmitterIA32::emitLoadFrameAddr(Register dest, Address offset, codeGen &gen) {
@@ -916,7 +916,7 @@ namespace Dyninst { namespace DyninstAPI {
     RealRegister scratch_r = gen.rs()->loadVirtualForWrite(scratch, gen);
 
     emitOpRegReg(XOR_R32_RM32, dest_r, dest_r, gen); // XOR dest,dest
-    emitMovImmToReg(scratch_r, 0x1, gen);            // MOV $2,scratch
+    x86::emitMovImmToReg(scratch_r, 0x1, gen);       // MOV $2,scratch
     emitOpRegReg(CMP_GV_EV, src1_r, src2_r, gen);    // CMP src1, src2
 
     unsigned char opcode = cmovOpcodeFromRelOp(op, s);
