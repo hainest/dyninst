@@ -51,6 +51,11 @@ namespace Dyninst { namespace DyninstAPI { namespace x86 {
   /* emit a simple one-byte instruction */
   void emitSimpleInsn(unsigned opcode, codeGen &gen);
 
+  /* build the MOD/RM byte of an instruction */
+  constexpr inline uint8_t makeModRMbyte(unsigned Mod, unsigned Reg, unsigned RM) {
+    return ((Mod & 0x3U) << 6U) + ((Reg & 0x7U) << 3U) + (RM & 0x7U);
+  }
+
 }}}
 
 #endif
