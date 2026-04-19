@@ -40,6 +40,8 @@ namespace Dyninst { namespace DyninstAPI { namespace x86 {
   // emit MOV reg, imm32
   void emitMovImmToReg(RealRegister dest, int imm, codeGen &gen);
 
+  void emitMovRegToReg(RealRegister dest, RealRegister src, codeGen &gen);
+
 }}}
 
 #endif

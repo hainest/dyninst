@@ -323,14 +323,6 @@ void emitOpExtReg(unsigned opcode, unsigned char ext, RealRegister reg, codeGen 
    SET_PTR(insn, gen);
 }
 
-void emitMovRegToReg(RealRegister dest, RealRegister src, codeGen &gen)
-{
-   GET_PTR(insn, gen);
-   append_memory_as_byte(insn, 0x8B);
-   append_memory_as_byte(insn, cgx86::makeModRMbyte(3, dest.reg(), src.reg()));
-   SET_PTR(insn, gen);
-}
-
 void emitOpRegRegImm(unsigned opcode, RealRegister dest, RealRegister src, unsigned imm, codeGen &gen)
 {
    GET_PTR(insn, gen);
@@ -762,7 +754,7 @@ Dyninst::Register restoreGPRtoReg(RealRegister reg, codeGen &gen, RealRegister *
          if (reg.reg() != dest_r.reg()) {
             //TODO: Future optimization here, allow ebp to be used
             // though not allocated
-            emitMovRegToReg(dest_r, reg, gen);
+            cgx86::emitMovRegToReg(dest_r, reg, gen);
          }
       }
       return dest;
@@ -791,7 +783,7 @@ Dyninst::Register restoreGPRtoReg(RealRegister reg, codeGen &gen, RealRegister *
       if (dest_r.reg() == -1)
 	      gen.rs()->noteVirtualInReal(dest, reg);
       else if (dest_r.reg() != reg.reg())
-         emitMovRegToReg(dest_r, reg, gen);
+         cgx86::emitMovRegToReg(dest_r, reg, gen);
       return dest;
    }
 
@@ -879,7 +871,7 @@ void registerSpace::initRealRegSpace()
 void registerSpace::movRegToReg(RealRegister dest, RealRegister src, codeGen &gen)
 {
    gen.markRegDefined(dest.reg());
-   emitMovRegToReg(dest, src, gen);
+   cgx86::emitMovRegToReg(dest, src, gen);
 }
 
 void registerSpace::spillToVReg(RealRegister reg, registerSlot *v_reg, codeGen &gen)

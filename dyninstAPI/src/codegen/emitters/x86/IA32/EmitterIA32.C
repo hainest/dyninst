@@ -127,7 +127,7 @@ namespace Dyninst { namespace DyninstAPI {
         return;
       } else {
         // No base tramp, no virtual registers - emit a move?
-        emitMovRegToReg(RealRegister(dest), src1_r, gen);
+        x86::emitMovRegToReg(RealRegister(dest), src1_r, gen);
         return;
       }
     }
@@ -327,7 +327,7 @@ namespace Dyninst { namespace DyninstAPI {
       // we grab the original instPoint address
       x86::emitSimpleInsn(PUSH_EBP, gen);
       gen.rs()->incStack(4);
-      emitMovRegToReg(RealRegister(REGNUM_EBP), RealRegister(REGNUM_ESP), gen);
+      x86::emitMovRegToReg(RealRegister(REGNUM_EBP), RealRegister(REGNUM_ESP), gen);
       gen.rs()->markSavedRegister(RealRegister(REGNUM_EBP), 0);
     }
 
@@ -510,7 +510,7 @@ namespace Dyninst { namespace DyninstAPI {
                     gen); // shl eax, scale
           }
           RealRegister dest_r = gen.rs()->loadVirtualForWrite(dest, gen);
-          emitMovRegToReg(dest_r, RealRegister(REGNUM_EAX), gen);
+          x86::emitMovRegToReg(dest_r, RealRegister(REGNUM_EAX), gen);
           break;
         }
         case IA32_NECMPS:
@@ -555,7 +555,7 @@ namespace Dyninst { namespace DyninstAPI {
                     gen); // shl eax, scale
           }
           RealRegister dest_r = gen.rs()->loadVirtualForWrite(dest, gen);
-          emitMovRegToReg(dest_r, RealRegister(REGNUM_EAX), gen);
+          x86::emitMovRegToReg(dest_r, RealRegister(REGNUM_EAX), gen);
 
           break;
         }
@@ -623,7 +623,7 @@ namespace Dyninst { namespace DyninstAPI {
       const uint8_t num_bits_to_shift = *Dyninst::ilog2(src2imm);
 
       if(src1 != dest) {
-        emitMovRegToReg(dest_r, src1_r, gen);
+        x86::emitMovRegToReg(dest_r, src1_r, gen);
       }
       if(s) {
         // sar dest, result
@@ -881,7 +881,7 @@ namespace Dyninst { namespace DyninstAPI {
   bool EmitterIA32::emitMoveRegToReg(Register src, Register dest, codeGen &gen) {
     RealRegister src_r = gen.rs()->loadVirtual(src, gen);
     RealRegister dest_r = gen.rs()->loadVirtualForWrite(dest, gen);
-    emitMovRegToReg(dest_r, src_r, gen);
+    x86::emitMovRegToReg(dest_r, src_r, gen);
     return true;
   }
 
@@ -895,7 +895,7 @@ namespace Dyninst { namespace DyninstAPI {
     RealRegister src1_r = gen.rs()->loadVirtual(src1, gen);
     RealRegister src2_r = gen.rs()->loadVirtual(src2, gen);
     RealRegister dest_r = gen.rs()->loadVirtualForWrite(dest, gen);
-    emitMovRegToReg(dest_r, src1_r, gen);
+    x86::emitMovRegToReg(dest_r, src1_r, gen);
     emitOpRegReg(opcode, dest_r, src2_r, gen);
   }
 
@@ -904,7 +904,7 @@ namespace Dyninst { namespace DyninstAPI {
     RealRegister src1_r = gen.rs()->loadVirtual(src1, gen);
     RealRegister dest_r = gen.rs()->loadVirtualForWrite(dest, gen);
     if(src1 != dest) {
-      emitMovRegToReg(dest_r, src1_r, gen);
+      x86::emitMovRegToReg(dest_r, src1_r, gen);
     }
     emitOpExtRegImm(opcode1, (char)opcode2, dest_r, src2imm, gen);
   }
@@ -1100,14 +1100,14 @@ namespace Dyninst { namespace DyninstAPI {
     RealRegister dest_r = gen.rs()->loadVirtualForWrite(dest, gen);
 
     if(src2imm == 1) {
-      emitMovRegToReg(dest_r, src1_r, gen);
+      x86::emitMovRegToReg(dest_r, src1_r, gen);
       return;
     }
 
     if(can_optimize_as_shift(src2imm, MAX_IMM8)) {
       // sal dest, result
       if(src1 != dest) {
-        emitMovRegToReg(dest_r, src1_r, gen);
+        x86::emitMovRegToReg(dest_r, src1_r, gen);
       }
       const uint8_t bits_to_shift = *Dyninst::ilog2(src2imm);
       emitOpExtRegImm8(0xC1, 4, dest_r, bits_to_shift, gen);
