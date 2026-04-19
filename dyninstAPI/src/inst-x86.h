@@ -90,7 +90,6 @@ void emitOpRegRegImm(unsigned opcode, RealRegister dest, RealRegister src, unsig
 void emitOpRegImm(int opcode, RealRegister dest, int imm, codeGen &gen);
 void emitOpSegRMReg(unsigned opcode, RealRegister dest, RealRegister src, int disp, codeGen& gen);
 
-void emitMovRegToReg(RealRegister dest, RealRegister src, codeGen &gen);
 void emitMovIRegToReg(RealRegister dest, RealRegister src, codeGen &gen);
 void emitMovPCRMToReg(RealRegister dest, int offset, codeGen &gen, bool deref_result = true);
 void emitMovMToReg(RealRegister dest, int disp, codeGen &gen);

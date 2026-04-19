@@ -17,7 +17,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
     Register tmp_dest = dest;
     Register tmp_src = src;
     emitRex(is_64, &tmp_dest, NULL, &tmp_src, gen);
-    emitMovRegToReg(RealRegister(tmp_dest), RealRegister(tmp_src), gen);
+    x86::emitMovRegToReg(RealRegister(tmp_dest), RealRegister(tmp_src), gen);
     gen.markRegDefined(dest);
   }
 
@@ -65,7 +65,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
       gen.markRegDefined(REGNUM_RAX);
       if(tmp_src != REGNUM_RAX) {
         emitRex(true, &tmp_src, NULL, &rax, gen);
-        emitMovRegToReg(RealRegister(rax), RealRegister(tmp_src), gen);
+        x86::emitMovRegToReg(RealRegister(rax), RealRegister(tmp_src), gen);
       }
 
       // emit prefix
