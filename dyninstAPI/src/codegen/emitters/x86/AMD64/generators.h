@@ -32,6 +32,7 @@
 #define DYNINST_DYNINSTAPI_CODEGEN_EMITTERS_X86_AMD64_GENERATORS_H
 
 #include "codegen.h"
+#include "codegen/emitters/x86/AMD64/generators/mov_register.h"
 #include "codegen/emitters/x86/AMD64/generators/prefix.h"
 #include "codegen/emitters/x86/AMD64/generators/xmm.h"
 #include "codegen/emitters/x86/generators.h"
@@ -40,8 +41,6 @@
 namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
 
   void emitAddRM64(Register dest, int imm, bool is_64, codeGen &gen);
-
-  void emitMovImmToReg64(Register dest, long imm, bool is_64, codeGen &gen);
 
   void emitMovImmToRM64(Register base, int disp, int imm, bool is_64, codeGen &gen);
 
