@@ -81,4 +81,10 @@ namespace Dyninst { namespace DyninstAPI { namespace x86 {
     }
   }
 
+  void emitSimpleInsn(unsigned op, codeGen &gen) {
+    GET_PTR(insn, gen);
+    append_memory_as(insn, static_cast<uint8_t>(op));
+    SET_PTR(insn, gen);
+  }
+
 }}}

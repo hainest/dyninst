@@ -40,7 +40,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
     // (note that some other weird cases not covered here
     //  need a "blank" rex, like using %sil or %dil)
     if(rex & 0x0f) {
-      emitSimpleInsn(rex, gen);
+      x86::emitSimpleInsn(rex, gen);
     }
   }
 
@@ -141,7 +141,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
 
       // emit prefix
       if(size == 2) {
-        emitSimpleInsn(0x66, gen);
+        x86::emitSimpleInsn(0x66, gen);
       }
 
       emitRex(false, NULL, NULL, &tmp_base, gen);
@@ -228,7 +228,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
 
   void emitPushReg64(Register src, codeGen &gen) {
     emitRex(false, NULL, NULL, &src, gen);
-    emitSimpleInsn(0x50 + src, gen);
+    x86::emitSimpleInsn(0x50 + src, gen);
     if(gen.rs()) {
       gen.rs()->incStack(8);
     }
@@ -236,7 +236,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
 
   void emitPopReg64(Register dest, codeGen &gen) {
     emitRex(false, NULL, NULL, &dest, gen);
-    emitSimpleInsn(0x58 + dest, gen);
+    x86::emitSimpleInsn(0x58 + dest, gen);
     if(gen.rs()) {
       gen.rs()->incStack(-8);
     }

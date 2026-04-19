@@ -192,7 +192,7 @@ namespace Dyninst { namespace DyninstAPI {
     }
 
     if(createFrame) {
-      emitSimpleInsn(LEAVE, gen);
+      x86::emitSimpleInsn(LEAVE, gen);
     }
     if(saveOrigAddr) {
       ::emitLEA(RealRegister(REGNUM_ESP), RealRegister(Null_Register), 0, 4,
@@ -283,7 +283,7 @@ namespace Dyninst { namespace DyninstAPI {
     int num_saved = 0;
     int numRegsUsed = bt ? bt->numDefinedRegs() : -1;
     if(numRegsUsed == -1 || numRegsUsed > X86_REGS_SAVE_LIMIT) {
-      emitSimpleInsn(PUSHAD, gen);
+      x86::emitSimpleInsn(PUSHAD, gen);
       gen.rs()->incStack(8 * 4);
       num_saved = 8;
 
@@ -326,7 +326,7 @@ namespace Dyninst { namespace DyninstAPI {
       // For now, we'll do all saves then do the guard. Could inline
       // Return addr for stack frame walking; for lack of a better idea,
       // we grab the original instPoint address
-      emitSimpleInsn(PUSH_EBP, gen);
+      x86::emitSimpleInsn(PUSH_EBP, gen);
       gen.rs()->incStack(4);
       emitMovRegToReg(RealRegister(REGNUM_EBP), RealRegister(REGNUM_ESP), gen);
       gen.rs()->markSavedRegister(RealRegister(REGNUM_EBP), 0);
@@ -488,16 +488,16 @@ namespace Dyninst { namespace DyninstAPI {
           gen.markRegDefined(REGNUM_EAX);
           gen.markRegDefined(REGNUM_ECX);
           gen.markRegDefined(REGNUM_EDI);
-          emitSimpleInsn(neg ? 0xF2 : 0xF3, gen); // rep(n)e
+          x86::emitSimpleInsn(neg ? 0xF2 : 0xF3, gen); // rep(n)e
           switch(sc) {
             case 0:
-              emitSimpleInsn(0xAE, gen); // scasb
+              x86::emitSimpleInsn(0xAE, gen); // scasb
               break;
             case 1:
-              emitSimpleInsn(0x66, gen); // operand size override for scasw;
+              x86::emitSimpleInsn(0x66, gen); // operand size override for scasw;
               DYNINST_FALLTHROUGH;
             case 2:
-              emitSimpleInsn(0xAF, gen); // scasw/d
+              x86::emitSimpleInsn(0xAF, gen); // scasw/d
               break;
             default:
               assert(!"Wrong scale!");
@@ -534,16 +534,16 @@ namespace Dyninst { namespace DyninstAPI {
           gen.markRegDefined(REGNUM_ESI);
           restoreGPRtoGPR(RealRegister(REGNUM_EDI), RealRegister(REGNUM_EDI), gen);
           gen.markRegDefined(REGNUM_EDI);
-          emitSimpleInsn(neg ? 0xF2 : 0xF3, gen); // rep(n)e
+          x86::emitSimpleInsn(neg ? 0xF2 : 0xF3, gen); // rep(n)e
           switch(sc) {
             case 0:
-              emitSimpleInsn(0xA6, gen); // cmpsb
+              x86::emitSimpleInsn(0xA6, gen); // cmpsb
               break;
             case 1:
-              emitSimpleInsn(0x66, gen); // operand size override for cmpsw;
+              x86::emitSimpleInsn(0x66, gen); // operand size override for cmpsw;
               DYNINST_FALLTHROUGH;
             case 2:
-              emitSimpleInsn(0xA7, gen); // cmpsw/d
+              x86::emitSimpleInsn(0xA7, gen); // cmpsw/d
               break;
             default:
               assert(!"Wrong scale!");
@@ -584,7 +584,7 @@ namespace Dyninst { namespace DyninstAPI {
     gen.rs()->noteVirtualInReal(scratch, RealRegister(REGNUM_EDX));
     RealRegister src2_r = gen.rs()->loadVirtual(src2, gen);
     gen.rs()->makeRegisterAvail(RealRegister(REGNUM_EAX), gen);
-    emitSimpleInsn(0x99, gen); // cdq (src1 -> eax:edx)
+    x86::emitSimpleInsn(0x99, gen); // cdq (src1 -> eax:edx)
     if(s) {
       emitOpExtReg(0xF7, 0x7, src2_r, gen); // idiv eax:edx,src2 -> eax
     } else {
@@ -904,7 +904,7 @@ namespace Dyninst { namespace DyninstAPI {
 
   void EmitterIA32::emitPushFlags(codeGen &gen) {
     // These crank the saves forward
-    emitSimpleInsn(PUSHFD, gen);
+    x86::emitSimpleInsn(PUSHFD, gen);
   }
 
   void EmitterIA32::emitRelOp(unsigned op, Register dest, Register src1, Register src2,
@@ -949,7 +949,7 @@ namespace Dyninst { namespace DyninstAPI {
       ::emitPush(RealRegister(REGNUM_EAX), gen);
       emitMovRMToReg(RealRegister(REGNUM_EAX), loc.reg, loc.offset, gen);
       emitRestoreO(gen);
-      emitSimpleInsn(0x9E, gen); // SAHF
+      x86::emitSimpleInsn(0x9E, gen); // SAHF
       ::emitPop(RealRegister(REGNUM_EAX), gen);
     }
   }
@@ -1000,7 +1000,7 @@ namespace Dyninst { namespace DyninstAPI {
     ::emitLEA(esp, enull, 0, -off, esp, gen);
     emitMovRegToRM(esp, saveSlot1, eax, gen);
     if(saveFlags) {
-      emitSimpleInsn(0x9f, gen);
+      x86::emitSimpleInsn(0x9f, gen);
       emitSaveO(gen);
       emitMovRegToRM(esp, saveSlot2, eax, gen);
     }
@@ -1010,7 +1010,7 @@ namespace Dyninst { namespace DyninstAPI {
     if(saveFlags) {
       emitMovRMToReg(eax, eax, -off + saveSlot2, gen);
       emitRestoreO(gen);
-      emitSimpleInsn(0x9e, gen);
+      x86::emitSimpleInsn(0x9e, gen);
       emitMovRMToReg(eax, esp, 0, gen);
     }
     emitMovRMToReg(eax, eax, -off + saveSlot1, gen);

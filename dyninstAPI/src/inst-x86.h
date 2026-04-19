@@ -107,7 +107,6 @@ void emitMovImmToMem(Dyninst::Address maddr, int imm, codeGen &gen);
 void emitPushImm(unsigned int imm, codeGen &gen);
 void emitSaveO(codeGen &gen);
 void emitRestoreO(codeGen &gen);
-void emitSimpleInsn(unsigned opcode, codeGen &gen);
 
 void emitAddRegImm32(RealRegister dest, int imm, codeGen &gen);
 void emitSubRegReg(RealRegister dest, RealRegister src, codeGen &gen);
