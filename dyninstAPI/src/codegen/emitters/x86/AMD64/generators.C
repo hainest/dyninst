@@ -15,7 +15,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
       append_memory_as(insn, int64_t{imm});
       SET_PTR(insn, gen);
     } else {
-      emitMovImmToReg(RealRegister(tmp_dest), imm, gen);
+      x86::emitMovImmToReg(RealRegister(tmp_dest), imm, gen);
     }
   }
 
