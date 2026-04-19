@@ -42,8 +42,7 @@
 #include "dyninstAPI/h/BPatch.h"
 #include "BPatch_collections.h"
 #include "dyninstAPI/h/BPatch_type.h"
-#include "BPatch_libInfo.h" // For instPoint->BPatch_point mapping
-
+#include "dyninstAPI/src/BPatch_libInfo.h" // For instPoint->BPatch_point mapping
 #include "dyninstAPI/h/BPatch_point.h"
 #include "dyninstAPI/h/BPatch_memoryAccess_NP.h"
 
@@ -54,7 +53,10 @@
 #if defined(DYNINST_CODEGEN_ARCH_POWER)
 #include "dyninstAPI/src/inst-power.h"
 #elif defined(DYNINST_CODEGEN_ARCH_I386) || defined(DYNINST_CODEGEN_ARCH_X86_64)
+#include "arch-regs-x86.h"
+#include "codegen/emitters/x86/generators.h"
 #include "dyninstAPI/src/inst-x86.h"
+namespace cgx86 = Dyninst::DyninstAPI::x86;
 #elif defined(DYNINST_CODEGEN_ARCH_AARCH64)
 #include "dyninstAPI/src/inst-aarch64.h"
 #include "codegen/emitters/aarch64/EmitterAarch64.h"
@@ -392,7 +394,7 @@ bool registerSpace::saveVolatileRegisters(codeGen &gen)
     // Okay, save.
     if (addr_width == 8) {
         // save flags (PUSHFQ)
-       //emitSimpleInsn(0x9C, gen);
+       //cgx86::emitSimpleInsn(0x9C, gen);
        bool override = false;
        if (registers_[REGNUM_EFLAGS]->liveState == registerSlot::live) {
           override = true;
@@ -404,7 +406,7 @@ bool registerSpace::saveVolatileRegisters(codeGen &gen)
            registers_[REGNUM_PF]->liveState == registerSlot::live ||
            registers_[REGNUM_CF]->liveState == registerSlot::live ||
            override) {
-          emitSimpleInsn(0x9f, gen);
+          cgx86::emitSimpleInsn(0x9f, gen);
           registers_[REGNUM_SF]->liveState = registerSlot::spilled;
           registers_[REGNUM_ZF]->liveState = registerSlot::spilled;
           registers_[REGNUM_AF]->liveState = registerSlot::spilled;
@@ -422,10 +424,10 @@ bool registerSpace::saveVolatileRegisters(codeGen &gen)
         assert(addr_width == 4);
 
         emitPush(RealRegister(REGNUM_EAX), gen);
-        emitSimpleInsn(0x9f, gen);
+        cgx86::emitSimpleInsn(0x9f, gen);
         emitSaveO(gen);
         gen.markRegDefined(REGNUM_EAX);
-        //emitSimpleInsn(PUSHFD, gen);
+        //cgx86::emitSimpleInsn(PUSHFD, gen);
         registers_[IA32_FLAG_VIRTUAL_REGISTER]->liveState =
             registerSlot::spilled;
 
@@ -456,14 +458,14 @@ bool registerSpace::restoreVolatileRegisters(codeGen &gen)
            registers_[REGNUM_AF]->liveState == registerSlot::spilled ||
            registers_[REGNUM_PF]->liveState == registerSlot::spilled ||
            registers_[REGNUM_CF]->liveState == registerSlot::spilled) {
-          emitSimpleInsn(0x9e, gen);
+          cgx86::emitSimpleInsn(0x9e, gen);
        }
 
     } else {
         assert(addr_width == 4);
 
         emitRestoreO(gen);
-        emitSimpleInsn(0x9E, gen);
+        cgx86::emitSimpleInsn(0x9E, gen);
         emitPop(RealRegister(REGNUM_EAX), gen);
         // State stays at spilled, which is incorrect - but will never matter.
 

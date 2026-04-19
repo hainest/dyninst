@@ -212,8 +212,8 @@ namespace Dyninst { namespace DyninstAPI {
     gen.markRegDefined(REGNUM_RAX);
 
     // cqo (sign extend RAX into RDX)
-    emitSimpleInsn(0x48, gen); // REX.W
-    emitSimpleInsn(0x99, gen);
+    x86::emitSimpleInsn(0x48, gen); // REX.W
+    x86::emitSimpleInsn(0x99, gen);
 
     if(s) {
       // idiv %src2
@@ -285,8 +285,8 @@ namespace Dyninst { namespace DyninstAPI {
       gen.markRegDefined(REGNUM_RAX);
       // We either do a sign extension from RAX to RDX or clear RDX
       if(s) {
-        emitSimpleInsn(0x48, gen); // REX.W
-        emitSimpleInsn(0x99, gen);
+        x86::emitSimpleInsn(0x48, gen); // REX.W
+        x86::emitSimpleInsn(0x99, gen);
       } else {
         AMD64::emitMovImmToReg64(REGNUM_RDX, 0, true, gen);
       }
@@ -899,16 +899,16 @@ namespace Dyninst { namespace DyninstAPI {
       emitLoadOrigRegister(REGNUM_RCX, REGNUM_RCX, gen);
 
       // emulate the string instruction
-      emitSimpleInsn(neg ? 0xF2 : 0xF3, gen); // rep(n)e
+      x86::emitSimpleInsn(neg ? 0xF2 : 0xF3, gen); // rep(n)e
       if(sc == 0) {
-        emitSimpleInsn(opcode_small, gen);
+        x86::emitSimpleInsn(opcode_small, gen);
       } else {
         if(sc == 1) {
-          emitSimpleInsn(0x66, gen); // operand size prefix
+          x86::emitSimpleInsn(0x66, gen); // operand size prefix
         } else if(sc == 3) {
-          emitSimpleInsn(0x48, gen); // REX.W
+          x86::emitSimpleInsn(0x48, gen); // REX.W
         }
-        emitSimpleInsn(opcode_large, gen);
+        x86::emitSimpleInsn(opcode_large, gen);
       }
 
       // RCX has now been decremented by the number of repititions
@@ -955,19 +955,19 @@ namespace Dyninst { namespace DyninstAPI {
       emitOpRMReg(PUSH_RM_OPC1, RealRegister(REGNUM_EBP), offset * 8, RealRegister(PUSH_RM_OPC2),
                   gen);
     }
-    emitSimpleInsn(0x9D, gen);
+    x86::emitSimpleInsn(0x9D, gen);
   }
 
   void EmitterAMD64::emitPushFlags(codeGen &gen) {
     // save flags (PUSHFQ)
-    emitSimpleInsn(0x9C, gen);
+    x86::emitSimpleInsn(0x9C, gen);
   }
 
   void EmitterAMD64::emitRestoreFlagsFromStackSlot(codeGen &gen) {
     stackItemLocation loc = getHeightOf(stackItem(RealRegister(REGNUM_OF)), gen);
     emitOpRMReg(PUSH_RM_OPC1, RealRegister(loc.reg.reg()), loc.offset, RealRegister(PUSH_RM_OPC2),
                 gen);
-    emitSimpleInsn(0x9D, gen);
+    x86::emitSimpleInsn(0x9D, gen);
   }
 
   bool shouldSaveReg(registerSlot *reg, baseTramp *inst, bool saveFlags) {
@@ -1051,7 +1051,7 @@ namespace Dyninst { namespace DyninstAPI {
     emitLEA(REGNUM_RSP, Null_Register, 0, -off, REGNUM_RSP, gen);
     emitStoreRelative(scratch, saveSlot1, REGNUM_RSP, 8, gen);
     if(saveFlags) {
-      emitSimpleInsn(0x9f, gen);
+      x86::emitSimpleInsn(0x9f, gen);
       emitSaveO(gen);
       emitStoreRelative(scratch, saveSlot2, REGNUM_RSP, 8, gen);
     }
@@ -1062,7 +1062,7 @@ namespace Dyninst { namespace DyninstAPI {
     if(saveFlags) {
       emitLoadRelative(scratch, -off + saveSlot2, scratch, 8, gen);
       emitRestoreO(gen);
-      emitSimpleInsn(0x9e, gen);
+      x86::emitSimpleInsn(0x9e, gen);
       emitLoadRelative(scratch, 0, REGNUM_RSP, 8, gen);
     }
     emitLoadRelative(scratch, -off + saveSlot1, scratch, 8, gen);
@@ -1203,7 +1203,7 @@ namespace Dyninst { namespace DyninstAPI {
       // set up a fresh stack frame
       // pushl %rbp        (0x55)
       // movl  %rsp, %rbp  (0x48 0x89 0xe5)
-      emitSimpleInsn(0x55, gen);
+      x86::emitSimpleInsn(0x55, gen);
       gen.rs()->markSavedRegister(REGNUM_RBP, 0);
       num_saved++;
       num_saved++;
@@ -1352,7 +1352,7 @@ namespace Dyninst { namespace DyninstAPI {
 
     if(createFrame) {
       // tear down the stack frame (LEAVE)
-      emitSimpleInsn(0xC9, gen);
+      x86::emitSimpleInsn(0xC9, gen);
       // Pop the Previous SP and Special Word off of the stack, discard them
       Register itchy = gen.rs()->getScratchRegister(gen);
       AMD64::emitPopReg64(itchy, gen);

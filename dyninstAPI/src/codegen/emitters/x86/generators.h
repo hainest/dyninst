@@ -46,6 +46,9 @@ namespace Dyninst { namespace DyninstAPI { namespace x86 {
 
   void emitSegPrefix(Register segReg, codeGen &gen);
 
+  /* emit a simple one-byte instruction */
+  void emitSimpleInsn(unsigned opcode, codeGen &gen);
+
 }}}
 
 #endif

@@ -40,6 +40,7 @@
 #include "codegen/emitters/x86/IA32/EmitterIA32Stat.h"
 #include "codegen/emitters/x86/AMD64/EmitterAMD64Dyn.h"
 #include "codegen/emitters/x86/AMD64/EmitterAMD64Stat.h"
+#include "codegen/emitters/x86/generators.h"
 #include "common/src/headers.h"
 #include "compiler_annotations.h"
 #include "compiler_diagnostics.h"
@@ -71,6 +72,8 @@
 
 class ExpandInstruction;
 class InsertNops;
+
+namespace cgx86 = Dyninst::DyninstAPI::x86;
 
 /****************************************************************************/
 /****************************************************************************/
@@ -233,13 +236,6 @@ void emitAddressingMode(unsigned base, unsigned index,
    SET_PTR(insn, gen);
 }
 
-
-/* emit a simple one-byte instruction */
-void emitSimpleInsn(unsigned op, codeGen &gen) {
-    GET_PTR(insn, gen);
-    append_memory_as(insn, static_cast<uint8_t>(op));
-    SET_PTR(insn, gen);
-}
 
 void emitPushImm(unsigned int imm, codeGen &gen)
 {
@@ -929,7 +925,7 @@ void emitBTRegRestores32(baseTramp *bt, codeGen &gen)
    int numRegsUsed = bt ? bt->numDefinedRegs() : -1;
    if (numRegsUsed == -1 || 
        numRegsUsed > X86_REGS_SAVE_LIMIT) {
-      emitSimpleInsn(POPAD, gen);
+      cgx86::emitSimpleInsn(POPAD, gen);
    }
    else {
       registerSlot *reg;
