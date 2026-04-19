@@ -7,6 +7,24 @@
 
 namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
 
+  void emitMovPCRMToReg64(Register dest, int offset, int size, codeGen &gen, bool deref_result) {
+    GET_PTR(insn, gen);
+    if(size == 8) {
+      append_memory_as_byte(insn, (dest & 0x8) >> 1 | 0x48); // REX prefix
+    } else {
+      append_memory_as_byte(insn, (dest & 0x8) >> 1 | 0x40); // REX prefix
+    }
+    if(deref_result) {
+      append_memory_as_byte(insn, 0x8B); // MOV instruction
+    } else {
+      append_memory_as_byte(insn, 0x8D); // LEA instruction
+    }
+    append_memory_as_byte(insn, ((dest & 0x7) << 3) | 0x5); // ModRM byte
+    append_memory_as(insn, int32_t{offset - 7});            // offset
+    gen.markRegDefined(dest);
+    SET_PTR(insn, gen);
+  }
+
   void emitMovImmToReg64(Register dest, long imm, bool is_64, codeGen &gen) {
     Register tmp_dest = dest;
     gen.markRegDefined(dest);

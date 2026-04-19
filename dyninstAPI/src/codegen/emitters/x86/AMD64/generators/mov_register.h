@@ -38,6 +38,8 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
 
   void emitMovImmToReg64(Register dest, long imm, bool is_64, codeGen &gen);
 
+  void emitMovPCRMToReg64(Register dest, int offset, int size, codeGen &gen, bool deref_result);
+
 }}}
 
 #endif
