@@ -146,13 +146,6 @@ void emitJcc(int condition, int offset,
  *
  **************************************************************/
 
-// VG(7/30/02): Build the SIB byte of an instruction */
-static inline unsigned char makeSIBbyte(unsigned Scale, unsigned Index,
-                                        unsigned Base)
-{
-   return static_cast<unsigned char>(((Scale & 0x3) << 6) + ((Index & 0x7) << 3) + (Base & 0x7));
-}
-
 /* 
    Emit the ModRM byte and displacement for addressing modes.
    base is a register (EAX, ECX, REGNUM_EDX, EBX, EBP, REGNUM_ESI, REGNUM_EDI)
@@ -210,22 +203,22 @@ void emitAddressingMode(unsigned base, unsigned index,
    
    if(base == Null_Register) { // we have to emit [index<<scale+disp32]
       append_memory_as_byte(insn, cgx86::makeModRMbyte(0, reg_opcode, 4));
-      append_memory_as_byte(insn, makeSIBbyte(scale, index, 5));
+      append_memory_as_byte(insn, cgx86::makeSIBbyte(scale, index, 5));
       assert(numeric_limits<int32_t>::lowest() <= disp  && disp <= numeric_limits<int32_t>::max() && "disp more than 32 bits");
       append_memory_as(insn, static_cast<int32_t>(disp));
    }
    else if(disp == 0 && base != REGNUM_EBP) { // EBP must have 0 disp8; emit [base+index<<scale]
        append_memory_as_byte(insn, cgx86::makeModRMbyte(0, reg_opcode, 4));
-       append_memory_as_byte(insn, makeSIBbyte(scale, index, base));
+       append_memory_as_byte(insn, cgx86::makeSIBbyte(scale, index, base));
    }
    else if (disp >= -128 && disp <= 127) { // emit [base+index<<scale+disp8]
       append_memory_as_byte(insn, cgx86::makeModRMbyte(1, reg_opcode, 4));
-      append_memory_as_byte(insn, makeSIBbyte(scale, index, base));
+      append_memory_as_byte(insn, cgx86::makeSIBbyte(scale, index, base));
       append_memory_as(insn, static_cast<int8_t>(disp));
    }
    else { // emit [base+index<<scale+disp32]
       append_memory_as_byte(insn, cgx86::makeModRMbyte(2, reg_opcode, 4));
-      append_memory_as_byte(insn, makeSIBbyte(scale, index, base));
+      append_memory_as_byte(insn, cgx86::makeSIBbyte(scale, index, base));
       assert(numeric_limits<int32_t>::lowest() <= disp  && disp <= numeric_limits<int32_t>::max() && "disp more than 32 bits");
       append_memory_as(insn, static_cast<int32_t>(disp));
    }
@@ -567,7 +560,7 @@ void emitMovImmToMem(Address maddr, int imm,
     // we do it manually here.  emitAddressingMode() should be made more
     // robust.
     append_memory_as_byte(insn, cgx86::makeModRMbyte(0, 0, 4));
-    append_memory_as_byte(insn, makeSIBbyte(0, 4, 5));
+    append_memory_as_byte(insn, cgx86::makeSIBbyte(0, 4, 5));
     assert(maddr <= numeric_limits<uint32_t>::max() && "maddr more than 32 bits");
     append_memory_as(insn, static_cast<uint32_t>(maddr));
 
