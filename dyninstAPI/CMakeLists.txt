@@ -276,6 +276,8 @@ if(DYNINST_CODEGEN_ARCH_I386 OR DYNINST_CODEGEN_ARCH_X86_64)
     src/codegen/emitters/x86/AMD64/EmitterAMD64Stat.h
     src/codegen/emitters/x86/AMD64/generators.C
     src/codegen/emitters/x86/AMD64/generators.h
+    src/codegen/emitters/x86/AMD64/generators/prefix.C
+    src/codegen/emitters/x86/AMD64/generators/prefix.h
     src/codegen/emitters/x86/AMD64/generators/xmm.C
     src/codegen/emitters/x86/AMD64/generators/xmm.h
     src/codegen/emitters/x86/IA32/EmitterIA32Dyn.C
