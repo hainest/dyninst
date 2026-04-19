@@ -56,6 +56,11 @@ namespace Dyninst { namespace DyninstAPI { namespace x86 {
     return ((Mod & 0x3U) << 6U) + ((Reg & 0x7U) << 3U) + (RM & 0x7U);
   }
 
+  // Build the SIB byte of an instruction
+  constexpr inline uint8_t makeSIBbyte(unsigned Scale, unsigned Index, unsigned Base) {
+    return ((Scale & 0x3U) << 6U) + ((Index & 0x7U) << 3U) + (Base & 0x7U);
+  }
+
 }}}
 
 #endif
