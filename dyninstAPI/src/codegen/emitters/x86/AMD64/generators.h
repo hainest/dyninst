@@ -32,6 +32,7 @@
 #define DYNINST_DYNINSTAPI_CODEGEN_EMITTERS_X86_AMD64_GENERATORS_H
 
 #include "codegen.h"
+#include "codegen/emitters/x86/AMD64/generators/xmm.h"
 #include "codegen/emitters/x86/generators.h"
 #include "dyn_register.h"
 
@@ -75,8 +76,6 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
   void emitPushReg64(Register src, codeGen &gen);
 
   void emitRex(bool is_64, Register *r, Register *x, Register *b, codeGen &gen);
-
-  void emitXMMRegsSaveRestore(codeGen &gen, bool isRestore);
 
   bool isImm64bit(Address imm);
 
