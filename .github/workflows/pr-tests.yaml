@@ -146,6 +146,29 @@ jobs:
           cd ${GITHUB_WORKSPACE}/external-tests/build
           ctest --no-tests=error -VV --output-on-failure .
 
+
+        - name: DWARF tests
+          shell: bash
+          run: |
+            declare -a libs=(
+              "libcommon.so" "libdyninstAPI_RT.so" "libdyninstAPI.so" "libinstructionAPI.so"
+              "libparseAPI.so" "libpatchAPI.so" "libpcontrol.so" "libstackwalk.so"
+              "libsymtabAPI.so"
+            )
+
+            declare failed=0
+
+            cd ${GITHUB_WORKSPACE}/external-tests/build
+            for t in linemaps variable_locations; do
+              for lib in "${libs[@]}"; do
+                cur_test="symtab/DWARF/linemaps ${{ matrix.install-dir }}/$lib"
+                if ! ${cur_test}; then
+                  failed=1
+                  echo "'${cur_test}' failed"
+                fi
+              done
+            done
+
   # When unit tests are enabled, all symbols become visible.
   # This test ensures everything except the unit/integration/regression test works.
   visibility_check:
