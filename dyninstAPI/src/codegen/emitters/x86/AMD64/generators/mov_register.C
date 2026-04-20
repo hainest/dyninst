@@ -2,7 +2,6 @@
 #include "codegen/emitters/x86/AMD64/generators/mov_register.h"
 #include "codegen/emitters/x86/AMD64/generators/prefix.h"
 #include "codegen/emitters/x86/generators.h"
-#include "registerSpace/RealRegister.h"
 #include "unaligned_memory_access.h"
 
 namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
@@ -72,6 +71,15 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
       emitRex((size == 8), &tmp_dest, NULL, &tmp_base, gen);
       emitMovRMToReg(RealRegister(tmp_dest), RealRegister(tmp_base), disp, gen);
     }
+  }
+
+  void emitOpSegRMReg(unsigned opcode, RealRegister dest, RealRegister, int disp, codeGen &gen) {
+    GET_PTR(insn, gen);
+    append_memory_as_byte(insn, opcode);
+    append_memory_as_byte(insn, x86::makeModRMbyte(0, dest.reg(), 4));
+    append_memory_as_byte(insn, 0x25);
+    append_memory_as(insn, int32_t{disp});
+    SET_PTR(insn, gen);
   }
 
 }}}
