@@ -36,7 +36,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
         append_memory_as_byte(insn, 0xb7);
       }
       SET_PTR(insn, gen);
-      emitAddressingMode(tmp_base, 0, tmp_dest, gen);
+      x86::emitAddressingMode(tmp_base, 0, tmp_dest, gen);
     }
     if(size == 4 || size == 8) {
       emitRex((size == 8), &tmp_dest, NULL, &tmp_base, gen);
@@ -81,7 +81,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
         append_memory_as_byte(insn, 0x89);
       }
       SET_PTR(insn, gen);
-      emitAddressingMode(tmp_base, 0, REGNUM_RAX, gen);
+      x86::emitAddressingMode(tmp_base, 0, REGNUM_RAX, gen);
     }
 
     if(size == 4 || size == 8) {
@@ -182,7 +182,7 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
       emitRex(is_64, &base, NULL, NULL, gen);
       append_memory_as_byte(insn, 0xC7);
       SET_PTR(insn, gen);
-      emitAddressingMode(base, disp, 0, gen);
+      x86::emitAddressingMode(base, disp, 0, gen);
       REGET_PTR(insn, gen);
     }
     append_memory_as(insn, int32_t{imm});
