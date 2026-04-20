@@ -73,6 +73,17 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
     }
   }
 
+  void emitMovSegRMToReg64(Register dest, Register base, int disp, codeGen &gen) {
+    Register tmp_dest = dest;
+    Register tmp_base = base;
+
+    gen.markRegDefined(dest);
+
+    x86::emitSegPrefix(base, gen);
+    emitRex(true, &tmp_dest, NULL, &tmp_base, gen);
+    emitOpSegRMReg(MOV_RM32_TO_R32, RealRegister(tmp_dest), RealRegister(tmp_base), disp, gen);
+  }
+
   void emitOpSegRMReg(unsigned opcode, RealRegister dest, RealRegister, int disp, codeGen &gen) {
     GET_PTR(insn, gen);
     append_memory_as_byte(insn, opcode);
