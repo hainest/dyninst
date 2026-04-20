@@ -51,4 +51,27 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
     gen.markRegDefined(dest);
   }
 
+  void emitMovRMToReg64(Register dest, Register base, int disp, int size, codeGen &gen) {
+    Register tmp_dest = dest;
+    Register tmp_base = base;
+
+    gen.markRegDefined(dest);
+    if(size == 1 || size == 2) {
+      emitRex(true, &tmp_dest, NULL, &tmp_base, gen);
+      GET_PTR(insn, gen);
+      append_memory_as_byte(insn, 0x0f);
+      if(size == 1) {
+        append_memory_as_byte(insn, 0xb6);
+      } else if(size == 2) {
+        append_memory_as_byte(insn, 0xb7);
+      }
+      SET_PTR(insn, gen);
+      x86::emitAddressingMode(tmp_base, 0, tmp_dest, gen);
+    }
+    if(size == 4 || size == 8) {
+      emitRex((size == 8), &tmp_dest, NULL, &tmp_base, gen);
+      emitMovRMToReg(RealRegister(tmp_dest), RealRegister(tmp_base), disp, gen);
+    }
+  }
+
 }}}
