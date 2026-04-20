@@ -36,13 +36,18 @@
  */
 
 #include "codegen.h"
+#include "codegen/emitters/x86/generators/mov_register.h"
 #include "dyntypes.h"
 #include "registerSpace/RealRegister.h"
-#include "codegen/emitters/x86/generators/mov_register.h"
 
 namespace Dyninst { namespace DyninstAPI { namespace x86 {
 
   void emitAddMem(Address addr, int imm, codeGen &gen);
+
+  void emitAddressingMode(unsigned base, unsigned index, unsigned int scale, Dyninst::RegValue disp,
+                          int reg_opcode, codeGen &gen);
+
+  void emitAddressingMode(unsigned base, Dyninst::RegValue disp, unsigned reg_opcode, codeGen &gen);
 
   void emitCallRel32(unsigned disp32, codeGen &gen);
 

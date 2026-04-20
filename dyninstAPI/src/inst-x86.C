@@ -146,87 +146,6 @@ void emitJcc(int condition, int offset,
  *
  **************************************************************/
 
-/* 
-   Emit the ModRM byte and displacement for addressing modes.
-   base is a register (EAX, ECX, REGNUM_EDX, EBX, EBP, REGNUM_ESI, REGNUM_EDI)
-   disp is a displacement
-   reg_opcode is either a register or an opcode
-*/
-void emitAddressingMode(unsigned base, RegValue disp,
-                        unsigned reg_opcode, codeGen &gen)
-{
-   // MT linux uses ESP+4
-   // we need an SIB in that case
-   if (base == REGNUM_ESP) {
-      emitAddressingMode(REGNUM_ESP, Null_Register, 0, disp, reg_opcode, gen);
-      return;
-   }
-   GET_PTR(insn, gen);
-   if (base == Null_Register) {
-      append_memory_as_byte(insn, cgx86::makeModRMbyte(0, reg_opcode, 5));
-      assert(numeric_limits<int32_t>::lowest() <= disp  && disp <= numeric_limits<int32_t>::max() && "disp more than 32 bits");
-      append_memory_as(insn, static_cast<int32_t>(disp));
-   } else if (disp == 0 && base != REGNUM_EBP) {
-      append_memory_as_byte(insn, cgx86::makeModRMbyte(0, reg_opcode, base));
-   } else if (disp >= -128 && disp <= 127) {
-      append_memory_as_byte(insn, cgx86::makeModRMbyte(1, reg_opcode, base));
-      append_memory_as(insn, static_cast<int8_t>(disp));
-   } else {
-      append_memory_as_byte(insn, cgx86::makeModRMbyte(2, reg_opcode, base));
-      assert(numeric_limits<int32_t>::lowest() <= disp  && disp <= numeric_limits<int32_t>::max() && "disp more than 32 bits");
-      append_memory_as(insn, static_cast<int32_t>(disp));
-   }
-   SET_PTR(insn, gen);
-}
-
-// VG(7/30/02): emit a fully fledged addressing mode: base+index<<scale+disp
-void emitAddressingMode(unsigned base, unsigned index,
-                        unsigned int scale, RegValue disp,
-                        int reg_opcode, codeGen &gen)
-{
-   bool needSIB = (base == REGNUM_ESP) || (index != Null_Register);
-
-   if(!needSIB) {
-      emitAddressingMode(base, disp, reg_opcode, gen);
-      return;
-   }
-   
-   // This isn't true for AMD-64...
-   //assert(index != REGNUM_ESP);
-   
-   if(index == Null_Register) {
-      assert(base == REGNUM_ESP); // not necessary, but sane
-      index = 4;           // (==REGNUM_ESP) which actually means no index in SIB
-   }
-
-   GET_PTR(insn, gen);
-   
-   if(base == Null_Register) { // we have to emit [index<<scale+disp32]
-      append_memory_as_byte(insn, cgx86::makeModRMbyte(0, reg_opcode, 4));
-      append_memory_as_byte(insn, cgx86::makeSIBbyte(scale, index, 5));
-      assert(numeric_limits<int32_t>::lowest() <= disp  && disp <= numeric_limits<int32_t>::max() && "disp more than 32 bits");
-      append_memory_as(insn, static_cast<int32_t>(disp));
-   }
-   else if(disp == 0 && base != REGNUM_EBP) { // EBP must have 0 disp8; emit [base+index<<scale]
-       append_memory_as_byte(insn, cgx86::makeModRMbyte(0, reg_opcode, 4));
-       append_memory_as_byte(insn, cgx86::makeSIBbyte(scale, index, base));
-   }
-   else if (disp >= -128 && disp <= 127) { // emit [base+index<<scale+disp8]
-      append_memory_as_byte(insn, cgx86::makeModRMbyte(1, reg_opcode, 4));
-      append_memory_as_byte(insn, cgx86::makeSIBbyte(scale, index, base));
-      append_memory_as(insn, static_cast<int8_t>(disp));
-   }
-   else { // emit [base+index<<scale+disp32]
-      append_memory_as_byte(insn, cgx86::makeModRMbyte(2, reg_opcode, 4));
-      append_memory_as_byte(insn, cgx86::makeSIBbyte(scale, index, base));
-      assert(numeric_limits<int32_t>::lowest() <= disp  && disp <= numeric_limits<int32_t>::max() && "disp more than 32 bits");
-      append_memory_as(insn, static_cast<int32_t>(disp));
-   }
-
-   SET_PTR(insn, gen);
-}
-
-
 void emitPushImm(unsigned int imm, codeGen &gen)
 {
     GET_PTR(insn, gen);
@@ -286,7 +205,7 @@ void emitOpRegRM(unsigned opcode, RealRegister dest, RealRegister base,
        append_memory_as_byte(insn, opcode & 0xff);
     }
     SET_PTR(insn, gen);
-    emitAddressingMode(base.reg(), disp, dest.reg(), gen);
+    cgx86::emitAddressingMode(base.reg(), disp, dest.reg(), gen);
 }
 
 // emit OP r/m, reg
@@ -295,7 +214,7 @@ void emitOpRMReg(unsigned opcode, RealRegister base, int disp,
    GET_PTR(insn, gen);
    append_memory_as_byte(insn, opcode);
    SET_PTR(insn, gen);
-   emitAddressingMode(base.reg(), disp, src.reg(), gen);
+   cgx86::emitAddressingMode(base.reg(), disp, src.reg(), gen);
 }
 
 // emit OP reg, imm32
@@ -356,7 +275,7 @@ void emitLEA(RealRegister base, RealRegister index, unsigned int scale,
    GET_PTR(insn, gen);
    append_memory_as_byte(insn, 0x8D);
    SET_PTR(insn, gen);
-   emitAddressingMode(base.reg(), index.reg(), scale, disp, (int)dest.reg(), gen);
+   cgx86::emitAddressingMode(base.reg(), index.reg(), scale, disp, (int)dest.reg(), gen);
 }
 
 void emitLEA(RealRegister base, unsigned displacement, RealRegister dest, 
@@ -446,7 +365,7 @@ void emitMovRMToReg(RealRegister dest, RealRegister base, int disp,
    GET_PTR(insn, gen);
    append_memory_as_byte(insn, 0x8B);
    SET_PTR(insn, gen);
-   emitAddressingMode(base.reg(), disp, dest.reg(), gen);
+   cgx86::emitAddressingMode(base.reg(), disp, dest.reg(), gen);
 }
 
 // emit MOV r/m, reg
@@ -456,7 +375,7 @@ void emitMovRegToRM(RealRegister base, int disp, RealRegister src,
    GET_PTR(insn, gen);
    append_memory_as_byte(insn, 0x89);
    SET_PTR(insn, gen);
-   emitAddressingMode(base.reg(), disp, src.reg(), gen);
+   cgx86::emitAddressingMode(base.reg(), disp, src.reg(), gen);
 }
 
 // emit MOV m, reg
@@ -465,7 +384,7 @@ void emitMovRegToM(int disp, RealRegister src, codeGen &gen)
    GET_PTR(insn, gen);
    append_memory_as_byte(insn, 0x89);
    SET_PTR(insn, gen);
-   emitAddressingMode(Null_Register, disp, src.reg(), gen);
+   cgx86::emitAddressingMode(Null_Register, disp, src.reg(), gen);
 }
 
 // emit MOV m, reg
@@ -496,7 +415,7 @@ void emitMovMToReg(RealRegister dest, int disp, codeGen &gen)
    GET_PTR(insn, gen);
    append_memory_as_byte(insn, 0x8B);
    SET_PTR(insn, gen);
-   emitAddressingMode(Null_Register, disp, dest.reg(), gen);
+   cgx86::emitAddressingMode(Null_Register, disp, dest.reg(), gen);
 }
 
 // emit MOVSBL reg, m
@@ -507,7 +426,7 @@ void emitMovMBToReg(RealRegister dest, int disp, codeGen &gen)
    append_memory_as_byte(insn, 0x0F);
    append_memory_as_byte(insn, 0xBE);
    SET_PTR(insn, gen);
-   emitAddressingMode(Null_Register, disp, dest.reg(), gen);
+   cgx86::emitAddressingMode(Null_Register, disp, dest.reg(), gen);
 }
 
 // emit MOVSWL reg, m
@@ -518,7 +437,7 @@ void emitMovMWToReg(RealRegister dest, int disp, codeGen &gen)
    append_memory_as_byte(insn, 0x0F);
    append_memory_as_byte(insn, 0xBF);
    SET_PTR(insn, gen);
-   emitAddressingMode(Null_Register, disp, dest.reg(), gen);
+   cgx86::emitAddressingMode(Null_Register, disp, dest.reg(), gen);
 }
 
 // emit MOV r/m32, imm32
@@ -527,7 +446,7 @@ void emitMovImmToRM(RealRegister base, int disp, int imm,
    GET_PTR(insn, gen);
    append_memory_as_byte(insn, 0xC7);
    SET_PTR(insn, gen);
-   emitAddressingMode(base.reg(), disp, 0, gen);
+   cgx86::emitAddressingMode(base.reg(), disp, 0, gen);
    REGET_PTR(insn, gen);
    append_memory_as(insn, int32_t{imm});
     SET_PTR(insn, gen);
@@ -548,8 +467,8 @@ void emitMovImmToMem(Address maddr, int imm,
     // following form:
     //     Mod = 00b, Reg = (doesn't matter?), R/M = 100b
     //     base = 101b, index = 100b, scale = (doesn't matter?)
-    // Current forms of emitAddressingMode() do not allow for this, and so
-    // we do it manually here.  emitAddressingMode() should be made more
+    // Current forms of cgx86::emitAddressingMode() do not allow for this, and so
+    // we do it manually here.  cgx86::emitAddressingMode() should be made more
     // robust.
     append_memory_as_byte(insn, cgx86::makeModRMbyte(0, 0, 4));
     append_memory_as_byte(insn, cgx86::makeSIBbyte(0, 4, 5));

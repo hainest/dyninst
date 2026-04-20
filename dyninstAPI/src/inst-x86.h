@@ -69,13 +69,6 @@
                                      // 16 may be enough.
 class codeGen;
 
-void emitAddressingMode(unsigned base, unsigned index,
-                        unsigned int scale, Dyninst::RegValue disp,
-                        int reg_opcode, codeGen &gen);
-void emitAddressingMode(unsigned base, Dyninst::RegValue disp,
-                        unsigned reg_opcode, codeGen &gen);
-
-
 // low-level code generation functions
 void emitOpRegReg(unsigned opcode, RealRegister dest, RealRegister src, 
                   codeGen &gen);
