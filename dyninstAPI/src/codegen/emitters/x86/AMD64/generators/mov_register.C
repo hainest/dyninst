@@ -39,4 +39,16 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
     }
   }
 
+  void emitMovRegToReg64(Register dest, Register src, bool is_64, codeGen &gen) {
+    if(dest == src) {
+      return;
+    }
+
+    Register tmp_dest = dest;
+    Register tmp_src = src;
+    emitRex(is_64, &tmp_dest, NULL, &tmp_src, gen);
+    x86::emitMovRegToReg(RealRegister(tmp_dest), RealRegister(tmp_src), gen);
+    gen.markRegDefined(dest);
+  }
+
 }}}
