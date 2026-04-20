@@ -33,6 +33,7 @@
 
 #include "codegen.h"
 #include "dyn_register.h"
+#include "registerSpace/RealRegister.h"
 
 namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
 
@@ -43,6 +44,8 @@ namespace Dyninst { namespace DyninstAPI { namespace AMD64 {
   void emitMovRegToReg64(Register dest, Register src, bool is_64, codeGen &gen);
 
   void emitMovRMToReg64(Register dest, Register base, int disp, int size, codeGen &gen);
+
+  void emitOpSegRMReg(unsigned opcode, RealRegister dest, RealRegister src, int disp, codeGen& gen);
 
 }}}
 

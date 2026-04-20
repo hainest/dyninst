@@ -81,7 +81,6 @@ void emitOpExtRegImm(int opcode, int opcode2, RealRegister dest, int imm, codeGe
 void emitOpRMReg(unsigned opcode, RealRegister base, int disp, RealRegister src, codeGen &gen);
 void emitOpRegRegImm(unsigned opcode, RealRegister dest, RealRegister src, unsigned imm, codeGen &gen);
 void emitOpRegImm(int opcode, RealRegister dest, int imm, codeGen &gen);
-void emitOpSegRMReg(unsigned opcode, RealRegister dest, RealRegister src, int disp, codeGen& gen);
 
 void emitMovIRegToReg(RealRegister dest, RealRegister src, codeGen &gen);
 void emitMovPCRMToReg(RealRegister dest, int offset, codeGen &gen, bool deref_result = true);

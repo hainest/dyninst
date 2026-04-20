@@ -1525,7 +1525,7 @@ namespace Dyninst { namespace DyninstAPI {
 
     x86::emitSegPrefix(base, gen);
     AMD64::emitRex(true, &tmp_dest, NULL, &tmp_base, gen);
-    emitOpSegRMReg(XOR_R32_RM32, RealRegister(tmp_dest), RealRegister(tmp_base), disp, gen);
+    AMD64::emitOpSegRMReg(XOR_R32_RM32, RealRegister(tmp_dest), RealRegister(tmp_base), disp, gen);
     gen.markRegDefined(dest);
     return true;
   }

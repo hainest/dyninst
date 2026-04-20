@@ -182,17 +182,6 @@ void emitOpRegImm(int opcode, RealRegister dest, int imm,
    SET_PTR(insn, gen);
 }
 
-void emitOpSegRMReg(unsigned opcode, RealRegister dest, RealRegister, int disp, codeGen &gen)
-{
-    GET_PTR(insn, gen);
-    append_memory_as_byte(insn, opcode);
-    append_memory_as_byte(insn, cgx86::makeModRMbyte(0, dest.reg(), 4));
-    append_memory_as_byte(insn, 0x25);
-    append_memory_as(insn, int32_t{disp});
-    SET_PTR(insn, gen);
-}
-
-
 // emit OP reg, r/m
 void emitOpRegRM(unsigned opcode, RealRegister dest, RealRegister base,
 		 int disp, codeGen &gen)
