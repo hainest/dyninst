@@ -32,8 +32,9 @@
 #define _EMITTER_RISCV64_H
 
 #include "common/src/headers.h"
-#include "dyninstAPI/src/ast.h"
-#include "dyninstAPI/src/baseTramp.h"
+#include "ASTs/ast.h"
+#include "codegen/RegControl.h"
+#include "trampolines/baseTramp.h"
 #include "dyninstAPI/src/instPoint.h"
 #include <assert.h>
 #include <vector>
@@ -54,7 +55,7 @@ public:
   virtual ~EmitterRISCV64() {}
 
   virtual codeBufIndex_t emitIf(Register expr_reg, Register target,
-                                RegControl rc, codeGen &gen);
+                                Dyninst::DyninstAPI::RegControl rc, codeGen &gen);
 
   virtual void emitOp(unsigned opcode, Register dest, Register src1,
                       Register src2, codeGen &gen);
@@ -132,7 +133,7 @@ public:
 
   // This one we actually use now.
   virtual Register emitCall(opCode op, codeGen &gen,
-                            const std::vector<AstNodePtr> &operands,
+                            const std::vector<Dyninst::DyninstAPI::codeGenASTPtr> &operands,
                             bool noCost, func_instance *callee);
   // virtual bool emitPIC(codeGen& /*gen*/, Address, Address )=0;
 

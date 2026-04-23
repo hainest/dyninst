@@ -35,8 +35,8 @@
 #include "dyninstAPI/h/BPatch.h"
 #include "dyninstAPI/h/BPatch_memoryAccess_NP.h"
 #include "dyninstAPI/src/BPatch_collections.h"
-#include "dyninstAPI/src/ast.h"
-#include "dyninstAPI/src/baseTramp.h"
+#include "ASTs/ast.h"
+#include "trampolines/baseTramp.h"
 #include "dyninstAPI/src/binaryEdit.h"
 #include "dyninstAPI/src/codegen.h"
 #include "dyninstAPI/src/debug.h"
@@ -48,7 +48,7 @@
 #include "dyninstAPI/src/instPoint.h" // class instPoint
 #include "dyninstAPI/src/mapped_object.h"
 #include "dyninstAPI/src/os.h"
-#include "dyninstAPI/src/registerSpace.h"
+#include "registerSpace/registerSpace.h"
 #include "dyninstAPI/src/util.h"
 #include "parseAPI/h/CFG.h"
 
