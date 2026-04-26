@@ -1,0 +1,1212 @@
+\subsection{Instrumenting A Function}
+
+{
+
+\#include <stdio.h>}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+\#include {\textquotedbl}BPatch.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_addressSpace.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_process.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_binaryEdit.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_point.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_function.h{\textquotedbl}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+using namespace std;}
+
+
+
+{
+
+using namespace Dyninst;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create an instance of class BPatch}
+
+
+
+{
+
+BPatch bpatch;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Different ways to perform instrumentation}
+
+
+
+{
+
+typedef enum {}
+
+
+
+{
+
+create,}
+
+
+
+{
+
+attach,}
+
+
+
+{
+
+open}
+
+
+
+{
+
+} accessType_t;
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Attach, create, or open a file for rewriting}
+
+
+
+{
+
+BPatch_addressSpace* startInstrumenting(accessType_t accessType,}
+
+
+
+{
+
+const char* name,}
+
+
+
+{
+
+int pid,}
+
+
+
+{
+
+const char* argv[]) {}
+
+
+
+{
+
+BPatch_addressSpace* handle = NULL;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+switch(accessType) {}
+
+
+
+{
+
+case create:}
+
+
+
+{
+
+handle = bpatch.processCreate(name, argv);}
+
+
+
+{
+
+if (!handle) { fprintf(stderr, {\textquotedbl}processCreate
+
+failed{\textbackslash}n{\textquotedbl}); }}
+
+
+
+{
+
+break;}
+
+
+
+{
+
+case attach:}
+
+
+
+{
+
+handle = bpatch.processAttach(name, pid);}
+
+
+
+{
+
+if (!handle) { fprintf(stderr, {\textquotedbl}processAttach
+
+failed{\textbackslash}n{\textquotedbl}); }}
+
+
+
+{
+
+break;}
+
+
+
+{
+
+case open:}
+
+
+
+{
+
+// Open the binary file and all dependencies}
+
+
+
+{
+
+handle = bpatch.openBinary(name, true);}
+
+
+
+{
+
+if (!handle) { fprintf(stderr, {\textquotedbl}openBinary
+
+failed{\textbackslash}n{\textquotedbl}); }}
+
+
+
+{
+
+break;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+return handle;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Find a point at which to insert instrumentation}
+
+
+
+{
+
+std::vector<BPatch_point*>* findPoint(BPatch_addressSpace* app,
+
+
+
+{
+
+const char* name,
+
+
+
+{
+
+BPatch_procedureLocation loc) {}
+
+
+
+{
+
+std::vector<BPatch_function*> functions;}
+
+
+
+{
+
+std::vector<BPatch_point*>* points;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Scan for functions named {\textquotedbl}name{\textquotedbl}}
+
+
+
+{
+
+BPatch_image* appImage = app->getImage();}
+
+
+
+{
+
+appImage->findFunction(name, functions);}
+
+
+
+{
+
+if (functions.size() == 0) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}No function \%s{\textbackslash}n{\textquotedbl}, name);}
+
+
+
+{
+
+return points;}
+
+
+
+{
+
+} else if (functions.size() > 1) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}More than one \%s; using the first one{\textbackslash}n{\textquotedbl},
+
+name);}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Locate the relevant points}
+
+
+
+{
+
+points = functions[0]->findPoint(loc);}
+
+
+
+{
+
+return points;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create and insert an increment snippet}
+
+
+
+{
+
+bool createAndInsertSnippet(BPatch_addressSpace* app,}
+
+
+
+{
+
+std::vector<BPatch_point*>* points) {}
+
+
+
+{
+
+BPatch_image* appImage = app->getImage();}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create an increment snippet}
+
+
+
+{
+
+BPatch_variableExpr* intCounter =
+
+
+
+{
+
+app->malloc(*(appImage->findType({\textquotedbl}int{\textquotedbl})),
+
+{\textquotedbl}myCounter{\textquotedbl});}
+
+
+
+{
+
+BPatch_arithExpr addOne(BPatch_assign,}
+
+
+
+{
+
+*intCounter,}
+
+
+
+{
+
+BPatch_arithExpr(BPatch_plus,
+
+
+
+{
+
+*intCounter,
+
+
+
+{
+
+BPatch_constExpr(1)));}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Insert the snippet}
+
+
+
+{
+
+if (!app->insertSnippet(addOne, *points)) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}insertSnippet failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+return false;}
+
+
+
+{
+
+}}
+
+
+
+{
+
+return true;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create and insert a printf snippet}
+
+
+
+{
+
+bool createAndInsertSnippet2(BPatch_addressSpace* app,}
+
+
+
+{
+
+std::vector<BPatch_point*>* points) {}
+
+
+
+{
+
+BPatch_image* appImage = app->getImage();}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create the printf function call snippet}
+
+
+
+{
+
+std::vector<BPatch_snippet*> printfArgs;}
+
+
+
+{
+
+BPatch_snippet* fmt =
+
+
+
+{
+
+new BPatch_constExpr({\textquotedbl}InterestingProcedure called \%d
+
+times{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+printfArgs.push_back(fmt);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_variableExpr* var = appImage->findVariable({\textquotedbl}myCounter{\textquotedbl});}
+
+
+
+{
+
+if (!var) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}Could not find 'myCounter' variable{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+return false;}
+
+
+
+{
+
+} else {}
+
+
+
+{
+
+printfArgs.push_back(var);}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Find the printf function}
+
+
+
+{
+
+std::vector<BPatch_function*> printfFuncs;}
+
+
+
+{
+
+appImage->findFunction({\textquotedbl}printf{\textquotedbl}, printfFuncs);}
+
+
+
+{
+
+if (printfFuncs.size() == 0) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}Could not find printf{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+return false;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Construct a function call snippet}
+
+
+
+{
+
+BPatch_funcCallExpr printfCall(*(printfFuncs[0]), printfArgs);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Insert the snippet}
+
+
+
+{
+
+if (!app->insertSnippet(printfCall, *points)) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}insertSnippet failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+return false;}
+
+
+
+{
+
+}}
+
+
+
+{
+
+return true;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+void finishInstrumenting(BPatch_addressSpace* app, const char* newName)}
+
+
+
+{
+
+{}
+
+
+
+{
+
+BPatch_process* appProc = dynamic_cast<BPatch_process*>(app);}
+
+
+
+{
+
+BPatch_binaryEdit* appBin = dynamic_cast<BPatch_binaryEdit*>(app);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+if (appProc) {}
+
+
+
+{
+
+if (!appProc->continueExecution()) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}continueExecution failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+}}
+
+
+
+{
+
+while (!appProc->isTerminated()) {}
+
+
+
+{
+
+bpatch.waitForStatusChange();}
+
+
+
+{
+
+}}
+
+
+
+{
+
+} else if (appBin) {}
+
+
+
+{
+
+if (!appBin->writeFile(newName)) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}writeFile failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+}}
+
+
+
+{
+
+}}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+int main() {}
+
+
+
+{
+
+// Set up information about the program to be instrumented}
+
+
+
+{
+
+const char* progName = {\textquotedbl}InterestingProgram{\textquotedbl};}
+
+
+
+{
+
+int progPID = 42;}
+
+
+
+{
+
+const char* progArgv[] = {{\textquotedbl}InterestingProgram{\textquotedbl}, {\textquotedbl}-h{\textquotedbl},
+
+NULL};}
+
+
+
+{
+
+accessType_t mode = create;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create/attach/open a binary}
+
+
+
+{
+
+BPatch_addressSpace* app =
+
+
+
+{
+
+startInstrumenting(mode, progName, progPID, progArgv);}
+
+
+
+{
+
+if (!app) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}startInstrumenting failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+exit(1);}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Find the entry point for function InterestingProcedure}
+
+
+
+{
+
+const char* interestingFuncName = {\textquotedbl}InterestingProcedure{\textquotedbl};}
+
+
+
+{
+
+std::vector<BPatch_point*>* entryPoint =
+
+
+
+{
+
+findPoint(app, interestingFuncName, BPatch_entry);}
+
+
+
+{
+
+if (!entryPoint {\textbar}{\textbar} entryPoint->size() == 0) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}No entry points for \%s{\textbackslash}n{\textquotedbl},
+
+interestingFuncName);}
+
+
+
+{
+
+exit(1);}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create and insert instrumentation snippet}
+
+
+
+{
+
+if (!createAndInsertSnippet(app, entryPoint)) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}createAndInsertSnippet failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+exit(1);}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Find the exit point of main}
+
+
+
+{
+
+std::vector<BPatch_point*>* exitPoint =
+
+
+
+{
+
+findPoint(app, {\textquotedbl}main{\textquotedbl}, BPatch_exit);}
+
+
+
+{
+
+if (!exitPoint {\textbar}{\textbar} exitPoint->size() == 0) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}No exit points for main{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+exit(1);}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create and insert instrumentation snippet 2}
+
+
+
+{
+
+if (!createAndInsertSnippet2(app, exitPoint)) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}createAndInsertSnippet2 failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+exit(1);}
+
+
+
+{
+
+}}
+
+
+
+{
+
+// Finish instrumentation}
+
+
+
+{
+
+const char* progName2 = {\textquotedbl}InterestingProgram-rewritten{\textquotedbl};}
+
+
+
+{
+
+finishInstrumenting(app, progName2);}
+
+
+
+{
+
+}}
+
+
+

@@ -1,0 +1,40 @@
+\index{BPatch_cblock: : : : : : :!}{
+
+This class is used to access information about a common block.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+std::vector<BPatch_field *> *getComponents()\index{getComponents: : : : : : :!}}
+
+
+
+{
+
+Return a vector containing the individual variables of the common block.}
+
+
+
+{
+
+std::vector<BPatch_function *> *getFunctions()\index{getFunctions: : : : : : :!}}
+
+
+
+{
+
+Return a vector of the functions that can see this common block with the set of fields described in getComponents.
+
+However, other functions that define this common block with a different set of variables (or sizes of any variable)
+
+will not be returned.}
+
+
+

@@ -1,0 +1,830 @@
+{
+
+\#include <stdio.h>}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+\#include {\textquotedbl}BPatch.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_addressSpace.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_process.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_binaryEdit.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_point.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_function.h{\textquotedbl}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+using namespace std;}
+
+
+
+{
+
+using namespace Dyninst;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create an instance of class BPatch}
+
+
+
+{
+
+BPatch bpatch;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Different ways to perform instrumentation}
+
+
+
+{
+
+typedef enum {}
+
+
+
+{
+
+create,}
+
+
+
+{
+
+attach,}
+
+
+
+{
+
+open}
+
+
+
+{
+
+} accessType_t;
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Attach, create, or open a file for rewriting}
+
+
+
+{
+
+BPatch_addressSpace* startInstrumenting(accessType_t accessType,}
+
+
+
+{
+
+const char* name,}
+
+
+
+{
+
+int pid,}
+
+
+
+{
+
+const char* argv[]) {}
+
+
+
+{
+
+BPatch_addressSpace* handle = NULL;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+switch(accessType) {}
+
+
+
+{
+
+case create:}
+
+
+
+{
+
+handle = bpatch.processCreate(name, argv);}
+
+
+
+{
+
+if (!handle) { fprintf(stderr, {\textquotedbl}processCreate
+
+failed{\textbackslash}n{\textquotedbl}); }}
+
+
+
+{
+
+break;}
+
+
+
+{
+
+case attach:}
+
+
+
+{
+
+handle = bpatch.processAttach(name, pid);}
+
+
+
+{
+
+if (!handle) { fprintf(stderr, {\textquotedbl}processAttach
+
+failed{\textbackslash}n{\textquotedbl}); }}
+
+
+
+{
+
+break;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+case open:}
+
+
+
+{
+
+// Open the binary file; do not open dependencies}
+
+
+
+{
+
+handle = bpatch.openBinary(name, false);}
+
+
+
+{
+
+if (!handle) { fprintf(stderr, {\textquotedbl}openBinary
+
+failed{\textbackslash}n{\textquotedbl}); }}
+
+
+
+{
+
+break;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+return handle;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+bool instrumentMemoryAccesses(BPatch_addressSpace* app) {}
+
+
+
+{
+
+BPatch_image* appImage = app->getImage();}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// We're interested in loads and stores}
+
+
+
+{
+
+BPatch_Set<BPatch_opCode> axs;}
+
+
+
+{
+
+axs.insert(BPatch_opLoad);}
+
+
+
+{
+
+axs.insert(BPatch_opStore);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Scan the function InterestingProcedure
+
+
+
+{
+
+// and create instrumentation points}
+
+
+
+{
+
+std::vector<BPatch_function*> functions;}
+
+
+
+{
+
+appImage->findFunction({\textquotedbl}InterestingProcedure{\textquotedbl}, functions);}
+
+
+
+{
+
+std::vector<BPatch_point*>* points =
+
+
+
+{
+
+functions[0]->findPoint(axs);}
+
+
+
+{
+
+if (!points) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}No load/store points found{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+return false;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create the printf function call snippet}
+
+
+
+{
+
+std::vector<BPatch_snippet*> printfArgs;}
+
+
+
+{
+
+BPatch_snippet* fmt = new BPatch_constExpr({\textquotedbl}Access at: 0x\%lx{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+printfArgs.push_back(fmt);}
+
+
+
+{
+
+BPatch_snippet* eae = new BPatch_effectiveAddressExpr();}
+
+
+
+{
+
+printfArgs.push_back(eae);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Find the printf function}
+
+
+
+{
+
+std::vector<BPatch_function*> printfFuncs;}
+
+
+
+{
+
+appImage->findFunction({\textquotedbl}printf{\textquotedbl}, printfFuncs);}
+
+
+
+{
+
+if (printfFuncs.size() == 0) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}Could not find printf{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+return false;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Construct a function call snippet
+
+
+
+{
+
+BPatch_funcCallExpr printfCall(*(printfFuncs[0]), printfArgs);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Insert the snippet at the instrumentation points}
+
+
+
+{
+
+if (!app->insertSnippet(printfCall, *points)) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}insertSnippet failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+return false;}
+
+
+
+{
+
+}}
+
+
+
+{
+
+return true;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+void finishInstrumenting(BPatch_addressSpace* app, const char* newName) {}
+
+
+
+{
+
+BPatch_process* appProc = dynamic_cast<BPatch_process*>(app);}
+
+
+
+{
+
+BPatch_binaryEdit* appBin = dynamic_cast<BPatch_binaryEdit*>(app);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+if (appProc) {}
+
+
+
+{
+
+if (!appProc->continueExecution()) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}continueExecution failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+}}
+
+
+
+{
+
+while (!appProc->isTerminated()) {}
+
+
+
+{
+
+bpatch.waitForStatusChange();}
+
+
+
+{
+
+}}
+
+
+
+{
+
+} else if (appBin) {}
+
+
+
+{
+
+if (!appBin->writeFile(newName)) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}writeFile failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+}}
+
+
+
+{
+
+}}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+int main() {}
+
+
+
+{
+
+// Set up information about the program to be instrumented}
+
+
+
+{
+
+const char* progName = {\textquotedbl}InterestingProgram{\textquotedbl};}
+
+
+
+{
+
+int progPID = 42;}
+
+
+
+{
+
+const char* progArgv[] = {{\textquotedbl}InterestingProgram{\textquotedbl}, {\textquotedbl}-h{\textquotedbl},
+
+NULL};}
+
+
+
+{
+
+accessType_t mode = create;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create/attach/open a binary}
+
+
+
+{
+
+BPatch_addressSpace* app =
+
+
+
+{
+
+startInstrumenting(mode, progName, progPID, progArgv);}
+
+
+
+{
+
+if (!app) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}startInstrumenting failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+exit(1);}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Instrument memory accesses}
+
+
+
+{
+
+if (!instrumentMemoryAccesses(app)) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}instrumentMemoryAccesses failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+exit(1);}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Finish instrumentation
+
+
+
+{
+
+const char* progName2 = {\textquotedbl}InterestingProgram-rewritten{\textquotedbl};}
+
+
+
+{
+
+finishInstrumenting(app, progName2);}
+
+
+
+{
+
+}}
+
+
+

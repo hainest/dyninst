@@ -1,0 +1,508 @@
+\index{BPatch_basicBlockLoop: : : : : : :!}{
+
+An object of this class represents a loop in the code of the application being instrumented. We detect both natural
+
+loops (single-entry loops) and irreducible loops (multi-entry loops). For a natural loop, it has only one entry block
+
+and this entry block dominates all blocks in the loop; thus the entry block is also called the head or the header of
+
+the loop. However, for an irreducible loop, it has multiple entry blocks and none of them dominates all blocks in the
+
+loop; thus there is no head or header for an irreducible loop. The following figure illustrates the difference:}
+
+
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=10.613cm,yshift=-1.173cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=9.668cm,yshift=-6.888cm]
+
+\path[line width=0.0102in,draw]  (NaN,NaN) --  (Infinity,NaN) --  (Infinity,-Infinity) --  (NaN,-Infinity) -- cycle;
+
+\node[below,align=justify,text width=NaNcm,transform shape] at (NaN,NaN) {(b) An example of irreducible loop};
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=12.388cm,yshift=-4.514cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=12.829cm,yshift=-2.551cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=12.702cm,yshift=-2.937cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=11.174cm,yshift=-4.170cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=11.026cm,yshift=-2.828cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=12.273cm,yshift=-1.141cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=2.896cm,yshift=-0.268cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) --  (Infinity,NaN) --  (Infinity,-Infinity) --  (Infinity,-Infinity) --
+
+cycle;
+
+\node[below,align=center,text width=NaNcm,transform shape] at (Infinity,-Infinity) {Entry};
+
+\end{scope}
+
+\begin{scope}[xshift=1.588cm,yshift=-3.551cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) -- cycle;
+
+\node[below,align=left,text width=NaNcm,transform shape] at (Infinity,-Infinity) {2};
+
+\end{scope}
+
+\begin{scope}[xshift=3.230cm,yshift=-1.949cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) -- cycle;
+
+\node[below,align=left,text width=NaNcm,transform shape] at (Infinity,-Infinity) {1};
+
+\end{scope}
+
+\begin{scope}[xshift=4.918cm,yshift=-3.572cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) -- cycle;
+
+\node[below,align=left,text width=NaNcm,transform shape] at (Infinity,-Infinity) {3};
+
+\end{scope}
+
+\begin{scope}[xshift=2.896cm,yshift=-5.849cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) --  (Infinity,NaN) --  (Infinity,-Infinity) --  (Infinity,-Infinity) --
+
+cycle;
+
+\node[below,align=center,text width=NaNcm,transform shape] at (Infinity,-Infinity) {Exit};
+
+\end{scope}
+
+\begin{scope}[xshift=3.727cm,yshift=-1.141cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\begin{scope}[xshift=2.473cm,yshift=-2.838cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\begin{scope}[xshift=2.618cm,yshift=-4.182cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\begin{scope}[xshift=4.159cm,yshift=-2.947cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\begin{scope}[xshift=4.309cm,yshift=-2.582cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\begin{scope}[xshift=3.842cm,yshift=-4.526cm]
+
+\path[line width=0.0209in,draw]  (NaN,NaN) --  (Infinity,-Infinity);
+
+\end{scope}
+
+\begin{scope}[xshift=1.570cm,yshift=-7.018cm]
+
+\path  (NaN,NaN) --  (Infinity,NaN) --  (Infinity,-Infinity) --  (NaN,-Infinity) -- cycle;
+
+\node[below,align=left,text width=NaNcm,transform shape] at (NaN,NaN) {(a) An example of natural loop};
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=11.441cm,yshift=-5.835cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) --  (Infinity,NaN) --  (Infinity,-Infinity) --  (Infinity,-Infinity) --
+
+cycle;
+
+\node[below,align=center,text width=NaNcm,transform shape] at (Infinity,-Infinity) {Exit};
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=13.458cm,yshift=-3.561cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) -- cycle;
+
+\node[below,align=justify,text width=NaNcm,transform shape] at (Infinity,-Infinity) {3};
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=11.774cm,yshift=-1.949cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) -- cycle;
+
+\node[below,align=justify,text width=NaNcm,transform shape] at (Infinity,-Infinity) {1};
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=10.142cm,yshift=-3.540cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) -- cycle;
+
+\node[below,align=justify,text width=NaNcm,transform shape] at (Infinity,-Infinity) {2};
+
+\end{scope}
+
+\end{tikzpicture}
+
+\begin{tikzpicture}
+
+\begin{scope}[xshift=11.441cm,yshift=-0.268cm]
+
+\path[line width=0.0102in,draw]  (NaN,-Infinity) --  (Infinity,NaN) --  (Infinity,-Infinity) --  (Infinity,-Infinity) --
+
+cycle;
+
+\node[below,align=center,text width=NaNcm,transform shape] at (Infinity,-Infinity) {Entry};
+
+\end{scope}
+
+\end{tikzpicture}
+
+
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+Figure (a) above shows a natural loop, where block 1 represents the single entry and block 1 is the head of the loop.
+
+Block 1 dominates block 2 and block 3. Figure (b) above shows an irreducible loop, where block 1 and block 2 are the
+
+entries of the loop. Neither block 1 nor block 2 domiantes block 3.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+bool containsAddress(unsigned long addr)}
+
+
+
+{
+
+Return true if addr is contained within any of the basic blocks that compose this loop, excluding the block of any of
+
+its sub-loops.}
+
+
+
+{
+
+bool containsAddressInclusive(unsigned long addr)}
+
+
+
+{
+
+Return true if addr is contained within any of the basic blocks that compose this loop, or in the blocks of any of its
+
+sub-loops.}
+
+
+
+{
+
+int getBackEdges(std::vector<BPatch_edge *> &edges)}
+
+
+
+{
+
+Returns the number of back edges in this loop and adds those edges to the edges vector. An edge is a back edge if it
+
+is from a block in the loop to an entry block of the loop.}
+
+
+
+{
+
+int getLoopEntries(std::vector<BPatch_basicBlock *> &entries)}
+
+
+
+{
+
+Returns the number of entry blocks of this loop and adds those blocks to the entries vector. An irreducible loop can
+
+have multiple entry blocks.}
+
+
+
+{
+
+bool getContainedLoops\index{getContainedLoops: : : : : :
+
+:!}(std::vector<BPatch_basicBlockLoop*>&)}
+
+
+
+{
+
+Fill the given vector with a list of the loops nested within this loop.}
+
+
+
+{
+
+BPatch_flowGraph *getFlowGraph()}
+
+
+
+{
+
+Return a pointer to the control flow graph that contains this loop.}
+
+
+
+{
+
+bool getOuterLoops\index{getContainedLoops: : : : : :
+
+:!}(std::vector<BPatch_basicBlockLoop*>&)}
+
+
+
+{
+
+Fill the given vector with a list of the outer loops nested within this loop.}
+
+
+
+{
+
+bool getLoopBasicBlocks(std::vector<BPatch_basicBlock*>&)\index{getLoopBasicBlocks: : : : : :
+
+:!}}
+
+
+
+{
+
+Fill the given vector with a list of all basic blocks that are part of this loop.}
+
+
+
+{
+
+bool getLoopBasicBlocksExclusive(}
+
+
+
+{
+
+std::vector<BPatch_basicBlock*>&)\index{getLoopBasicBlocks: : : : : : :!}}
+
+
+
+{
+
+Fill the given vector with a list of all basic blocks that are part of this loop but not its sub-loops.}
+
+
+
+{
+
+bool hasAncestor(BPatch_basicBlockLoop*)\index{getLoopHead: : : : : : :!}}
+
+
+
+{
+
+Return true if this loop is nested within the given loop (the given loop is one of its ancestors in the tree of loops).}
+
+
+
+{
+
+bool hasBlock(BPatch_basicBlock *b)}
+
+
+
+{
+
+Return true if this loop or any of its sub-loops contain b, false otherwise.}
+
+
+
+{
+
+bool hasBlockExclusive(BPatch_basicBlock *b)}
+
+
+
+{
+
+Return true if this loop, excluding its sub-loops, contains b, false otherwise.}
+
+
+

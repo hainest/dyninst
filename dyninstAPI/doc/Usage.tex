@@ -1,0 +1,148 @@
+\section{Usage}
+
+\subsection{Conversions}
+In this section, we describe how to access the underlying component library abstractions from corresponding
+Dyninst abstractions. The component libraries (SymtabAPI, InstructionAPI, ParseAPI, and PatchAPI) often
+provide greater functionality and cleaner interfaces than Dyninst, and thus users may wish to use a mix
+of abstractions. In general, users may access component library abstractions via a convert function, which
+is overloaded and namespaced to give consistent behavior. The definitions of all component library
+abstractions are located in the appropriate documentation.
+
+\code {
+PatchAPI::PatchMgrPtr PatchAPI::convert(BPatch_addressSpace *);
+
+PatchAPI::PatchObject *PatchAPI::convert(BPatch_object *);
+
+ParseAPI::CodeObject *ParseAPI::convert(BPatch_object *);
+
+SymtabAPI::Symtab *SymtabAPI::convert(BPatch_object *);
+
+SymtabAPI::Module *SymtabAPI::convert(BPatch_module *);
+
+PatchAPI::PatchFunction *PatchAPI::convert(BPatch_function *);
+
+ParseAPI::Function *ParseAPI::convert(BPatch_function *);
+
+PatchAPI::PatchBlock *PatchAPI::convert(BPatch_basicBlock *);
+
+ParseAPI::Block *ParseAPI::convert(BPatch_basicBlock *);
+
+PatchAPI::PatchEdge *PatchAPI::convert(BPatch_edge *);
+
+ParseAPI::Edge *ParseAPI::convert(BPatch_edge *);
+
+PatchAPI::Point *PatchAPI::convert(BPatch_point *, BPatch_callWhen);
+
+PatchAPI::SnippetPtr PatchAPI::convert(BPatch_snippet *);
+
+SymtabAPI::Type *SymtabAPI::convert(BPatch_type *);
+
+
+\subsection{Using the API}
+
+In this section, we describe the steps needed to compile your mutator and mutatee programs and to run
+them. First we give you an overview of the major steps and then we explain each one in detail.
+
+To use Dyninst, you have to:
+
+\begin{enumerate}
+
+\item {
+Build and install DyninstAP: DyninstAPI can be installed a package system such as Spack or can be
+compiled from source. Our github webpage contains detailed instructions for installing Dyninst:
+https://github.com/dyninst/dyninst.
+}
+
+\item {
+Create a mutator program: You need to create a program that will modify some other
+program. For an example, see the mutator shown in Appendix A.
+}
+
+\item {
+Set up the mutatee: On some platforms, you need to link your application with
+Dyninst's run time instrumentation library. [NOTE: This step is only needed in the
+current release of the API. Future releases will eliminate this restriction.]
+}
+
+\item {
+Run the mutator: The mutator will either create a new process or attach to an existing
+one (depending on the whether createProcess or attachProcess is used).
+
+\end{enumerate}
+
+
+\subsubsection{Creating a mutator program}
+
+The first step in using Dyninst is to create a mutator program. The mutator program specifies the
+mutatee (either by naming an executable to start or by supplying a process ID for an existing
+process). In addition, your mutator will include the calls to the API library to modify the mutatee.
+For the rest of this section, we assume that the mutator is the sample program given in Appendix A.
+
+The following fragment of a Makefile shows how to link your mutator program with the Dyninst
+library on most platforms:
+
+\code{
+
+# DYNINST_INCLUDE and DYNINST_LIB should be set to locations
+# where Dyninst header and library files were installed, respectively
+
+retee.o: retee.c
+  \$(CC) -c \$(CFLAGS) -I\$(DYNINST_INCLUDE) retee.c -std=c++11
+
+retee: retee.o
+  \$(CC) retee.o -L\$(DYNINST_LIB) -ldyninstAPI -o retee -std=c++11
+}
+
+On Linux, the options \code{-lelf} and \code{-ldw} may be required at the link step. You will also
+need to make sure that the \code{LD_LIBRARY_PATH} environment variable includes the directory that
+contains the Dyninst shared library.
+
+Since Dyninst uses the c++11 standard, you will also need to enable this option for your compiler.
+For GCC versions 4.3 and later, this is done by specifying \code{-std=c++0x}. For GCC versions 4.7 and
+later, this is done by specifying \code{-std=c++11}. Some of these libraries, such as libdwarf and
+libelf, may not be standard on various platforms. Check the README file in dyninst/dyninstAPI for
+more information on where to find these libraries.
+
+Under Windows NT, the mutator also needs to be linked with the dbghelp library, which is included
+in the Microsoft Platform SDK. Below is a fragment from a Makefile for Windows NT:
+
+\code{
+# DYNINST_INCLUDE and DYNINST_LIB should be set to locations
+# where Dyninst header and library files were installed, respectively
+
+CC = cl
+
+retee.obj: retee.c
+  \$(CC) -c \$(CFLAGS) -I\$(DYNINST_INCLUDE)/h
+
+retee.exe: retee.obj
+  link -out:retee.exe retee.obj \$(DYNINST_LIB)\textbackslash{}libdyninstAPI.lib \textbackslash{}dbghelp.lib
+
+}
+
+\subsubsection{Setting Up the Application Program (mutatee)}
+
+On most platforms, any additional code that your mutator might need to call in the mutatee (for example
+files containing instrumentation functions that were too complex to write directly using the API) can
+be put into a dynamically loaded shared library, which your mutator program can load into the mutatee
+at runtime using the loadLibrary member function of BPatch_process.
+
+To locate the runtime library that Dyninst needs to load into your program, an additional environment
+variable must be set. The variable \code{DYNINSTAPI_RT_LIB} should be set to the full pathname of the
+run time instrumentation library, which should be:
+
+NOTE: DYNINST_LIB should be set to the location where Dyninst library files were installed
+
+\code{
+\$(DYNINST_LIB)/libdyninstAPI_RT.so (UNIX)
+
+\%DYNINST_LIB/libdyninstAPI_RT.dll (Windows)
+}
+
+\subsubsection{Running the Mutator}
+
+At this point, you should be ready to run your application program with your mutator. For example,
+to start the sample program shown in Appendix A:
+
+\code{retee foo <pid>}
+

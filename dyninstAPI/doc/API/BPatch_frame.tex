@@ -1,0 +1,158 @@
+\label{bkm:Ref36969669}{
+
+A BPatch_frame object represents a stack frame. The getCallStack member function of BPatch_thread returns a vector of
+
+BPatch_frame objects representing the frames currently on the stack.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_frameType getFrameType\index{getFrameType: : : : : : :!}()}
+
+
+
+{
+
+Return the type of the stack frame. Possible types are:}
+
+
+
+\begin{center}
+
+\tablefirsthead{}
+
+\tablehead{}
+
+\tabletail{}
+
+\tablelasttail{}
+
+\begin{supertabular}{|m{1.5573599in}|m{3.75456in}|}
+
+\hline
+
+{ Frame Type} &
+
+{ Meaning}\\\hline
+
+{ BPatch_frameNormal} &
+
+{ A normal stack frame.}\\\hline
+
+{ BPatch_frameSignal} &
+
+{ A frame that represents a signal invocation.\\\hline
+
+{ BPatch_frameTrampoline} &
+
+{ A frame the represents a call into instrumentation code.}\\\hline
+
+\end{supertabular}
+
+\end{center}
+
+
+
+\bigskip
+
+
+
+{
+
+void *getFP\index{getFP: : : : : : :!}()}
+
+
+
+{
+
+Return the frame pointer for the stack frame.
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+void *getPC\index{getPC: : : : : : :!}()}
+
+
+
+{
+
+Returns the program counter associated with the stack frame.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_function *findFunction\index{findFunction: : : : : : :!}()}
+
+
+
+{
+
+Returns the function associated with the stack frame.}
+
+
+
+{
+
+BPatch_thread *getThread()}
+
+
+
+{
+
+Returns the thread associated with the stack frame.}
+
+
+
+{
+
+BPatch_point *getPoint()}
+
+
+
+{
+
+BPatch_point *findPoint()}
+
+
+
+{
+
+For stack frames corresponding to inserted instrumentation, returns the instrumentation point where that instrumentation
+
+was inserted. For other frames, returns NULL.}
+
+
+
+{
+
+bool isSynthesized()}
+
+
+
+{
+
+Returns true if this frame was artificially created, false otherwise.}
+
+
+

@@ -1,0 +1,676 @@
+{
+
+\#include <stdio.h>}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+\#include {\textquotedbl}BPatch.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_addressSpace.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_process.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_binaryEdit.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_function.h{\textquotedbl}}
+
+
+
+{
+
+\#include {\textquotedbl}BPatch_flowGraph.h{\textquotedbl}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+using namespace std;}
+
+
+
+{
+
+using namespace Dyninst;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create an instance of class BPatch}
+
+
+
+{
+
+BPatch bpatch;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Different ways to perform instrumentation}
+
+
+
+{
+
+typedef enum {}
+
+
+
+{
+
+create,}
+
+
+
+{
+
+attach,}
+
+
+
+{
+
+open}
+
+
+
+{
+
+} accessType_t;
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_addressSpace* startInstrumenting(accessType_t accessType,}
+
+
+
+{
+
+const char* name,}
+
+
+
+{
+
+int pid,}
+
+
+
+{
+
+const char* argv[]) {}
+
+
+
+{
+
+BPatch_addressSpace* handle = NULL;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+switch(accessType) {}
+
+
+
+{
+
+case create:}
+
+
+
+{
+
+handle = bpatch.processCreate(name, argv);}
+
+
+
+{
+
+if (!handle) { fprintf(stderr, {\textquotedbl}processCreate
+
+failed{\textbackslash}n{\textquotedbl}); }}
+
+
+
+{
+
+break;}
+
+
+
+{
+
+case attach:}
+
+
+
+{
+
+handle = bpatch.processAttach(name, pid);}
+
+
+
+{
+
+if (!handle) { fprintf(stderr, {\textquotedbl}processAttach
+
+failed{\textbackslash}n{\textquotedbl}); }}
+
+
+
+{
+
+break;}
+
+
+
+{
+
+case open:}
+
+
+
+{
+
+// Open the binary file and all dependencies}
+
+
+
+{
+
+handle = bpatch.openBinary(name, true);}
+
+
+
+{
+
+if (!handle) { fprintf(stderr, {\textquotedbl}openBinary
+
+failed{\textbackslash}n{\textquotedbl}); }}
+
+
+
+{
+
+break;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+return handle;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+int binaryAnalysis(BPatch_addressSpace* app) {}
+
+
+
+{
+
+BPatch_image* appImage = app->getImage();}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+int insns_access_memory = 0;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+std::vector<BPatch_function*> functions;}
+
+
+
+{
+
+appImage->findFunction({\textquotedbl}InterestingProcedure{\textquotedbl}, functions);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+if (functions.size() == 0) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}No function InterestingProcedure{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+return insns_access_memory;}
+
+
+
+{
+
+} else if (functions.size() > 1) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}More than one InterestingProcedure; using the first
+
+one{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_flowGraph* fg = functions[0]->getCFG();}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+std::set<BPatch_basicBlock*> blocks;}
+
+
+
+{
+
+fg->getAllBasicBlocks(blocks);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+for (auto block_iter = blocks.begin();
+
+
+
+{
+
+block_iter != blocks.end();
+
+
+
+{
+
+++block_iter) {}
+
+
+
+{
+
+BPatch_basicBlock* block = *block_iter;}
+
+
+
+{
+
+std::vector<InstructionAPI::Instruction::Ptr> insns;}
+
+
+
+{
+
+block->getInstructions(insns);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+for (auto insn_iter = insns.begin();
+
+
+
+{
+
+insn_iter != insns.end();
+
+
+
+{
+
+++insn_iter) {}
+
+
+
+{
+
+InstructionAPI::Instruction::Ptr insn = *insn_iter;}
+
+
+
+{
+
+if (insn->readsMemory() {\textbar}{\textbar} insn->writesMemory()) {}
+
+
+
+{
+
+insns_access_memory++;}
+
+
+
+{
+
+}}
+
+
+
+{
+
+}}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+return insns_access_memory;}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+int main() {}
+
+
+
+{
+
+// Set up information about the program to be instrumented}
+
+
+
+{
+
+const char* progName = {\textquotedbl}InterestingProgram{\textquotedbl};}
+
+
+
+{
+
+int progPID = 42;}
+
+
+
+{
+
+const char* progArgv[] = {{\textquotedbl}InterestingProgram{\textquotedbl}, {\textquotedbl}-h{\textquotedbl},
+
+NULL};}
+
+
+
+{
+
+accessType_t mode = create;}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+// Create/attach/open a binary}
+
+
+
+{
+
+BPatch_addressSpace* app =
+
+
+
+{
+
+startInstrumenting(mode, progName, progPID, progArgv);}
+
+
+
+{
+
+if (!app) {}
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}startInstrumenting failed{\textbackslash}n{\textquotedbl});}
+
+
+
+{
+
+exit(1);}
+
+
+
+{
+
+}}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+int memAccesses = binaryAnalysis(app);}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+fprintf(stderr, {\textquotedbl}Found \%d memory accesses{\textbackslash}n{\textquotedbl}, memAccesses);}
+
+
+
+{
+
+}}
+
+
+

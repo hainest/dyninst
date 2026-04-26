@@ -9,51 +9,51 @@ std::vector<BPatch_process*> *getProcesses()
 
 \end{apient}
 \apidesc{
-Returns the list of processes that are currently defined. This list includes processes that were directly created by
-calling processCreate/processAttach, and indirectly by the UNIX fork or the Windows CreateProcess system call. It
-is up to the user to delete this vector when they are done with it.
+Returns the list of processes that are currently defined. This list includes processes that were
+directly created by calling processCreate/processAttach, and indirectly by the UNIX fork or the
+Windows CreateProcess system call. It is up to the user to delete this vector when they are done
+with it.
 }
 
 \begin{apient}
-BPatch_process *processAttach(const char *path, int pid, BPatch_hybridMode
-mode=BPatch_normalMode)
+BPatch_process *processAttach(const char *path, int pid, BPatch_hybridMode mode=BPatch_normalMode)
 
-BPatch_process *processCreate(const char *path, const char *argv[], const char
-**envp = NULL, int stdin_fd=0, int stdout_fd=1, int stderr_fd=2, BPatch_hybridMode mode=BPatch_normalMode)
-
+BPatch_process *processCreate(const char *path, const char *argv[], const char **envp = NULL,
+                              int stdin_fd=0, int stdout_fd=1, int stderr_fd=2,
+                              BPatch_hybridMode mode=BPatch_normalMode)
 \end{apient}
 
 \apidesc{
-Each of these functions returns a pointer to a new instance of the BPatch_process class. The path parameter needed by
-these functions should be the pathname of the executable file containing the process image. The processAttach function
-returns a BPatch_process associated with an existing process. On Linux platforms the path parameter can be NULL
-since the executable image can be derived from the process pid. Attaching to a process puts it into the stopped
-state. The processCreate function creates a new process and returns a new BPatch_process associated with it. The
-new process is put into a stopped state before executing any code.
-The stdin_fd, stdout_fd, and stderr_fd parameters are used to set the standard input, output, and error of the child
-process. The default values of these parameters leave the input, output, and error to be the same as the mutator
-process. To change these values, an open UNIX file descriptor (see open(1)) can be passed.
-The mode parameter is used to select the desired level of code analysis. Activating hybrid code analysis causes
-Dyninst to augment its static analysis of the code with run-time code discovery techniques. There are three modes:
-BPatch_normalMode, BPatch_exploratoryMode, and BPatch_defensiveMode. Normal mode enables the regular static
-analysis features of Dyninst. Exploratory mode and defensive mode enable addtional dynamic features to correctly
-analyze programs that contain uncommon code patterns, such as malware. Exploratory mode is primarily oriented towards
+Each of these functions returns a pointer to a new instance of the BPatch_process class. The path
+parameter needed by these functions should be the pathname of the executable file containing the
+process image. The processAttach function returns a BPatch_process associated with an existing
+process. On Linux platforms the path parameter can be NULL since the executable image can be derived
+from the process pid. Attaching to a process puts it into the stopped state. The processCreate
+function creates a new process and returns a new BPatch_process associated with it. The new process
+is put into a stopped state before executing any code. The stdin_fd, stdout_fd, and stderr_fd parameters
+are used to set the standard input, output, and error of the child process. The default values of these
+parameters leave the input, output, and error to be the same as the mutator process. To change these
+values, an open UNIX file descriptor (see open(1)) can be passed. The mode parameter is used to select
+the desired level of code analysis. Activating hybrid code analysis causes Dyninst to augment its static
+analysis of the code with run-time code discovery techniques. There are three modes: BPatch_normalMode,
+BPatch_exploratoryMode, and BPatch_defensiveMode. Normal mode enables the regular static analysis features
+of Dyninst. Exploratory mode and defensive mode enable addtional dynamic features to correctly analyze
+programs that contain uncommon code patterns, such as malware. Exploratory mode is primarily oriented towards
 analyzing dynamic control transfers, while defensive mode additionally aims to tackle code obfuscation and
-self-modifying code. Both of these modes are still experimental and should be used with caution. Defensive mode is only
-supported on Windows.
-Defensive mode has been tested on normal binaries (binaries that run correctly under normal mode), as well as some
-simple, packed executables (self-decrypting or decompressing). More advanced forms of code obfuscation, such as
-self-modifying code, have not been tested recently. The traditional Dyninst interface may be used for instrumentation
-of binaries in defensive mode, but in the case of highly obfuscated code, this interface may prove to be ineffective
-due to the lack of a complete view of control flow at any given point. Therefore, defensive mode also includes a set of
-callbacks that enables instrumentation to be performed as new code is discovered. Due to the fact that recent efforts
-have focused on simpler forms of obfuscation, these callbacks have not been tested in detail. The next release of
-Dyninst will target more advanced uses of defensive mode.
+self-modifying code. Both of these modes are still experimental and should be used with caution. Defensive
+mode is only supported on Windows. Defensive mode has been tested on normal binaries (binaries that run
+correctly under normal mode), as well as some simple, packed executables (self-decrypting or decompressing).
+More advanced forms of code obfuscation, such as self-modifying code, have not been tested recently. The
+traditional Dyninst interface may be used for instrumentation of binaries in defensive mode, but in the case
+of highly obfuscated code, this interface may prove to be ineffective due to the lack of a complete view of
+control flow at any given point. Therefore, defensive mode also includes a set of callbacks that enables
+instrumentation to be performed as new code is discovered. Due to the fact that recent efforts have focused
+on simpler forms of obfuscation, these callbacks have not been tested in detail. The next release of Dyninst
+will target more advanced uses of defensive mode.
 }
 
 \begin{apient}
-BPatch_binaryEdit *openBinary(const char *path, 
-bool openDependencies = false)
+BPatch_binaryEdit *openBinary(const char *path, bool openDependencies = false)
 
 \end{apient}
 

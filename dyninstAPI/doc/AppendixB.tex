@@ -1,0 +1,213 @@
+\section[Appendix B {}- Running the Test Cases]{Appendix B - Running the Test Cases}
+{
+This section describes how to run the Dyninst test cases. The primary purpose of the test cases is to verify that the
+API has been installed correctly (and for use in regression testing by the developers of the Dyninst library). The
+code may also be of use to others since it provides a fairly complete example of how to call most of the API methods.
+The test suite consists of mutator programs and their associated mutatee programs.
+
+{
+To compile the test suite, type make in the appropriate platform specific directory under dyninst/testsuite. To run,
+execute runTests. Each test will be executed and the result (PASSED/FAILED/CRASHED) printed.}
+
+{
+Test mutators are run by the test_driver executable (test_driver.exe on Windows). The test_driver loads a mutator
+test from a shared object and runs it on a test mutatee. A single run of the test_driver may execute multiple tests
+(depending on parameters passed), and each test may execute multiple times with different parameters and on different
+mutatees.
+
+{
+Dyninst's test space can be very large. Each mutatee can be run under different tests, compiled
+by different compilers, and run with different parameters. For example, one point in this space would be the test1
+mutatee being run under under test1_13, when compiled with the g++ compiler, and in attach mode. When run without
+any options, the test_driver will run all test combinations that are valid on the current platform. Many of the
+options that are passed to test_driver can be used to limit the test space that it runs in.}
+
+{
+In order to prevent a crashing test from stopping the test_driver from running subsequent tests, test_driver can be
+run under a wrapper application, runTests. The runTests wrapper invokes the test_driver with the any arguments that
+were passed to runTests. It will watch the test_driver process, and if test_driver exits with a fault it will print
+an appropriate error message and restart the test_driver on the next test.}
+
+{
+It is generally recommended that runTests be used when running a large sequence of tests, and test_driver be used when
+debugging issues with a single test.}
+
+{
+The test_driver and runTests applications can be invoked with the following list of arguments. Most arguments are
+used to limit the space of tests that the testsuite will run. For example, to run the above test1_13 example, you
+could use the following command line:}
+
+{
+test_driver –run test1_13 –mutatee test1.mutatee_g++ -attach}
+
+
+\bigskip
+
+{
+{}-attach
+
+{
+Only run tests that attach to the mutatees.}
+
+{
+{}-create}
+
+{
+Only run tests that create mutatees.}
+
+{
+{}-rewriter}
+
+{
+Only run tests that rewrite mutatees.}
+
+{
+{}-staticlink}
+
+{
+Run rewriter tests that use statically linked mutatees.}
+
+{
+{}-dynamiclink}
+
+{
+Run rewriter tests that use dynamically linked mutatees.}
+
+{
+{}-allmode}
+
+{
+Run tests for all modes (create, attach, rewriter on statically linked binaries, rewriter on dynamically linked
+binaries).}
+
+{
+{}-gcc, -g++, -pgcc, -pgCC, -icc, -icpc}
+
+{
+Run tests on mutatees built with the specified compiler.}
+
+{
+{}-noclean}
+
+{
+Don't remove rewritten mutatees after running rewriter tests.}
+
+{
+{}-all}
+
+{
+Run tests for all possible combinations of unoptimized mutatees.}
+
+{
+{}-none, -low, -high, -max}
+
+{
+Only run tests for mutatees of the given optimization level.}
+
+{
+{}-allopt}
+
+{
+Run tests for all mutatee optimization levels.}
+
+{
+{}-full}
+
+{
+Run tests for all possible combinations of mutatees, including all optimization levels. Requires make all to build the
+optimized mutatees.}
+
+{
+{}-dyninst, -symtab, -instruction, -proccontrol, -stackwalker}
+
+{
+Only run tests for the specified component.}
+
+{
+{}-allcomp}
+
+{
+Run tests for all components.}
+
+{
+{}-32, -64}
+
+{
+Only run tests for 32-bit or 64-bit mutatees. This option is only valid on platforms such as AMD64/Linux and
+PowerPC/Linux where both 32-bit and 64-bit build environments are available.}
+
+{
+{}-pic}
+
+{
+Only run tests for mutatees compiled as position-independent code. Default is non-PIC mutatees. –all and –full
+include both.}
+
+{
+{}-sp, -mp, -st, -mt}
+
+{
+ProcControl-specific: run tests in single process, multiprocess, single thread, multithread modes, respectively.}
+
+{
+{}-j n}
+
+{
+This option spawns up to n test_driver instances from a given runTests invocation. This option is highly recommended
+for large test runs.}
+
+{
+{}-hosts host1 [host2 ... hostn]}
+
+{
+In conjunction with the –j option above, will distribute tests over the hosts host1…hostn. The hosts must share a
+filesystem with the machine from which runTests is being run, and ssh must be configured to allow password-less
+authentication to those hosts. Note that –j controls the total number of test_driver instances, not the number per
+host, so you will need to use a –j N at least equal to the number of hosts you wish to use.}
+
+{
+{}-mutatee <mutatee_name>}
+
+
+\bigskip
+
+{
+Only run tests that use the specified mutatee name. Only certain mutatees can be run with certain tests. The
+primary test number specifies which mutatees it can be run with. For example, all of the test1_* tests can be run
+with the test1.mutatee_* mutatees, and all of the test2_* tests can be run with the test2.mutatee_* mutatees.}
+
+
+\bigskip
+
+{
+{}-run <subtest> <subtest> …}
+
+{
+Only runs the specific sub-tests listed. For example, to run sub-test case 4 of test2 you would enter test_driver
+–run test2_4.}
+
+{
+{}-test}
+
+{
+Alias for –run.}
+
+{
+{}-log}
+
+{
+Print more detailed output, including messages generated by the tests. Without this option the testsuite will capture
+and hide any messages printed by the test, only showing a summary of whether the test passed or failed. By default,
+output is sent to stdout.}
+
+{
+{}-logfile <filename>}
+
+{
+Send output from the –log option to the given filename rather than to stdout.
+
+{
+{}-verbose}
+
+{
+Enables test suite debugging output. This is useful when trying to track down issues in the test suite or tests.}

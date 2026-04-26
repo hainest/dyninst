@@ -1,0 +1,984 @@
+\label{bkm:Ref196027596}\index{BPatch_snippet: : : : : : :!}{
+
+A snippet is an abstract representation of code to insert into a program. Snippets are defined by creating a new
+
+instance of the correct subclass of a snippet. For example, to create a snippet to call a function, create a new
+
+instance of the class BPatch_funcCallExpr. Creating a snippet does not result in code being inserted into an
+
+application. Code is generated when a request is made to insert a snippet at a specific point in a program.
+
+Sub-snippets may be shared by different snippets (i.e, a handle to a snippet may be passed as an argument to create two
+
+different snippets), but whether the generated code is shared (or replicated) between two snippets is implementation
+
+dependent.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_type *getType\index{getType: : : : : : :!}()}
+
+
+
+{
+
+Return the type of the snippet. The BPatch_type system is described in section \ref{bkm:Ref161040683}.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+float getCost\index{getCost: : : : : : :!}()}
+
+
+
+{
+
+Returns an estimate of the number of seconds it would take to execute the snippet. The problems with accurately
+
+estimating the cost of executing code are numerous and out of the scope of this document[2]. It is important to realize
+
+that the returned cost value is, at best, an estimate.}
+
+
+
+{
+
+The rest of the classes are derived classes of the class BPatch_snippet.
+
+
+
+{
+
+BPatch_actualAddressExpr\index{BPatch_retExpr: : : : : : :!}()}
+
+
+
+{
+
+This snippet results in an expression that evaluates to the actual address of the instrumentation. To access the
+
+original address where instrumentation was inserted, use BPatch_originalAddressExpr. Note that this actual address is
+
+highly dependent on a number of internal variables and has no relation to the original address.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_arithExpr\index{BPatch_arithExpr: : : : : : :!}(BPatch_binOp op, const BPatch_snippet &lOperand,\newline
+
+const BPatch_snippet &rOperand)}
+
+
+
+{
+
+Perform the required binary operation. The available binary operators are:}
+
+
+
+\begin{center}
+
+\tablefirsthead{}
+
+\tablehead{}
+
+\tabletail{}
+
+\tablelasttail{}
+
+\begin{supertabular}{|m{1.1198599in}|m{4.3761597in}|}
+
+\hline
+
+{ Operator} &
+
+{ Description}\\\hline
+
+{ BPatch_assign} &
+
+{ assign the value of rOperand to lOperand\\\hline
+
+{ BPatch_plus} &
+
+{ add lOperand and rOperand\\\hline
+
+{ BPatch_minus} &
+
+{ subtract rOperand from lOperand\\\hline
+
+{ BPatch_divide} &
+
+{ divide rOperand by lOperand}\\\hline
+
+{ BPatch_times} &
+
+{ multiply rOperand by lOperand}\\\hline
+
+{ BPatch_ref} &
+
+{ Array reference of the form lOperand[rOperand]}\\\hline
+
+{ BPatch_seq} &
+
+{ Define a sequence of two expressions (similar to comma in C)\\\hline
+
+\end{supertabular}
+
+\end{center}
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_arithExpr(BPatch_unOp, const BPatch_snippet &operand)}
+
+
+
+{
+
+Define a snippet consisting of a unary operator. The unary operators are:}
+
+
+
+\begin{center}
+
+\tablefirsthead{}
+
+\tablehead{}
+
+\tabletail{}
+
+\tablelasttail{}
+
+\begin{supertabular}{|m{1.1198599in}|m{4.3761597in}|}
+
+\hline
+
+{ Operator} &
+
+{ Description}\\\hline
+
+{ BPatch_negate} &
+
+{ Returns the negation of an integer}\\\hline
+
+{ BPatch_addr} &
+
+{ Returns a pointer to a BPatch_variableExpr}\\\hline
+
+{ BPatch_deref} &
+
+{ Dereferences a pointer\\\hline
+
+\end{supertabular}
+
+\end{center}
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_boolExpr\index{BPatch_boolExpr: : : : : : :!}(BPatch_relOp op, const BPatch_snippet &lOperand,\newline
+
+const BPatch_snippet &rOperand)}
+
+
+
+{
+
+Define a relational snippet. The available operators are:
+
+
+
+\begin{center}
+
+\tablefirsthead{}
+
+\tablehead{}
+
+\tabletail{}
+
+\tablelasttail{}
+
+\begin{supertabular}{|m{0.8788598in}|m{3.1087599in}|}
+
+\hline
+
+{ Operator} &
+
+{ Function\\\hline
+
+{ BPatch_lt} &
+
+{ Return lOperand < rOperand\\\hline
+
+{ BPatch_eq} &
+
+{ Return lOperand == rOperand}\\\hline
+
+{ BPatch_gt} &
+
+{ Return lOperand > rOperand\\\hline
+
+{ BPatch_le} &
+
+{ Return lOperand <= rOperand\\\hline
+
+{ BPatch_ne} &
+
+{ Return lOperand != rOperand\\\hline
+
+{ BPatch_ge} &
+
+{ Return lOperand >= rOperand\\\hline
+
+{ BPatch_and} &
+
+{ Return lOperand && rOperand (Boolean and)\\\hline
+
+{ BPatch_or} &
+
+{ Return lOperand {\textbar}{\textbar} rOperand (Boolean or)\\\hline
+
+\end{supertabular}
+
+\end{center}
+
+{
+
+The type of the returned snippet is boolean, and the operands are type checked.}
+
+
+
+{
+
+BPatch_breakPointExpr\index{BPatch_breakPointExpr: : : : : : :!}()}
+
+
+
+{
+
+Define a snippet that stops a process when executed by it. The stop can be detected using the isStopped member
+
+function of BPatch_process, and the program's execution can be resumed by calling the
+
+continueExecution member function of BPatch_process.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_bytesAccessedExpr\index{BPatch_bytesAccessedExpr : : : : : : :!}()}
+
+
+
+{
+
+This expression returns the number of bytes accessed by a memory operation. For most load/store architecture machines
+
+it is a constant expression returning the number of bytes for the particular style of load or store. This snippet is
+
+only valid at a memory operation instrumentation point.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_constExpr\index{BPatch_constExpr: : : : : : :!}(signed int value)}
+
+
+
+{
+
+BPatch_constExpr\index{BPatch_constExpr: : : : : : :!}(unsigned int value)
+
+
+
+{
+
+BPatch_constExpr(signed long value)}
+
+
+
+{
+
+BPatch_constExpr(unsigned long value)}
+
+
+
+{
+
+BPatch_constExpr(const char *value)}
+
+
+
+{
+
+BPatch_constExpr(const void *value)}
+
+
+
+{
+
+BPatch_constExpr(long long value)}
+
+
+
+{
+
+Define a constant snippet of the appropriate type. The char* form of the constructor creates a constant string; the
+
+null-terminated string beginning at the location pointed to by the parameter is copied into the
+
+application's address space, and the BPatch_constExpr that is created refers to the location to
+
+which the string was copied.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_dynamicTargetExpr\index{BPatch_retExpr: : : : : : :!}()}
+
+
+
+{
+
+This snippet calculates the target of a control flow instruction with a dynamically determined target. It can handle
+
+dynamic calls, jumps, and return statements.
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_effectiveAddressExpr\index{BPatch_effectiveAddressesExpr : : : : : : :!}()}
+
+
+
+{
+
+Define an expression that contains the effective address of a memory operation. For a multi-word memory operation
+
+(i.e. more than the “natural” operation size of the machine), the effective address is the base address of the
+
+operation.
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_funcCallExpr\index{BPatch_funcCallExpr: : : : : : :!}(const BPatch_function& func,\newline
+
+const std::vector<BPatch_snippet*> &args)}
+
+
+
+{
+
+Define a call to a function. The passed function must be valid for the current code region. Args is a list of
+
+arguments to pass to the function; the maximum number of arguments varies by platform and is summarized below. If type
+
+checking is enabled, the types of the passed arguments are checked against the function to be called. Availability of
+
+type checking depends on the source language of the application and program being compiled for debugging.}
+
+
+
+\begin{center}
+
+\tablefirsthead{}
+
+\tablehead{}
+
+\tabletail{}
+
+\tablelasttail{}
+
+\begin{supertabular}{|m{1.0462599in}|m{2.94136in}|}
+
+\hline
+
+{ Platform} &
+
+{ Maximum number of arguments}\\\hline
+
+{ AMD64/EMT-64} &
+
+{ No limit}\\\hline
+
+{ IA-32} &
+
+{ No limit}\\\hline
+
+{ POWER} &
+
+{ 8 arguments}\\\hline
+
+\end{supertabular}
+
+\end{center}
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_funcJumpExpr\index{funcJumpExpr: : : : : : :!} (const BPatch_function &func)}
+
+
+
+{
+
+This snippet has been removed; use BPatch_addressSpace::wrapFunction instead.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_ifExpr\index{BPatch_ifExpr: : : : : : :!}(const BPatch_boolExpr &conditional,\newline
+
+const BPatch_snippet &tClause,\newline
+
+const BPatch_snippet &fClause)}
+
+
+
+{
+
+BPatch_ifExpr(const BPatch_boolExpr &conditional,\newline
+
+const BPatch_snippet &tClause)}
+
+
+
+{
+
+This constructor creates an if statement. The first argument, conditional, should be a Boolean expression that will be
+
+evaluated to decide which clause should be executed. The second argument, tClause, is the snippet to execute if the
+
+conditional evaluates to true. The third argument, fClause, is the snippet to execute if the conditional evaluates to
+
+false. This third argument is optional. Else-if statements, can be constructed by making the fClause of an if statement
+
+another if statement.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_nullExpr\index{Bpatch_nullExpr: : : : : : :!}()}
+
+
+
+{
+
+Define a null snippet. This snippet contains no executable statements.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_originalAddressExpr\index{BPatch_retExpr: : : : : : :!}()}
+
+
+
+{
+
+This snippet results in an expression that evaluates to the original address of the point where the snippet was
+
+inserted. To access the actual address where instrumentation is executed, use BPatch_actualAddressExpr.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_paramExpr\index{Bpatch_paramExpr: : : : : : :!}(int paramNum)}
+
+
+
+{
+
+This constructor creates an expression whose value is a parameter being passed to a function. ParamNum specifies the
+
+number of the parameter to return, starting at 0. Since the contents of parameters may change during subroutine
+
+execution, this snippet type is only valid at points that are entries to subroutines, or when inserted at a call point
+
+with the when parameter set to BPatch_callBefore.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_registerExpr\index{BPatch_retExpr: : : : : : :!}(BPatch_register reg)}
+
+
+
+{
+
+BPatch_registerExpr(Dyninst::MachRegister reg)}
+
+
+
+{
+
+This snippet results in an expression whose value is the value in the register at the point of instrumentation.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_retExpr\index{BPatch_retExpr: : : : : : :!}()}
+
+
+
+{
+
+This snippet results in an expression that evaluates to the return value of a subroutine. This snippet type is only
+
+valid at BPatch_exit points, or at a call point with the when parameter set to BPatch_callAfter.}
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_scrambleRegistersExpr\index{Bpatch_nullExpr: : : : : : :!}()}
+
+
+
+{
+
+This snippet sets all General Purpose Registers to the flag value.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_sequence\index{BPatch_sequence: : : : : : :!}(const std::vector<BPatch_snippet*>
+
+&items)}
+
+
+
+{
+
+Define a sequence of snippets. The passed snippets will be executed in the order in which they appear in items.
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_shadowExpr\index{Bpatch_nullExpr: : : : : : :!}(bool entry,}
+
+
+
+{
+
+const BPatchStopThreadCallback &cb,}
+
+
+
+{
+
+const BPatch_snippet &calculation,}
+
+
+
+{
+
+bool useCache = false,}
+
+
+
+{
+
+BPatch_stInterpret interp = BPatch_noInterp)}
+
+
+
+{
+
+This snippet creates a shadow copy of the snippet BPatch_stopThreadExpr.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_stopThreadExpr\index{Bpatch_nullExpr: : : : : : :!}(const BPatchStopThreadCallback &cb,}
+
+
+
+{
+
+const BPatch_snippet &calculation,}
+
+
+
+{
+
+bool useCache = false,}
+
+
+
+{
+
+BPatch_stInterpret interp = BPatch_noInterp)}
+
+
+
+{
+
+This snippet stops the thread that executes it. It evaluates a calculation snippet and triggers a callback to the user
+
+program with the result of the calculation and a pointer to the BPatch_point at which the snippet was inserted.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_threadIndexExpr()}
+
+
+
+{
+
+This snippet returns an integer expression that contains the thread index of the thread that is executing this snippet.
+
+The thread index is the same value that is returned on the mutator side by BPatch_thread::getBPatchID.}
+
+
+
+
+
+\bigskip
+
+
+
+{
+
+BPatch_tidExpr\index{BPatch_tidExpr: : : : : : :!}(BPatch_process *proc)}
+
+
+
+{
+
+This snippet results in an integer expression that contains the tid of the thread that is executing this snippet. This
+
+can be used to record the threadId, or to filter instrumentation so that it only executes for a specific thread.}
+
+
+
+{
+
+BPatch_variableExpr\index{Bpatch_nullExpr: : : : : : :!}(char *in_name,}
+
+
+
+{
+
+BPatch_addressSpace *in_addSpace,}
+
+
+
+{
+
+AddressSpace *as,}
+
+
+
+{
+
+AstNodePtr ast_wrapper_,}
+
+
+
+{
+
+BPatch_type *type, void* in_address)}
+
+
+
+{
+
+BPatch_variableExpr\index{Bpatch_nullExpr: : : : : : :!}(BPatch_addressSpace *in_addSpace,}
+
+
+
+{
+
+AddressSpace *as,}
+
+
+
+{
+
+void *in_address,}
+
+
+
+{
+
+int in_register,}
+
+
+
+{
+
+BPatch_type *type,}
+
+
+
+{
+
+BPatch_storagestorage = BPatch_storageAddr,}
+
+
+
+{
+
+BPatch_point *scp = NULL)}
+
+
+
+{
+
+BPatch_variableExpr\index{Bpatch_nullExpr: : : : : : :!}(BPatch_addressSpace *in_addSpace,}
+
+
+
+{
+
+AddressSpace *as,}
+
+
+
+{
+
+BPatch_localVar *lv,}
+
+
+
+{
+
+BPatch_type *type,}
+
+
+
+{
+
+BPatch_point *scp)}
+
+
+
+{
+
+BPatch_variableExpr\index{Bpatch_nullExpr: : : : : : :!}(BPatch_addressSpace *in_addSpace,}
+
+
+
+{
+
+AddressSpace *ll_addSpace,}
+
+
+
+{
+
+int_variable *iv,}
+
+
+
+{
+
+BPatch_type *type)}
+
+
+
+{
+
+Define a variable snippet of the appropriate type. The first constructor is used to get function pointers; the second
+
+is used to get forked copies of variable expression, used by malloc; the third is used for local variables; and the
+
+last is used by BPatch_addressSpace::findOrCreateVariable().}
+
+
+
+{
+
+BPatch_whileExpr\index{Bpatch_nullExpr: : : : : : :!}(const BPatch_snippet &condition,}
+
+
+
+{
+
+const BPatch_snippet &body)
+
+
+
+{
+
+This constructor creates a while statement. The first argument, condition, should be a Boolean expression that will be
+
+evaluated to decide whether body should be executed. The second argument, body, is the snippet to execute if the
+
+condition evaluates to true.}
+
+
+
+
+
+\bigskip
+
+
+

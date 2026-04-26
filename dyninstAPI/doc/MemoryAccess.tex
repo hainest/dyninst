@@ -1,0 +1,10 @@
+\section{Memory Access}
+
+Instrumentation points created through \code{findPoint(const std::set<BPatch_opCode>& ops)} get memory
+access information attached to them. This information is used by the memory access snippets, but is also
+available to the API user. The classes that encapsulate memory access information are contained in the
+BPatch_memoryAccess_NP.h header.
+
+\input{API/BPatch_memoryAccess}
+\input{API/BPatch_addrSpec_NP}
+\input{API/BPatch_countSpec_NP}
