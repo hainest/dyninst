@@ -6,6 +6,7 @@ set(
   function.h
   instMapping.h
   instPoint.h
+  patch_edge.h
   patch.h
   Patching.h
 )
@@ -13,9 +14,9 @@ set(
 set(
   _sources
   block.C
-  edge.C
   function.C
   instPoint.C
+  patch_edge.C
   Patching.C
 )
 

@@ -63,7 +63,6 @@ class replacedFunctionCall;
 
 class func_instance;
 class block_instance;
-class edge_instance;
 
 class parse_func;
 class parse_block;
@@ -97,6 +96,9 @@ namespace Dyninst {
 
    namespace InstructionAPI {
       class Instruction;
+   }
+   namespace DyninstAPI {
+     class patch_edge;
    }
 }
 
@@ -266,7 +268,7 @@ class AddressSpace : public InstructionSource {
     // And a lookup by "internal" function to find clones during fork...
     func_instance *findFunction(parse_func *ifunc);
     block_instance *findBlock(parse_block *iblock);
-    edge_instance *findEdge(ParseAPI::Edge *iedge);
+    Dyninst::DyninstAPI::patch_edge *findEdge(ParseAPI::Edge *iedge);
 
 	// Fast lookups across all mapped_objects
 	func_instance *findFuncByEntry(const block_instance *block);

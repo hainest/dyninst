@@ -173,7 +173,7 @@ class RelocBlock {
    void createCFWidget();
    void getPredecessors(RelocGraph *cfg);
    void getSuccessors(RelocGraph *cfg);
-   void processEdge(EdgeDirection e, edge_instance *edge, RelocGraph *cfg);
+   void processEdge(EdgeDirection e, Dyninst::DyninstAPI::patch_edge *edge, RelocGraph *cfg);
 
    void preserveBlockGap();
    std::pair<bool, Address> getJumpTarget();

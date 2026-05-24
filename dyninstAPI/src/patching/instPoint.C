@@ -82,7 +82,7 @@ instPoint *instPoint::postCall(func_instance *f, block_instance *b) {
   return f->postCallPoint(b, true);
 }
 
-instPoint *instPoint::edge(func_instance *f, edge_instance *e) {
+instPoint *instPoint::edge(func_instance *f, Dyninst::DyninstAPI::patch_edge *e) {
   return f->edgePoint(e, true);
 }
 
@@ -137,7 +137,7 @@ instPoint::instPoint(Type t,
 
 instPoint::instPoint(Type          t,
                      PatchMgrPtr   mgr,
-                     edge_instance *e,
+                     Dyninst::DyninstAPI::patch_edge *e,
                      func_instance *f) :
   Point(t, mgr, e, f),
   baseTramp_(NULL) {
@@ -184,7 +184,7 @@ instPoint *instPoint::fork(instPoint *parent, AddressSpace *child) {
    // Return the equivalent instPoint within the child process
   func_instance *f = parent->func() ? child->findFunction(parent->func()->ifunc()) : NULL;
   block_instance *b = parent->block() ? child->findBlock(parent->block()->llb()) : NULL;
-  edge_instance *e = parent->edge() ? child->findEdge(parent->edge()->edge()) : NULL;
+  Dyninst::DyninstAPI::patch_edge *e = parent->edge() ? child->findEdge(parent->edge()->edge()) : NULL;
    Instruction i = parent->insn_;
    Address a = parent->addr_;
 
@@ -277,7 +277,7 @@ block_instance *instPoint::block() const {
   return SCAST_BI(the_block_);
 }
 
-edge_instance *instPoint::edge() const {
+Dyninst::DyninstAPI::patch_edge *instPoint::edge() const {
   return SCAST_EI(the_edge_);
 }
 
@@ -322,7 +322,7 @@ block_instance *instPoint::block_compat() const {
       case PreCall:
 	return block();
       case PostCall: {
-	edge_instance *ftE = block()->getFallthrough();
+	Dyninst::DyninstAPI::patch_edge *ftE = block()->getFallthrough();
          if (ftE &&
              (!ftE->sinkEdge()))
             return ftE->trg();
@@ -355,7 +355,7 @@ Address instPoint::addr_compat() const {
       case PreCall:
 	return block()->last();
       case PostCall: {
-	edge_instance *ftE = block()->getFallthrough();
+	Dyninst::DyninstAPI::patch_edge *ftE = block()->getFallthrough();
          if (ftE &&
              (!ftE->sinkEdge()))
             return ftE->trg()->start();

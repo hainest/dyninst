@@ -47,7 +47,12 @@
 
 class block_instance;
 class func_instance;
-class edge_instance;
+
+namespace Dyninst {
+  namespace DyninstAPI {
+    class patch_edge;
+  }
+}
 
 using namespace std;
 using namespace Dyninst;
@@ -138,7 +143,7 @@ struct edgeStub {
 class mapped_object : public codeRange, public Dyninst::PatchAPI::DynObject {
     friend class mapped_module; // for findFunction
     friend class func_instance;
-    friend class edge_instance;
+    friend class Dyninst::DyninstAPI::patch_edge;
     friend class DynCFGMaker;
  private:
     mapped_object();
@@ -305,7 +310,7 @@ public:
 
     block_instance *findBlock(ParseAPI::Block *);
     // If we already know the source or target hand them in for efficiency
-    edge_instance *findEdge(ParseAPI::Edge *, block_instance *src = NULL, block_instance *trg = NULL);
+    Dyninst::DyninstAPI::patch_edge *findEdge(ParseAPI::Edge *, block_instance *src = NULL, block_instance *trg = NULL);
 
     // Find the global constructor and destructor functions in stripped, static binaries
     func_instance *findGlobalFunc(const std::string &handler);
