@@ -1928,10 +1928,10 @@ void mapped_object::setCalleeName(block_instance *b, std::string s) {
 // findFuncByEntry
 // findBlock (again)
 
-edge_instance *mapped_object::findEdge(ParseAPI::Edge *e,
+Dyninst::DyninstAPI::patch_edge *mapped_object::findEdge(ParseAPI::Edge *e,
                                        block_instance *src,
                                        block_instance *trg) {
-  edge_instance *inst = SCAST_EI(getEdge(e, src, trg));
+  Dyninst::DyninstAPI::patch_edge *inst = SCAST_EI(getEdge(e, src, trg));
   return inst;
 }
 

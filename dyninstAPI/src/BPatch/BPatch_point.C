@@ -262,7 +262,7 @@ Address BPatch_point::getCallFallThroughAddr()
     assert(point);
     using namespace InstructionAPI;
     if (!point->block()) return 0;
-    edge_instance *fte = point->block()->getFallthrough();
+    Dyninst::DyninstAPI::patch_edge *fte = point->block()->getFallthrough();
     if (fte && !fte->sinkEdge()) return fte->trg()->start();
     else return point->block()->end();
 }

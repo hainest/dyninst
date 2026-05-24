@@ -57,7 +57,7 @@ bool PCProcess::bindPLTEntry(const SymtabAPI::relocationEntry &entry, Address ba
    return false;
 }
 
-bool thunkILT(edge_instance *edge, AddressSpace *proc, func_instance *&ret) {
+bool thunkILT(Dyninst::DyninstAPI::patch_edge *edge, AddressSpace *proc, func_instance *&ret) {
 	assert(!edge->sinkEdge());
 	// We have a direct call but don't yet know the callee.
 	// This may be because we didn't see a symbol for a
@@ -89,7 +89,7 @@ bool thunkILT(edge_instance *edge, AddressSpace *proc, func_instance *&ret) {
 	if (cInsns.size() > 1) return false;
 
 	// 3) 
-	edge_instance *cEdge = cBlock->getTarget();
+	Dyninst::DyninstAPI::patch_edge *cEdge = cBlock->getTarget();
 	if (!cEdge) return false;
 	if (cEdge->sinkEdge()) return false;
 
@@ -125,7 +125,7 @@ func_instance *block_instance::callee()
       return NULL;
    }
 
-   edge_instance *tEdge = getTarget();
+   Dyninst::DyninstAPI::patch_edge *tEdge = getTarget();
 	if (!tEdge) return NULL;
 
     // Otherwise use the target function...
