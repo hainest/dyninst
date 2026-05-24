@@ -515,7 +515,7 @@ bool Instrumenter::edgeInstrumentation(RelocBlock *trace, RelocGraph *cfg) {
    for (PatchBlock::edgelist::const_iterator iter = targets.begin();
         iter != targets.end(); ++iter) {
       instPoint *point = NULL;
-      edge_instance* iedge = SCAST_EI(*iter);
+      Dyninst::DyninstAPI::patch_edge* iedge = SCAST_EI(*iter);
       if (trace->func()) {
         // point = trace->func()->findPoint(instPoint::EdgeDuring, *iter, false);
         point = trace->func()->edgePoint(iedge, false);

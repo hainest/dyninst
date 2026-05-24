@@ -66,7 +66,7 @@ AddressSpace *block_instance::addrSpace() const {
   return obj()->proc();
 }
 
-edge_instance *block_instance::getFallthrough() {
+Dyninst::DyninstAPI::patch_edge *block_instance::getFallthrough() {
   for (edgelist::const_iterator iter = targets().begin(); iter != targets().end(); ++iter) {
     if ((*iter)->type() == FALLTHROUGH ||
         (*iter)->type() == CALL_FT ||
@@ -78,7 +78,7 @@ edge_instance *block_instance::getFallthrough() {
 }
 
 block_instance *block_instance::getFallthroughBlock() {
-  edge_instance *ft = getFallthrough();
+  Dyninst::DyninstAPI::patch_edge *ft = getFallthrough();
   if (ft &&
       !ft->sinkEdge())
     return ft->trg();
@@ -86,7 +86,7 @@ block_instance *block_instance::getFallthroughBlock() {
     return NULL;
 }
 
-edge_instance *block_instance::getTarget() {
+Dyninst::DyninstAPI::patch_edge *block_instance::getTarget() {
   for (edgelist::const_iterator iter = targets().begin(); iter != targets().end(); ++iter) {
     if ((*iter)->type() == CALL ||
         (*iter)->type() == DIRECT ||
@@ -135,7 +135,7 @@ void block_instance::updateCallTarget(func_instance *func) {
    //
    // Preserving original behavior on sink edges only
    //
-  edge_instance *e = getTarget();
+  Dyninst::DyninstAPI::patch_edge *e = getTarget();
   if (e && e->sinkEdge()) {
      PatchAPI::PatchModifier::redirect(e, func->entryBlock());
   } else {

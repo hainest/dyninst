@@ -50,7 +50,6 @@
 
 class block_instance;
 class func_instance;
-class edge_instance;
 class baseTramp;
 
 class instPoint;
@@ -58,6 +57,9 @@ class instPoint;
 namespace Dyninst {
    namespace ParseAPI {
       class Block;
+   }
+   namespace DyninstAPI {
+     class patch_edge;
    }
 }
 
@@ -69,7 +71,7 @@ using Dyninst::PatchAPI::PatchMgrPtr;
 class instPoint : public Dyninst::PatchAPI::Point {
   friend class func_instance;
   friend class block_instance;
-  friend class edge_instance;
+  friend class Dyninst::DyninstAPI::patch_edge;
   friend class DynPointMaker;
   public:
 
@@ -81,7 +83,7 @@ class instPoint : public Dyninst::PatchAPI::Point {
     // or instruction by additionally specifying a function for context.
     static instPoint *blockEntry(func_instance *, block_instance *);
     static instPoint *blockExit(func_instance *, block_instance *);
-    static instPoint *edge(func_instance *, edge_instance *);
+    static instPoint *edge(func_instance *, Dyninst::DyninstAPI::patch_edge *);
     static instPoint *preInsn(func_instance *,
                               block_instance *,
                               Address,
@@ -108,7 +110,7 @@ class instPoint : public Dyninst::PatchAPI::Point {
     instPoint(Type, PatchMgrPtr, block_instance *, func_instance *);
     // Insn
     instPoint(Type, PatchMgrPtr, block_instance *, Address, InstructionAPI::Instruction, func_instance *);
-    instPoint(Type, PatchMgrPtr, edge_instance *, func_instance *);
+    instPoint(Type, PatchMgrPtr, Dyninst::DyninstAPI::patch_edge *, func_instance *);
 
   public:
     baseTramp *tramp();
@@ -116,7 +118,7 @@ class instPoint : public Dyninst::PatchAPI::Point {
     AddressSpace *proc() const;
     func_instance *func() const;
     block_instance *block() const;
-    edge_instance *edge() const;
+    Dyninst::DyninstAPI::patch_edge *edge() const;
 
     // I'm commenting this out so that we don't reinvent the wheel.
     // instPoints have two types of addresses. The first is "instrument

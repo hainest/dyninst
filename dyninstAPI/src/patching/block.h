@@ -39,6 +39,7 @@
 #include "patching/instPoint.h"
 #include "PatchCFG.h"
 #include "mapped_object.h"
+#include "patching/patch_edge.h"
 
 class block_instance;
 class func_instance;
@@ -46,26 +47,13 @@ class BPatch_edge;
 class mapped_object;
 
 
-class edge_instance : public Dyninst::PatchAPI::PatchEdge {
-  friend class block_instance;
-  friend class func_instance;
-  friend class mapped_object;
-
-  public:
-    block_instance *src() const;
-    block_instance *trg() const;
-    AddressSpace *proc();
-    edge_instance(ParseAPI::Edge *edge, block_instance *src, block_instance *trg);
-    edge_instance(const edge_instance *parent, mapped_object *child);
-    ~edge_instance();
-};
 
 class block_instance : public Dyninst::PatchAPI::PatchBlock {
   friend class mapped_object;
 
   public:
-  //typedef std::vector<edge_instance *> edges;
-  //typedef std::vector<edge_instance *> edgelist;
+  //typedef std::vector<Dyninst::DyninstAPI::patch_edge *> edges;
+  //typedef std::vector<Dyninst::DyninstAPI::patch_edge *> edgelist;
 
     block_instance(ParseAPI::Block *ib, mapped_object *obj);
     block_instance(const block_instance *parent, mapped_object *child);
@@ -88,8 +76,8 @@ class block_instance : public Dyninst::PatchAPI::PatchBlock {
     //const edgelist &targets();
 
     // Shortcuts
-    edge_instance *getTarget();
-    edge_instance *getFallthrough();
+    Dyninst::DyninstAPI::patch_edge *getTarget();
+    Dyninst::DyninstAPI::patch_edge *getFallthrough();
     // NULL if not conclusive
     block_instance *getFallthroughBlock();
 

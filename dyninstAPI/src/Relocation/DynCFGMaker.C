@@ -105,13 +105,13 @@ PatchEdge* DynCFGMaker::makeEdge(ParseAPI::Edge* e,
           moT = SCAST_MO(o)->as()->findObject(e->trg()->obj());
   }
 
-  edge_instance *inst = new edge_instance(e,
+  Dyninst::DyninstAPI::patch_edge *inst = new Dyninst::DyninstAPI::patch_edge(e,
                          s ? SCAST_BI(s) : moS->findBlock(e->src()),
                          t ? SCAST_BI(t) : moT->findBlock(e->trg()));
 
 #else // doesn't allow inter-object edges
   mapped_object* mo = t ? t->obj() : NULL;
-  edge_instance *inst = new edge_instance(e,
+  Dyninst::DyninstAPI::patch_edge *inst = new Dyninst::DyninstAPI::patch_edge(e,
                          s ? SCAST_BI(s) : mo->findBlock(e->src()),
                          t ? SCAST_BI(t) : mo->findBlock(e->trg()));
 #endif
@@ -119,6 +119,6 @@ PatchEdge* DynCFGMaker::makeEdge(ParseAPI::Edge* e,
 }
 
 PatchEdge* DynCFGMaker::copyEdge(PatchEdge* e, PatchObject* o) {
-  edge_instance *new_edge = new edge_instance(SCAST_EI(e), SCAST_MO(o));
+  Dyninst::DyninstAPI::patch_edge *new_edge = new Dyninst::DyninstAPI::patch_edge(SCAST_EI(e), SCAST_MO(o));
   return new_edge;
 }

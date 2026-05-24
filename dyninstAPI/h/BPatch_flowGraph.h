@@ -46,7 +46,12 @@
 class func_instance;
 class AddressSpace;
 class BPatch_edge;
-class edge_instance;
+
+namespace Dyninst {
+  namespace DyninstAPI {
+    class patch_edge;
+  }
+}
 
 typedef BPatch_basicBlockLoop BPatch_loop;
 
@@ -80,7 +85,7 @@ class DYNINST_EXPORT BPatch_flowGraph :
   bool isValid_;
 
   std::map<const block_instance *, BPatch_basicBlock *> blockMap_;
-  std::map<const edge_instance *, BPatch_edge *> edgeMap_;
+  std::map<const Dyninst::DyninstAPI::patch_edge *, BPatch_edge *> edgeMap_;
 
 public:
 
@@ -91,7 +96,7 @@ public:
   BPatch_module *getModule() const { return mod; }
 
   BPatch_basicBlock *findBlock(block_instance *b);
-  BPatch_edge *findEdge(edge_instance *e);
+  BPatch_edge *findEdge(Dyninst::DyninstAPI::patch_edge *e);
   void invalidate(); // invoked when additional parsing takes place
 
   //  Functions for use by Dyninst users

@@ -34,8 +34,7 @@
 class BPatch_flowGraph;
 class BPatch_basicBlock;
 class BPatch_point;
-class edge_instance;
-class BPatch_edge; 
+class BPatch_edge;
 
 // XXX ignores indirect jumps
 typedef enum { 
@@ -50,6 +49,9 @@ namespace Dyninst {
    namespace PatchAPI {
       class PatchEdge;
       DYNINST_EXPORT PatchEdge *convert(const BPatch_edge *);
+   }
+   namespace DyninstAPI {
+     class patch_edge;
    }
 }
 
@@ -66,7 +68,7 @@ class DYNINST_EXPORT BPatch_edge {
     // BPatch_edge::BPatch_edge
     //
     // constructor
-   BPatch_edge(edge_instance *e, BPatch_flowGraph *fg);
+   BPatch_edge(Dyninst::DyninstAPI::patch_edge *e, BPatch_flowGraph *fg);
 
     // BPatch_edge::~BPatch_edge
     //
@@ -88,7 +90,7 @@ class DYNINST_EXPORT BPatch_edge {
 
     BPatch_point *createInstPointAtEdge();
     BPatch_point *point;
-    edge_instance *edge;
+    Dyninst::DyninstAPI::patch_edge *edge;
     BPatch_flowGraph *fg;
 
 };

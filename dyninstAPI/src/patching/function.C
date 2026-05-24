@@ -744,7 +744,7 @@ void func_instance::blockInsnPoints(block_instance* b, Points* pts) {
   }
 }
 
-instPoint* func_instance::edgePoint(edge_instance* e, bool create) {
+instPoint* func_instance::edgePoint(Dyninst::DyninstAPI::patch_edge* e, bool create) {
    instPoint *p = IPCONV(proc()->mgr()->findPoint(Location::EdgeInstance(this, e), Point::EdgeDuring, create));
    return p;
 }

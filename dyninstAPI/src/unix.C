@@ -720,7 +720,7 @@ func_instance *block_instance::callee() {
    if (ret) return ret;
 
    // See if we've already done this
-   edge_instance *tEdge = getTarget();
+   Dyninst::DyninstAPI::patch_edge *tEdge = getTarget();
    if (!tEdge) {
       return NULL;
    }
