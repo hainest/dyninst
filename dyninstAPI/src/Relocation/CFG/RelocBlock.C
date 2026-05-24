@@ -167,7 +167,7 @@ void RelocBlock::getPredecessors(RelocGraph *cfg) {
 // 2) In-edges that aren't from RelocBlocks; if it's from a RelocBlock we assume we'll
 //    get it in out-edge construction. 
 
-void RelocBlock::processEdge(EdgeDirection e, edge_instance *edge, RelocGraph *cfg) {
+void RelocBlock::processEdge(EdgeDirection e, Dyninst::DyninstAPI::patch_edge *edge, RelocGraph *cfg) {
    ParseAPI::EdgeTypeEnum type = edge->type();
    // Maybe we want exception edges too?
    if (type == ParseAPI::RET || 
@@ -281,7 +281,7 @@ bool RelocBlock::determineSpringboards(PriorityMap &p) {
         iter != inEdges_.end(); ++iter) {
      if ((*iter)->type == ParseAPI::CALL) continue;
      /* Skip tailcalls also */
-     edge_instance* edge = (*iter)->edge;
+     Dyninst::DyninstAPI::patch_edge* edge = (*iter)->edge;
      if (edge) {
          if (edge->interproc() && 
             (((*iter)->type == ParseAPI::DIRECT) || ((*iter)->type == ParseAPI::INDIRECT))) {

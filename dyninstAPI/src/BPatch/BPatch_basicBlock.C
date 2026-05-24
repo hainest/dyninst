@@ -123,7 +123,7 @@ void BPatch_basicBlock::getTargets(BPatch_Vector<BPatch_basicBlock*>& tgrts){
   std::vector<block_instance *> out_blocks;
   const PatchBlock::edgelist &itrgs = iblock->targets();
   for (PatchBlock::edgelist::const_iterator iter = itrgs.begin(); iter != itrgs.end(); ++iter) {
-    edge_instance* iedge = SCAST_EI(*iter);
+    Dyninst::DyninstAPI::patch_edge* iedge = SCAST_EI(*iter);
     // We don't include interprocedural predecessors in the BPatch layer
     if (iedge->interproc() || iedge->sinkEdge()) continue;
 

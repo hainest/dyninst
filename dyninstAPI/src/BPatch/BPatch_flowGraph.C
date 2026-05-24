@@ -428,7 +428,7 @@ bool BPatch_flowGraph::createBasicBlocks()
       const PatchBlock::edgelist &srcs = iblk->sources();
       //const block_instance::edgelist &srcs = (*ibIter)->sources();
       for (PatchBlock::edgelist::const_iterator iter = srcs.begin(); iter != srcs.end(); ++iter) {
-        edge_instance* iedge = SCAST_EI(*iter);
+        Dyninst::DyninstAPI::patch_edge* iedge = SCAST_EI(*iter);
         // Skip interprocedural edges
         if (iedge->interproc()) continue;
         BPatch_edge *e = findEdge(iedge);
@@ -437,7 +437,7 @@ bool BPatch_flowGraph::createBasicBlocks()
       // Insert source/target edges
       const PatchBlock::edgelist &trgs = iblk->targets();
       for (PatchBlock::edgelist::const_iterator iter = trgs.begin(); iter != trgs.end(); ++iter) {
-        edge_instance* iedge = SCAST_EI(*iter);
+        Dyninst::DyninstAPI::patch_edge* iedge = SCAST_EI(*iter);
         // Skip interprocedural edges
         if (iedge->interproc()) continue;
         BPatch_edge *e = findEdge(iedge);
@@ -659,9 +659,9 @@ BPatch_basicBlock *BPatch_flowGraph::findBlock(block_instance *inst) {
   return block;
 }
 
-BPatch_edge *BPatch_flowGraph::findEdge(edge_instance *inst) {
+BPatch_edge *BPatch_flowGraph::findEdge(Dyninst::DyninstAPI::patch_edge *inst) {
   // This is more complicated.
-  std::map<const edge_instance *, BPatch_edge *>::const_iterator iter = edgeMap_.find(inst);
+  std::map<const Dyninst::DyninstAPI::patch_edge *, BPatch_edge *>::const_iterator iter = edgeMap_.find(inst);
   if (iter != edgeMap_.end()) return iter->second;
 
   BPatch_edge *edge = new BPatch_edge(inst, this);

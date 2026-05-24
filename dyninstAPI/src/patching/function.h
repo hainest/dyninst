@@ -68,8 +68,13 @@ class mapped_object;
 
 class func_instance;
 class block_instance;
-class edge_instance;
 class instPoint;
+
+namespace Dyninst {
+  namespace DyninstAPI {
+    class patch_edge;
+  }
+}
 
 typedef enum callType {
   unknown_call,
@@ -83,7 +88,7 @@ using Dyninst::PatchAPI::Point;
 
 class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunction {
   friend class block_instance;
-  friend class edge_instance;
+  friend class Dyninst::DyninstAPI::patch_edge;
   friend class instPoint;
   public:
     // Almost everythcing gets filled in later.
@@ -278,7 +283,7 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   instPoint *postInsnPoint(block_instance *b, Address a,
                            InstructionAPI::Instruction insn,
                            bool trusted, bool create);
-  instPoint *edgePoint(edge_instance* eg, bool create);
+  instPoint *edgePoint(Dyninst::DyninstAPI::patch_edge* eg, bool create);
 
   // Wrappers for patchapi findPoints to find all instPoints w/ certain type
   typedef std::vector<instPoint*> Points;

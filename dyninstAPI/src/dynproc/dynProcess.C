@@ -2682,7 +2682,7 @@ Address PCProcess::stopThreadCtrlTransfer (instPoint* intPoint,
            std::set<block_instance*> callBs;
            tmp.first->getBlocks(tmp.second, callBs);
            block_instance *callB = (*callBs.begin());
-           edge_instance *fallthrough = callB->getFallthrough();
+           Dyninst::DyninstAPI::patch_edge *fallthrough = callB->getFallthrough();
            if (fallthrough) {
               unrelocTarget = fallthrough->trg()->start();
            } else {

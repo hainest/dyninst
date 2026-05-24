@@ -849,7 +849,7 @@ block_instance *AddressSpace::findBlock(parse_block *iblk) {
    return findObject(iblk->obj())->findBlock(iblk);
 }
 
-edge_instance *AddressSpace::findEdge(ParseAPI::Edge *iedge) {
+Dyninst::DyninstAPI::patch_edge *AddressSpace::findEdge(ParseAPI::Edge *iedge) {
    assert(iedge);
    return findObject(iedge->src()->obj())->findEdge(iedge);
 }

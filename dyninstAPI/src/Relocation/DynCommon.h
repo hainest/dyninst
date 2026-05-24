@@ -41,7 +41,7 @@
 
 // Shortcuts for type casting
 #define SCAST_MO(o) static_cast<mapped_object*>(o)
-#define SCAST_EI(e) static_cast<edge_instance*>(e)
+#define SCAST_EI(e) static_cast<Dyninst::DyninstAPI::patch_edge*>(e)
 #define SCAST_BI(b) static_cast<block_instance*>(b)
 #define SCAST_PB(b) static_cast<parse_block*>(b)
 #define SCAST_PF(f) static_cast<parse_func*>(f)

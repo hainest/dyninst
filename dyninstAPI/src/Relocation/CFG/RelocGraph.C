@@ -133,7 +133,7 @@ bool RelocGraph::setSpringboard(block_instance *from, func_instance *func, Reloc
 
 RelocEdge *RelocGraph::makeEdge(TargetInt *s, 
                                 TargetInt *t,
-                                edge_instance* e,
+                                Dyninst::DyninstAPI::patch_edge* e,
                                 ParseAPI::EdgeTypeEnum et) {
    RelocEdge *edge = new RelocEdge(s, t, e, et);
    edges.push_back(edge);
@@ -214,7 +214,7 @@ bool Predicates::Interprocedural::operator()(RelocEdge *e) {
     // Calls and returns are always interprocedural
     if (e->type == ParseAPI::CALL || e->type == ParseAPI::RET) return true;
 
-    // If there is an underlying edge_instance, use its interproc() method
+    // If there is an underlying Dyninst::DyninstAPI::patch_edge, use its interproc() method
     if (e->edge != NULL) return e->edge->interproc();
 
     // If both endpoints are RelocBlocks, check if they are in the same func
@@ -232,7 +232,7 @@ bool Predicates::Intraprocedural::operator()(RelocEdge *e) {
     // Calls and returns are always interprocedural
     if (e->type == ParseAPI::CALL || e->type == ParseAPI::RET) return false;
 
-    // If there is an underlying edge_instance, use its interproc() method
+    // If there is an underlying Dyninst::DyninstAPI::patch_edge, use its interproc() method
     if (e->edge != NULL) return !e->edge->interproc();
 
     // If both endpoints are RelocBlocks, check if they are in the same func

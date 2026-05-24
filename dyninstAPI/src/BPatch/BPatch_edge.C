@@ -74,7 +74,7 @@ BPatch_edge::getType()
 }
 
 
-BPatch_edge::BPatch_edge(edge_instance *e, 
+BPatch_edge::BPatch_edge(Dyninst::DyninstAPI::patch_edge *e, 
    BPatch_flowGraph *FG)
 {
    assert(e);
