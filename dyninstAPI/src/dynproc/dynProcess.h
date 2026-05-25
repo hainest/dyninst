@@ -63,6 +63,12 @@
 #include "dynproc/pcEventHandler.h"
 #include "dynproc/frame.h"
 
+namespace Dyninst {
+  namespace DyninstAPI {
+    class patch_block;
+  }
+}
+
 #define RPC_LEAVE_AS_IS 0
 #define RPC_RUN_WHEN_DONE 1
 #define RPC_STOP_WHEN_DONE 2
@@ -234,7 +240,7 @@ public:
     bool getOverwrittenBlocks
       ( std::map<Address, unsigned char *>& overwrittenPages,//input
         std::list<std::pair<Address,Address> >& overwrittenRegions,//output
-        std::list<block_instance *> &writtenBBIs);//output
+        std::list<Dyninst::DyninstAPI::patch_block *> &writtenBBIs);//output
 
     // synch modified mapped objects with current memory contents
     mapped_object *createObjectNoFile(Address addr);
@@ -257,9 +263,9 @@ public:
     struct ActiveDefensivePad {
         Address activePC;
         Address padStart;
-        block_instance *callBlock;
-        block_instance *ftBlock;
-        ActiveDefensivePad(Address a, Address b, block_instance *c, block_instance *d)
+        Dyninst::DyninstAPI::patch_block *callBlock;
+        Dyninst::DyninstAPI::patch_block *ftBlock;
+        ActiveDefensivePad(Address a, Address b, Dyninst::DyninstAPI::patch_block *c, Dyninst::DyninstAPI::patch_block *d)
             : activePC(a), padStart(b), callBlock(c), ftBlock(d) {}
     };
     typedef std::list<ActiveDefensivePad> ADPList;

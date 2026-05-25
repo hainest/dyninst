@@ -76,7 +76,6 @@ class Emitter;
 class func_instance;
 class PCThread;
 class baseTramp;
-class block_instance;
 
 // Code generation
 // This class wraps the actual code generation mechanism: we keep a buffer

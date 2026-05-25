@@ -49,6 +49,7 @@ class image;
 #include "dyninstAPI/src/image.h"
 #include "symtabAPI/h/Symtab.h"
 #include "addressSpace.h"
+#include "patching/patch_block.h"
 
 // pdmodule equivalent The internals tend to use images, while the
 // BPatch layer uses modules. On the other hand, "module" means
@@ -85,7 +86,7 @@ class mapped_module {
             std::vector<func_instance *> &funcs);
 
     bool findFuncsByAddr(const Address addr, std::set<func_instance *> &funcs);
-    bool findBlocksByAddr(const Address addr, std::set<block_instance *> &blocks);
+    bool findBlocksByAddr(const Address addr, std::set<Dyninst::DyninstAPI::patch_block *> &blocks);
     void getAnalyzedCodePages(std::set<Address> & pages);
 
 

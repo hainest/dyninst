@@ -39,7 +39,7 @@
 #include "patching/instPoint.h"
 #include "patching/function.h"
 #include "../Widgets/CallbackWidget.h"
-
+#include "patching/patch_block.h"
 
 using namespace std;
 using namespace Dyninst;
@@ -139,7 +139,7 @@ bool Modification::replaceFunction(RelocBlock *trace, RelocGraph *cfg) {
    }
    else {
       cfg->makeEdge(new Target<RelocBlock *>(stub),
-                    new Target<block_instance *>(newfun->entryBlock()),
+                    new Target<Dyninst::DyninstAPI::patch_block *>(newfun->entryBlock()),
                     NULL,
                     ParseAPI::DIRECT);
    }
@@ -193,7 +193,7 @@ bool Modification::wrapFunction(RelocBlock *trace, RelocGraph *cfg) {
       relocation_cerr << "\t New function " << newfun->name() << " not relocated targeting entry block " 
                       << hex << newfun->entryBlock()->start() << dec << " directly" << endl;
       cfg->makeEdge(new Target<RelocBlock *>(stub),
-                    new Target<block_instance *>(newfun->entryBlock()),
+                    new Target<Dyninst::DyninstAPI::patch_block *>(newfun->entryBlock()),
                     NULL,
                     ParseAPI::DIRECT);
    }
@@ -215,7 +215,7 @@ bool Modification::wrapFunction(RelocBlock *trace, RelocGraph *cfg) {
    return true;
 }
 
-RelocBlock *Modification::makeRelocBlock(block_instance *block, func_instance *func, RelocBlock *trace, RelocGraph *cfg) {
+RelocBlock *Modification::makeRelocBlock(Dyninst::DyninstAPI::patch_block *block, func_instance *func, RelocBlock *trace, RelocGraph *cfg) {
    RelocBlock *t = RelocBlock::createStub(block, func);
 
    // Current, new. 

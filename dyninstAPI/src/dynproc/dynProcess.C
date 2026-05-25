@@ -44,7 +44,7 @@
 #include "image.h"
 #include "common/src/headers.h"
 #include "common/src/dyninst_filesystem.h"
-
+#include "patching/patch_block.h"
 #include "PCErrors.h"
 #include <boost/tuple/tuple.hpp>
 
@@ -2053,7 +2053,7 @@ bool PCProcess::isRuntimeHeapAddr(Address addr) const {
 bool PCProcess::getOverwrittenBlocks
   ( std::map<Address, unsigned char *>& overwrittenPages,//input
     std::list<std::pair<Address,Address> >& overwrittenRanges,//output
-    std::list<block_instance *> &writtenBBIs)//output
+    std::list<dapi::patch_block *> &writtenBBIs)//output
 {
     const unsigned MEM_PAGE_SIZE = getMemoryPageSize();
     unsigned char * memVersion = (unsigned char *) ::malloc(MEM_PAGE_SIZE);
@@ -2106,7 +2106,7 @@ bool PCProcess::getOverwrittenBlocks
 
     // 3. Determine which basic blocks have been overwritten
     list<pair<Address,Address> >::const_iterator rIter = overwrittenRanges.begin();
-    std::list<block_instance*> curBBIs;
+    std::list<dapi::patch_block*> curBBIs;
     while (rIter != overwrittenRanges.end()) {
         mapped_object *curObject = findObject((*rIter).first);
 
@@ -2291,9 +2291,9 @@ func_instance *PCProcess::findActiveFuncByAddr(Address addr)
                 std::set<func_instance *> curFuncs;
                 findFuncsByAddr(framePC, curFuncs);
                 // Step 2: get return addresses one frame up and map to possible callers
-                std::set<block_instance *> callerBlocks;
+                std::set<dapi::patch_block *> callerBlocks;
                 findBlocksByAddr(stack[j+1].getPC() - 1, callerBlocks);
-                for (std::set<block_instance *>::iterator cb_iter = callerBlocks.begin();
+                for (std::set<dapi::patch_block *>::iterator cb_iter = callerBlocks.begin();
                     cb_iter != callerBlocks.end(); ++cb_iter)
                 {
                     if (!(*cb_iter)->containsCall()) continue;
@@ -2348,8 +2348,8 @@ bool PCProcess::generateRequiredPatches(instPoint *callPoint,
 
     // 3)
 
-    block_instance *callB = callPoint->block();
-    block_instance *ftBlk = callB->getFallthrough()->trg();
+    dapi::patch_block *callB = callPoint->block();
+    dapi::patch_block *ftBlk = callB->getFallthrough()->trg();
     if (!ftBlk) {
         // find the block at the next address, if there's no fallthrough block
         ftBlk = callB->obj()->findBlockByEntry(callB->end());
@@ -2679,9 +2679,9 @@ Address PCProcess::stopThreadCtrlTransfer (instPoint* intPoint,
 
         if ( reverseDefensiveMap_.find(target,tmp) ) {
             // a. 
-           std::set<block_instance*> callBs;
+           std::set<dapi::patch_block*> callBs;
            tmp.first->getBlocks(tmp.second, callBs);
-           block_instance *callB = (*callBs.begin());
+           dapi::patch_block *callB = (*callBs.begin());
            Dyninst::DyninstAPI::patch_edge *fallthrough = callB->getFallthrough();
            if (fallthrough) {
               unrelocTarget = fallthrough->trg()->start();

@@ -29,7 +29,6 @@
  */
 
 
-#include "patching/block.h"
 #include "patching/function.h"
 #include "codegen/codegen.h"
 #include "dyninstAPI/src/emit-amdgpu.h"
@@ -58,7 +57,7 @@ void insnCodeGen::generateBranch(codeGen &gen, Dyninst::Address from, Dyninst::A
     emitter->emitShortJump(wordOffset, gen);
   } else {
     auto as = gen.addrSpace();
-    block_instance *blockInstance = as->findBlockByEntry(from);
+    patch_block *blockInstance = as->findBlockByEntry(from);
     assert(blockInstance);
 
     func_instance *funcInstance = blockInstance->entryOfFunc();

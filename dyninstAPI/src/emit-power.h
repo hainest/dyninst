@@ -156,8 +156,8 @@ class EmitterPOWER32Stat : public EmitterPOWER
     virtual bool emitPLTCall(func_instance *dest, codeGen &gen);
     virtual bool emitPLTJump(func_instance *dest, codeGen &gen);
 
-    virtual bool emitTOCCall(block_instance *dest, codeGen &gen);
-    virtual bool emitTOCJump(block_instance *dest, codeGen &gen);
+    virtual bool emitTOCCall(patch_block *dest, codeGen &gen);
+    virtual bool emitTOCJump(patch_block *dest, codeGen &gen);
  protected:
     virtual bool emitCallInstruction(codeGen &, func_instance *, bool,
                                      Address);
@@ -168,17 +168,17 @@ class EmitterPOWER32Stat : public EmitterPOWER
 
   private:
     bool emitPLTCommon(func_instance *dest, bool call, codeGen &gen);
-    bool emitTOCCommon(block_instance *dest, bool call, codeGen &gen);
+    bool emitTOCCommon(patch_block *dest, bool call, codeGen &gen);
 };
 
 class EmitterPOWER64Dyn : public EmitterPOWER
 {
   public:
-  virtual bool emitTOCCall(block_instance *dest, codeGen &gen) { return emitTOCCommon(dest, true, gen); }
-  virtual bool emitTOCJump(block_instance *dest, codeGen &gen) { return emitTOCCommon(dest, false, gen); }
+  virtual bool emitTOCCall(patch_block *dest, codeGen &gen) { return emitTOCCommon(dest, true, gen); }
+  virtual bool emitTOCJump(patch_block *dest, codeGen &gen) { return emitTOCCommon(dest, false, gen); }
     virtual ~EmitterPOWER64Dyn() {}
  private:
-    bool emitTOCCommon(block_instance *dest, bool call, codeGen &gen);
+    bool emitTOCCommon(patch_block *dest, bool call, codeGen &gen);
 
 };
 
@@ -189,8 +189,8 @@ class EmitterPOWER64Stat : public EmitterPOWER {
     virtual bool emitPLTCall(func_instance *dest, codeGen &gen);
     virtual bool emitPLTJump(func_instance *dest, codeGen &gen);
 
-    virtual bool emitTOCCall(block_instance *dest, codeGen &gen);
-    virtual bool emitTOCJump(block_instance *dest, codeGen &gen);
+    virtual bool emitTOCCall(patch_block *dest, codeGen &gen);
+    virtual bool emitTOCJump(patch_block *dest, codeGen &gen);
  protected:
     virtual bool emitCallInstruction(codeGen &, func_instance *, bool,
                                      Address);
@@ -201,7 +201,7 @@ class EmitterPOWER64Stat : public EmitterPOWER {
 
   private:
     bool emitPLTCommon(func_instance *dest, bool call, codeGen &gen);
-    bool emitTOCCommon(block_instance *dest, bool call, codeGen &gen);
+    bool emitTOCCommon(patch_block *dest, bool call, codeGen &gen);
 };
 
 #endif

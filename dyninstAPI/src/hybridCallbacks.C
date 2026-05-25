@@ -40,6 +40,7 @@
 #include "PatchModifier.h"
 #include "BPatch_image.h"
 #include "mapped_object.h"
+#include "patching/patch_block.h"
 
 extern std::vector<image*> allImages;
 
@@ -503,7 +504,7 @@ static int getPreCallPoints(ParseAPI::Block* blk,
 // we're returning from 
 void HybridAnalysis::getCallBlocks(Address retAddr, 
                    func_instance *retFunc,
-                   block_instance *retBlock,
+                   Dyninst::DyninstAPI::patch_block *retBlock,
                    pair<ParseAPI::Block*, Address> & returningCallB, // output
                    set<ParseAPI::Block*> & callBlocks) // output
 {

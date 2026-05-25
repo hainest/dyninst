@@ -45,12 +45,12 @@
 #include "dyninstAPI/src/Relocation/DynObject.h"
 #include "PCProcess.h"
 
-class block_instance;
 class func_instance;
 
 namespace Dyninst {
   namespace DyninstAPI {
     class patch_edge;
+    class patch_block;
   }
 }
 
@@ -113,11 +113,11 @@ class int_variable {
 };
 
 struct edgeStub {
-    edgeStub(block_instance *s, Address t, EdgeTypeEnum y)
+    edgeStub(Dyninst::DyninstAPI::patch_block *s, Address t, ParseAPI::EdgeTypeEnum y)
     { src = s; trg = t; type = y; }
-    edgeStub(block_instance* s, Address t, EdgeTypeEnum y, bool b) :
+    edgeStub(Dyninst::DyninstAPI::patch_block* s, Address t, ParseAPI::EdgeTypeEnum y, bool b) :
         src(s), trg(t), type(y), checked(b) { }
-    block_instance* src;
+    Dyninst::DyninstAPI::patch_block* src;
     Address trg;
     EdgeTypeEnum type;
     bool checked{};
@@ -219,15 +219,15 @@ class mapped_object : public codeRange, public Dyninst::PatchAPI::DynObject {
     mapped_module *getDefaultModule();
 
     func_instance *findFuncByEntry(const Address addr);
-    func_instance *findFuncByEntry(const block_instance *blk);
+    func_instance *findFuncByEntry(const Dyninst::DyninstAPI::patch_block *blk);
 
     bool getInfHeapList(std::vector<heapDescriptor> &infHeaps);
     void getInferiorHeaps(vector<pair<string, Address> > &infHeaps);
 
     bool findFuncsByAddr(const Address addr, std::set<func_instance *> &funcs);
-    bool findBlocksByAddr(const Address addr, std::set<block_instance *> &blocks);
-    block_instance *findBlockByEntry(const Address addr);
-    block_instance *findOneBlockByAddr(const Address addr);
+    bool findBlocksByAddr(const Address addr, std::set<Dyninst::DyninstAPI::patch_block *> &blocks);
+    Dyninst::DyninstAPI::patch_block *findBlockByEntry(const Address addr);
+    Dyninst::DyninstAPI::patch_block *findOneBlockByAddr(const Address addr);
 
     // codeRange method
     void *getPtrToInstruction(Address addr) const;
@@ -256,10 +256,10 @@ class mapped_object : public codeRange, public Dyninst::PatchAPI::DynObject {
     void removeEmptyPages();
     void remove(func_instance *func);
     void remove(instPoint *p);
-    void splitBlock(block_instance *first, block_instance *second);
+    void splitBlock(Dyninst::DyninstAPI::patch_block *first, Dyninst::DyninstAPI::patch_block *second);
     bool findBlocksByRange(Address startAddr,
                           Address endAddr,
-                          std::list<block_instance*> &pageBlocks);
+                          std::list<Dyninst::DyninstAPI::patch_block*> &pageBlocks);
     void findFuncsByRange(Address startAddr,
                           Address endAddr,
                           std::set<func_instance*> &pageFuncs);
@@ -293,7 +293,7 @@ public:
     const std::vector<func_instance *> *findFuncVectorByMangled(const std::string &funcname);
 
     bool findFuncsByAddr(std::vector<func_instance *> &funcs);
-    bool findBlocksByAddr(std::vector<block_instance *> &blocks);
+    bool findBlocksByAddr(std::vector<Dyninst::DyninstAPI::patch_block *> &blocks);
 
     const std::vector<int_variable *> *findVarVectorByPretty(const std::string &varname);
     const std::vector<int_variable *> *findVarVectorByMangled(const std::string &varname);
@@ -308,20 +308,20 @@ public:
 
     int_variable *findVariable(image_variable *img_var);
 
-    block_instance *findBlock(ParseAPI::Block *);
+    Dyninst::DyninstAPI::patch_block *findBlock(ParseAPI::Block *);
     // If we already know the source or target hand them in for efficiency
-    Dyninst::DyninstAPI::patch_edge *findEdge(ParseAPI::Edge *, block_instance *src = NULL, block_instance *trg = NULL);
+    Dyninst::DyninstAPI::patch_edge *findEdge(ParseAPI::Edge *, Dyninst::DyninstAPI::patch_block *src = NULL, Dyninst::DyninstAPI::patch_block *trg = NULL);
 
     // Find the global constructor and destructor functions in stripped, static binaries
     func_instance *findGlobalFunc(const std::string &handler);
 
     // We store callee names at the mapped_object level for
     // efficiency
-    std::string getCalleeName(block_instance *);
-    void setCalleeName(block_instance *, std::string name);
+    std::string getCalleeName(Dyninst::DyninstAPI::patch_block *);
+    void setCalleeName(Dyninst::DyninstAPI::patch_block *, std::string name);
 
-    void setCallee(const block_instance *, func_instance *);
-    func_instance *getCallee(const block_instance *) const;
+    void setCallee(const Dyninst::DyninstAPI::patch_block *, func_instance *);
+    func_instance *getCallee(const Dyninst::DyninstAPI::patch_block *) const;
 
     void destroy(PatchAPI::PatchFunction *f);
     void destroy(PatchAPI::PatchBlock *b);
@@ -398,8 +398,8 @@ public:
 
     bool memoryImg_;
 
-    std::map<block_instance *, std::string> calleeNames_;
-    std::map<const block_instance *, func_instance *> callees_;
+    std::map<Dyninst::DyninstAPI::patch_block *, std::string> calleeNames_;
+    std::map<const Dyninst::DyninstAPI::patch_block *, func_instance *> callees_;
 
 };
 

@@ -54,8 +54,7 @@
 #include "BPatch_flowGraph.h"
 #include "mapped_object.h"
 #include "patching/function.h"
-#include "patching/block.h"
-
+#include "patching/patch_block.h"
 #include "PatchCFG.h"
 
 using namespace Dyninst::PatchAPI;
@@ -221,7 +220,7 @@ BPatch_flowGraph::findLoopInstPoints(const BPatch_procedureLocation loc,
     BPatch_Vector<BPatch_basicBlock*> entries;
     loop->getLoopEntries(entries);
     for (auto bit = entries.begin(); bit != entries.end(); ++bit) {
-      block_instance *llHead = (*bit)->lowlevel_block();
+      Dyninst::DyninstAPI::patch_block *llHead = (*bit)->lowlevel_block();
 
       BPatch_point *p = getAddSpace()->findOrCreateBPPoint(func_,
                                                            instPoint::blockEntry((*bit)->ifunc(),
@@ -415,18 +414,18 @@ bool BPatch_flowGraph::createBasicBlocks()
        ibIter != iblocks.end();
        ibIter++)
     {
-      block_instance* iblk = SCAST_BI(*ibIter);
+      Dyninst::DyninstAPI::patch_block* iblk = SCAST_BI(*ibIter);
       BPatch_basicBlock *newblock = findBlock(iblk);
       assert(newblock);
       allBlocks.insert(newblock);
 
       // Insert source/target edges
-      /*       const block_instance::edgelist &srcs = iblk->sources();
-      //const block_instance::edgelist &srcs = (*ibIter)->sources();
-      for (block_instance::edgelist::const_iterator iter = srcs.begin(); iter != srcs.end(); ++iter) {
+      /*       const Dyninst::DyninstAPI::patch_block::edgelist &srcs = iblk->sources();
+      //const Dyninst::DyninstAPI::patch_block::edgelist &srcs = (*ibIter)->sources();
+      for (Dyninst::DyninstAPI::patch_block::edgelist::const_iterator iter = srcs.begin(); iter != srcs.end(); ++iter) {
       */
       const PatchBlock::edgelist &srcs = iblk->sources();
-      //const block_instance::edgelist &srcs = (*ibIter)->sources();
+      //const Dyninst::DyninstAPI::patch_block::edgelist &srcs = (*ibIter)->sources();
       for (PatchBlock::edgelist::const_iterator iter = srcs.begin(); iter != srcs.end(); ++iter) {
         Dyninst::DyninstAPI::patch_edge* iedge = SCAST_EI(*iter);
         // Skip interprocedural edges
@@ -646,13 +645,13 @@ void BPatch_flowGraph::invalidate()
 bool BPatch_flowGraph::isValid() { return isValid_; }
 
 BPatch_basicBlock *BPatch_flowGraph::findBlockByAddr(Dyninst::Address addr) {
-   block_instance *blk = ll_func()->getBlock(addr);
+   Dyninst::DyninstAPI::patch_block *blk = ll_func()->getBlock(addr);
    if (!blk) return NULL;
    return findBlock(blk);
 }
 
-BPatch_basicBlock *BPatch_flowGraph::findBlock(block_instance *inst) {
-  std::map<const block_instance *, BPatch_basicBlock *>::const_iterator iter = blockMap_.find(inst);
+BPatch_basicBlock *BPatch_flowGraph::findBlock(Dyninst::DyninstAPI::patch_block *inst) {
+  std::map<const Dyninst::DyninstAPI::patch_block *, BPatch_basicBlock *>::const_iterator iter = blockMap_.find(inst);
   if (iter != blockMap_.end()) return iter->second;
   BPatch_basicBlock *block = new BPatch_basicBlock(inst, this);
   blockMap_[inst] = block;

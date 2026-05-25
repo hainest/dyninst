@@ -146,8 +146,8 @@ bool CFPatch::apply(codeGen &gen, CodeBuffer *buf) {
             // the callee will use R12 to set up R2. Since we do not
             // set R12 to be the global entry, we should use the local entry 
             if (target->type() == TargetInt::BlockTarget) {
-                Target<block_instance *> *t = static_cast<Target<block_instance *> *>(target);
-                block_instance *tb = t->t();
+                Target<patch_block *> *t = static_cast<Target<patch_block *> *>(target);
+                patch_block *tb = t->t();
                 func_instance *callee = tb->entryOfFunc();
                 if (callee->ifunc()->containsPowerPreamble() && callee->addr() == targetAddr) targetAddr += 8;
             }
@@ -198,8 +198,8 @@ bool CFPatch::isPLT(codeGen &gen) {
       return false;
    }
 
-   Target<block_instance *> *t = static_cast<Target<block_instance *> *>(target);
-   block_instance *tb = t->t();
+   Target<patch_block *> *t = static_cast<Target<patch_block *> *>(target);
+   patch_block *tb = t->t();
    if (tb->proc() != gen.addrSpace())
       return true;
    else
@@ -222,8 +222,8 @@ bool CFPatch::applyPLT(codeGen &gen, CodeBuffer *) {
 
    relocation_cerr << "\t\t\t ApplyPLT..." << endl;
 
-   Target<block_instance *> *t = static_cast<Target<block_instance *> *>(target);
-   block_instance *tb = t->t();
+   Target<patch_block *> *t = static_cast<Target<patch_block *> *>(target);
+   patch_block *tb = t->t();
 
    // Set caller in codegen structure
    gen.setFunction(const_cast<func_instance *>(func));
@@ -260,7 +260,7 @@ bool CFPatch::needsTOCUpdate() {
   // Assuming an address target is not inter-module...
   if (target->type() != TargetInt::BlockTarget) return false;
 
-  Target<block_instance *> *t = static_cast<Target<block_instance *> *>(target);
+  Target<patch_block *> *t = static_cast<Target<patch_block *> *>(target);
   // If we're in the same object, then we don't need to update TOC
   if (t->t()->obj() == func->obj()) return false;
 
@@ -271,7 +271,7 @@ bool CFPatch::handleTOCUpdate(codeGen &gen) {
   // Annoying, pain in the butt case...
 
   assert(target->type() == TargetInt::BlockTarget);
-  Target<block_instance *> *t = static_cast<Target<block_instance *> *>(target);
+  Target<patch_block *> *t = static_cast<Target<patch_block *> *>(target);
 
 
   if (type == Jump)

@@ -40,6 +40,7 @@
 #include <string>
 
 class pdmodule;
+class image;
 
 class parse_func : public Dyninst::ParseAPI::Function {
   enum UnresolvedCF {

@@ -31,8 +31,8 @@
 #include "CodeTracker.h"
 #include "dyninstAPI/src/debug.h"
 #include "patching/function.h"
-#include "patching/block.h"
 #include "dyninstAPI/src/addressSpace.h"
+#include "patching/patch_block.h"
 
 #include <iostream>
 
@@ -60,7 +60,7 @@ CodeTracker *CodeTracker::fork(CodeTracker *parent,
         iter != parent->trackers_.end(); ++iter) {
       TrackerElement *pE = *iter;
       TrackerElement *cE = NULL;
-      block_instance *cB = child->findBlock(pE->block()->llb());
+      Dyninst::DyninstAPI::patch_block *cB = child->findBlock(pE->block()->llb());
       func_instance *cF = (pE->func() ? child->findFunction(pE->func()->ifunc()) : NULL);
       switch (pE->type()) {
          case TrackerElement::original:
@@ -90,7 +90,7 @@ CodeTracker *CodeTracker::fork(CodeTracker *parent,
 
 
 bool CodeTracker::origToReloc(Address origAddr,
-                              block_instance *block,
+                              Dyninst::DyninstAPI::patch_block *block,
                               func_instance *func,
                               RelocatedElements &reloc) const {
    ForwardMap::const_iterator iter = origToReloc_.find(block->start());

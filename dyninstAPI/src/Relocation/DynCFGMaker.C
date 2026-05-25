@@ -32,6 +32,7 @@
 #include "dyninstAPI/src/mapped_module.h"
 #include "dyninstAPI/src/mapped_object.h"
 #include "patching/function.h"
+#include "patching/patch_block.h"
 
 using Dyninst::PatchAPI::DynCFGMaker;
 using Dyninst::PatchAPI::PatchObject;
@@ -72,13 +73,13 @@ PatchFunction* DynCFGMaker::copyFunction(PatchFunction* f, PatchObject* o) {
 }
 
 PatchBlock* DynCFGMaker::makeBlock(ParseAPI::Block* b, PatchObject* obj) {
-  block_instance *inst = new block_instance(b, SCAST_MO(obj));
+  Dyninst::DyninstAPI::patch_block *inst = new Dyninst::DyninstAPI::patch_block(b, SCAST_MO(obj));
   obj->addBlock(inst);
   return inst;
 }
 
 PatchBlock* DynCFGMaker::copyBlock(PatchBlock* b, PatchObject* o) {
-  block_instance *newBlock = new block_instance(SCAST_BI(b), SCAST_MO(o));
+  Dyninst::DyninstAPI::patch_block *newBlock = new Dyninst::DyninstAPI::patch_block(SCAST_BI(b), SCAST_MO(o));
   // o->addBlock(newBlock);
   return  newBlock;
 }

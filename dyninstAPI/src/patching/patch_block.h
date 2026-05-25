@@ -1,129 +1,128 @@
 /*
  * See the dyninst/COPYRIGHT file for copyright information.
- * 
+ *
  * We provide the Paradyn Tools (below described as "Paradyn")
  * on an AS IS basis, and do not warrant its validity or performance.
  * We reserve the right to update, modify, or discontinue this
  * software at any time.  We shall have no obligation to supply such
  * updates or modifications or any other form of support to you.
- * 
+ *
  * By your use of Paradyn, you understand and agree that we (or any
  * other person or entity with proprietary rights in Paradyn) are
  * under no obligation to provide either maintenance services,
  * update services, notices of latent defects, or correction of
  * defects for Paradyn.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#if !defined(_DYN_BLOCK_H_)
-#define _DYN_BLOCK_H_
+#ifndef DYNINST_DYNINSTAPI_PATCHING_PATCH_BLOCK_H
+#define DYNINST_DYNINSTAPI_PATCHING_PATCH_BLOCK_H
+
+#include "PatchCFG.h"
+#include "addressSpace.h"
+#include "dyntypes.h"
+#include "mapped_object.h"
+#include "parsing/parse_block.h"
 
 #include <set>
 #include <string>
 #include <vector>
-#include "parsing/parse_block.h"
-#include "parseAPI/h/CFG.h"
-#include "patching/instPoint.h"
-#include "PatchCFG.h"
-#include "mapped_object.h"
-#include "patching/patch_edge.h"
 
-class block_instance;
 class func_instance;
-class BPatch_edge;
-class mapped_object;
 
+namespace Dyninst { namespace DyninstAPI {
 
+  class patch_edge;
 
-class block_instance : public Dyninst::PatchAPI::PatchBlock {
-  friend class mapped_object;
+  class patch_block : public PatchAPI::PatchBlock {
+    friend class mapped_object;
 
   public:
-  //typedef std::vector<Dyninst::DyninstAPI::patch_edge *> edges;
-  //typedef std::vector<Dyninst::DyninstAPI::patch_edge *> edgelist;
+    patch_block(ParseAPI::Block *ib, mapped_object *obj);
 
-    block_instance(ParseAPI::Block *ib, mapped_object *obj);
-    block_instance(const block_instance *parent, mapped_object *child);
-    ~block_instance();
+    patch_block(const patch_block *parent, mapped_object *child);
+
+    ~patch_block() = default;
 
     // Up-accessors
-    mapped_object *obj() const { return SCAST_MO(obj_); }
-    AddressSpace *addrSpace() const;
-    AddressSpace *proc() const { return addrSpace(); }
+    mapped_object *obj() const {
+      return SCAST_MO(obj_);
+    }
 
-    template<class OutputIterator> 
-       void getFuncs(OutputIterator result);
+    AddressSpace *addrSpace() const;
+
+    AddressSpace *proc() const {
+      return addrSpace();
+    }
+
+    template <class OutputIterator>
+    void getFuncs(OutputIterator result) {
+      std::vector<ParseAPI::Function *> pFuncs;
+      llb()->getFuncs(pFuncs);
+      for (unsigned i = 0; i < pFuncs.size(); ++i) {
+        func_instance *func = findFunction(pFuncs[i]);
+        *result = func;
+        ++result;
+      }
+    }
 
     void triggerModified();
+
     void setNotAbruptEnd();
-    parse_block * llb() const { return SCAST_PB(block_); }
+
+    parse_block *llb() const {
+      return SCAST_PB(block_);
+    }
+
     void *getPtrToInstruction(Address addr) const;
 
-    //const edgelist &sources();
-    //const edgelist &targets();
+    patch_edge *getTarget();
 
-    // Shortcuts
-    Dyninst::DyninstAPI::patch_edge *getTarget();
-    Dyninst::DyninstAPI::patch_edge *getFallthrough();
+    patch_edge *getFallthrough();
+
     // NULL if not conclusive
-    block_instance *getFallthroughBlock();
+    patch_block *getFallthroughBlock();
 
     func_instance *callee();
+
     std::string calleeName();
+
     bool _ignorePowerPreamble;
+
     int id() const;
 
     // Functions to avoid
     // These are convinence wrappers for really expensive
-    // lookups, and thus should be avoided. 
+    // lookups, and thus should be avoided.
     func_instance *entryOfFunc() const;
+
     bool isFuncExit() const;
-    // static void destroy(block_instance *b); // doesn't need to do anything
+
     Address GetBlockStartingAddress();
-    virtual void markModified();
 
- private:
+    void markModified();
+
+  private:
     void updateCallTarget(func_instance *func);
+
     func_instance *findFunction(ParseAPI::Function *);
-    func_instance* callee(std::string const&);
-    // edges srcs_;
-    // edges trgs_;
 
-};
+    func_instance *callee(std::string const &);
+  };
 
-template <class OutputIterator>
-void block_instance::getFuncs(OutputIterator result) {
-   std::vector<ParseAPI::Function *> pFuncs;
-   llb()->getFuncs(pFuncs);
-   for (unsigned i = 0; i < pFuncs.size(); ++i) {
-      func_instance *func = findFunction(pFuncs[i]);
-      *result = func;
-      ++result;
-   }
-}
-
-struct BlockInstanceAddrCompare {
-   bool operator()(block_instance * const &b1,
-                   block_instance * const &b2) const {
-      return (b1->start() < b2->start());
-   }
-};
-
-typedef std::set<block_instance *, BlockInstanceAddrCompare> AddrOrderedBlockSet;
-
-
+}}
 
 #endif

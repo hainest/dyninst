@@ -32,6 +32,7 @@
 #include "BPatch_addressSpace.h"
 #include "patching/function.h"
 #include "Snippet.h"
+#include "patching/patch_block.h"
 
 using Dyninst::PatchAPI::DynInstrumenter;
 using Dyninst::PatchAPI::DynInsertSnipCommand;
@@ -131,14 +132,14 @@ bool DynReplaceFuncCommand::undo() {
 
 /* Modify Call Command */
 DynModifyCallCommand::DynModifyCallCommand(AddressSpace* as,
-                          block_instance* block,
+                          dapi::patch_block* block,
                           func_instance* new_func,
                           func_instance* context)
       : as_(as), block_(block), new_func_(new_func), context_(context) {
 }
 
 DynModifyCallCommand* DynModifyCallCommand::create(AddressSpace* as,
-                      block_instance* block,
+                      dapi::patch_block* block,
                       func_instance* new_func,
                       func_instance* context) {
       return new DynModifyCallCommand(as, block, new_func, context);
@@ -156,13 +157,13 @@ bool DynModifyCallCommand::undo() {
 
 /* Remove Call Command */
 DynRemoveCallCommand::DynRemoveCallCommand(AddressSpace* as,
-                         block_instance* block,
+                         dapi::patch_block* block,
                          func_instance* context)
       : as_(as), block_(block), context_(context) {
 }
 
 DynRemoveCallCommand* DynRemoveCallCommand::create(AddressSpace* as,
-                      block_instance* block,
+                      dapi::patch_block* block,
                       func_instance* context) {
       return new DynRemoveCallCommand(as, block, context);
 }
