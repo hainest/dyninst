@@ -37,9 +37,7 @@
 
 #include "dyninstAPI/src/addressSpace.h" // Also for debug
 #include "patching/function.h"
-#include "dyninstAPI/src/mapped_object.h"  // func_instance::obj() -> parse_img()
-#include "dyninstAPI/src/image.h"          // image::getObject() -> SymtabAPI::Symtab
-
+#include "patching/patch_block.h"
 #include "dyninstAPI/src/debug.h"
 #include "CodeTracker.h"
 #include "CFG/RelocGraph.h"
@@ -131,7 +129,7 @@ bool CodeMover::addFunctions(FuncSet::const_iterator begin,
       }
     
       // Add the function entry as FuncEntry in the priority map
-      block_instance *entry = func->entryBlock();
+      Dyninst::DyninstAPI::patch_block *entry = func->entryBlock();
       priorityMap_[std::make_pair(entry, func)] = FuncEntry;
       relocation_cerr << "\t Added FuncEntry for " << func->symTabName() << " / " << hex << entry->start() << dec << endl;
    }
@@ -147,7 +145,7 @@ bool CodeMover::addRelocBlocks(RelocBlockIter begin, RelocBlockIter end, func_in
    return true;
 }
 
-bool CodeMover::addRelocBlock(block_instance *bbl, func_instance *f) {
+bool CodeMover::addRelocBlock(Dyninst::DyninstAPI::patch_block *bbl, func_instance *f) {
    RelocBlock * block = RelocBlock::createReloc(bbl, f);
    if (!block)
       return false;
@@ -285,7 +283,7 @@ SpringboardMap &CodeMover::sBoardMap(AddressSpace *) {
    if (sboardMap_.empty()) {
       for (PriorityMap::const_iterator iter = priorityMap_.begin();
            iter != priorityMap_.end(); ++iter) {
-         block_instance *bbl = iter->first.first;
+         Dyninst::DyninstAPI::patch_block *bbl = iter->first.first;
          const Priority &p = iter->second;
          func_instance *func = iter->first.second;
 

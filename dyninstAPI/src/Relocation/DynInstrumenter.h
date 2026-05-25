@@ -44,6 +44,10 @@ class BPatch_point;
 class BPatchSnippetHandle;
 
 namespace Dyninst {
+  namespace DyninstAPI {
+    class patch_block;
+  }
+
 namespace PatchAPI {
 
 class DynInstrumenter : public Dyninst::PatchAPI::Instrumenter {
@@ -112,11 +116,11 @@ class DynReplaceFuncCommand : public Command {
 class DynModifyCallCommand : public Command {
   public:
     DynModifyCallCommand(AddressSpace* as,
-                         block_instance* block,
+                         DyninstAPI::patch_block* block,
                          func_instance* new_func,
                          func_instance* context);
     static DynModifyCallCommand* create(AddressSpace* as,
-                      block_instance* block,
+                      DyninstAPI::patch_block* block,
                       func_instance* new_func,
                       func_instance* context);
     virtual ~DynModifyCallCommand() {}
@@ -126,7 +130,7 @@ class DynModifyCallCommand : public Command {
 
   protected:
     AddressSpace* as_;
-    block_instance *block_;
+    DyninstAPI::patch_block *block_;
     func_instance *new_func_;
     func_instance *context_;
 };
@@ -135,10 +139,10 @@ class DynModifyCallCommand : public Command {
 class DynRemoveCallCommand : public Command {
   public:
     DynRemoveCallCommand(AddressSpace* as,
-                         block_instance* block,
+                         DyninstAPI::patch_block* block,
                          func_instance* context);
     static DynRemoveCallCommand* create(AddressSpace* as,
-                      block_instance* block,
+                      DyninstAPI::patch_block* block,
                       func_instance* context);
     virtual ~DynRemoveCallCommand() {}
 
@@ -147,7 +151,7 @@ class DynRemoveCallCommand : public Command {
 
   protected:
     AddressSpace* as_;
-    block_instance *block_;
+    DyninstAPI::patch_block *block_;
     func_instance *context_;
 };
 

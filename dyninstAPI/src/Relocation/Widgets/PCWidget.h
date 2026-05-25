@@ -36,8 +36,8 @@
 #include "dyn_register.h"
 #include "Widget.h"
 #include "dataflowAPI/h/Absloc.h"
+#include "patching/patch_block.h"
 
-class block_instance;
 class func_instance;
 
 namespace Dyninst {
@@ -87,12 +87,12 @@ struct IPPatch : public Patch {
     Push, 
     Reg } Type;
  IPPatch(Type a, Address b, InstructionAPI::Instruction c,
-	 block_instance *d, func_instance *e) : 
+	 Dyninst::DyninstAPI::patch_block *d, func_instance *e) :
   type(a), addr(b), reg((Register)-1), 
     thunk(0), 
     insn(c), block(d), func(e) {}
  IPPatch(Type a, Address b, Register c, Address d,
-	 InstructionAPI::Instruction e, block_instance *f, func_instance *g) :
+	 InstructionAPI::Instruction e, Dyninst::DyninstAPI::patch_block *f, func_instance *g) :
   type(a), addr(b), reg(c), thunk(d), 
     insn(e), block(f), func(g) {}
 
@@ -106,7 +106,7 @@ struct IPPatch : public Patch {
   Address thunk;
   // Necessary for live registers
   InstructionAPI::Instruction insn;
-  block_instance *block;
+  Dyninst::DyninstAPI::patch_block *block;
   func_instance *func;
 };
 

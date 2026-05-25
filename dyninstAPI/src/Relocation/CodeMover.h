@@ -47,11 +47,14 @@
 #include "Springboard.h"
 
 class codeGen;
-class block_instance;
 class func_instance;
 
 namespace Dyninst {
   class AddressMapper;
+
+  namespace DyninstAPI {
+    class patch_block;
+  }
 
 namespace Relocation {
 
@@ -61,13 +64,13 @@ class CodeMover;
 class CodeTracker;
 class RelocGraph;
 
-typedef std::map<std::pair<block_instance *, func_instance *>, Priority> PriorityMap;
+typedef std::map<std::pair<Dyninst::DyninstAPI::patch_block *, func_instance *>, Priority> PriorityMap;
 
 class CodeMover {
  public:
   typedef boost::shared_ptr<CodeMover> Ptr;
   typedef std::set<func_instance *> FuncSet;
-  typedef std::set<block_instance *> BlockSet;
+  typedef std::set<Dyninst::DyninstAPI::patch_block *> BlockSet;
 
   // A generic mover of code; an instruction, a basic block, or
   // a function. This is the algorithm (fixpoint) counterpart
@@ -137,7 +140,7 @@ class CodeMover {
   template <typename RelocBlockIter>
      bool addRelocBlocks(RelocBlockIter begin, RelocBlockIter end, func_instance *f);
 
-  bool addRelocBlock(block_instance *block, func_instance *f);
+  bool addRelocBlock(Dyninst::DyninstAPI::patch_block *block, func_instance *f);
 
   void finalizeRelocBlocks();
 

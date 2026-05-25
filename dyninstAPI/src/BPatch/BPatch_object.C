@@ -42,11 +42,11 @@
 #include "BPatch_module.h"
 #include "dyntypes.h"
 #include "patching/function.h"
-#include "patching/block.h"
 #include "BPatch_function.h"
 #include "debug.h"
 #include "BPatch_point.h"
 #include "registers/x86_64_regs.h"
+#include "patching/patch_block.h"
 
 const Dyninst::Address BPatch_object::E_OUT_OF_BOUNDS((Dyninst::Address) -1);
 
@@ -162,7 +162,7 @@ std::vector<BPatch_function *> *BPatch_object::findFunction(std::string name,
 
 bool BPatch_object::findPoints(Dyninst::Address addr,
                                   std::vector<BPatch_point *> &points) {
-   block_instance *blk = obj->findOneBlockByAddr(addr);
+  Dyninst::DyninstAPI::patch_block *blk = obj->findOneBlockByAddr(addr);
    if (!blk) return false;
 
    std::vector<func_instance *> funcs;

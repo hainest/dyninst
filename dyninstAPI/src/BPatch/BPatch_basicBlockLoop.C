@@ -40,7 +40,9 @@
 #include <iostream>
 #include "PatchCFG.h"
 #include "Relocation/DynCommon.h"
-#include "patching/block.h"
+#include "patching/patch_block.h"
+#include "patching/patch_edge.h"
+
 using namespace std;
 using namespace Dyninst::PatchAPI;
 //constructors

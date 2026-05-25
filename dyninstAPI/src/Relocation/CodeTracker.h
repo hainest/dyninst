@@ -48,11 +48,15 @@
 
 class baseTramp;
 class func_instance;
-class block_instance;
 class AddressSpace;
 class instPoint;
 
 namespace Dyninst {
+
+  namespace DyninstAPI {
+    class patch_block;
+  }
+
 namespace Relocation {
 class CodeTracker;
 
@@ -66,7 +70,7 @@ class TrackerElement {
     padding
   } type_t;
 
-  TrackerElement(Address o, block_instance *b, func_instance *f) 
+  TrackerElement(Address o, DyninstAPI::patch_block *b, func_instance *f)
       : orig_(o), reloc_(0), size_(0), 
      block_(b), func_(f) {
      assert(b);
@@ -81,7 +85,7 @@ class TrackerElement {
   Address orig() const { return orig_; }
   Address reloc() const { return reloc_; }
   unsigned size() const { return size_; }
-  block_instance *block() const { return block_; }
+  DyninstAPI::patch_block *block() const { return block_; }
   func_instance *func() const { return func_; }
 
   void setReloc(Address reloc) { reloc_ = reloc; }
@@ -95,13 +99,13 @@ class TrackerElement {
   Address orig_;
   Address reloc_;
   unsigned size_;
-  block_instance *block_;
+  DyninstAPI::patch_block *block_;
   func_instance *func_;
 };
 
 class OriginalTracker : public TrackerElement {
  public:
-  OriginalTracker(Address orig, block_instance *b, func_instance *f) :
+  OriginalTracker(Address orig, DyninstAPI::patch_block *b, func_instance *f) :
    TrackerElement(orig, b, f) {}
   virtual ~OriginalTracker() {}
 
@@ -127,7 +131,7 @@ class OriginalTracker : public TrackerElement {
 
 class EmulatorTracker : public TrackerElement {
  public:
-  EmulatorTracker(Address orig, block_instance *b, func_instance *f) : 
+  EmulatorTracker(Address orig, DyninstAPI::patch_block *b, func_instance *f) :
    TrackerElement(orig, b, f) {}
   virtual ~EmulatorTracker() {}
 
@@ -153,7 +157,7 @@ class EmulatorTracker : public TrackerElement {
 
 class InstTracker : public TrackerElement {
  public:
-  InstTracker(Address orig, baseTramp *baseT, block_instance *b, func_instance *f) :
+  InstTracker(Address orig, baseTramp *baseT, DyninstAPI::patch_block *b, func_instance *f) :
    TrackerElement(orig, b, f), baseT_(baseT) {}
   virtual ~InstTracker() {}
 
@@ -181,7 +185,7 @@ class InstTracker : public TrackerElement {
 
 class PaddingTracker : public TrackerElement {
  public:
-  PaddingTracker(Address orig, unsigned pad, block_instance *b, func_instance *f) :
+  PaddingTracker(Address orig, unsigned pad, DyninstAPI::patch_block *b, func_instance *f) :
    TrackerElement(orig, b, f), pad_(pad) {}
    virtual ~PaddingTracker() {}
 
@@ -243,14 +247,14 @@ class CodeTracker {
   struct RelocInfo {
      Address orig;
      Address reloc;
-     block_instance *block;
+     DyninstAPI::patch_block *block;
      func_instance *func;
      baseTramp *bt;
      unsigned pad;
   RelocInfo() : orig(0), reloc(0), block(NULL), func(NULL), bt(NULL), pad(0) {}
   };
 
-  bool origToReloc(Address origAddr, block_instance *block, func_instance *func, RelocatedElements &relocs) const;
+  bool origToReloc(Address origAddr, DyninstAPI::patch_block *block, func_instance *func, RelocatedElements &relocs) const;
   bool relocToOrig(Address relocAddr, RelocInfo &ri) const;
 
   TrackerElement *findByReloc(Address relocAddr) const;

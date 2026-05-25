@@ -51,6 +51,7 @@
 #include "PCProcess.h"
 #include "compiler_annotations.h"
 #include "common/h/util.h"
+#include "patching/patch_block.h"
 
 using namespace Dyninst;
 using namespace Dyninst::ParseAPI;
@@ -526,11 +527,11 @@ const int_variable *mapped_object::getVariable(const std::string &varname) {
     return NULL;
 }
 
-block_instance *mapped_object::findBlockByEntry(Address addr)
+Dyninst::DyninstAPI::patch_block *mapped_object::findBlockByEntry(Address addr)
 {
-    std::set<block_instance *> allBlocks;
+    std::set<Dyninst::DyninstAPI::patch_block *> allBlocks;
     if (!findBlocksByAddr(addr, allBlocks)) return NULL;
-    for (std::set<block_instance *>::iterator iter = allBlocks.begin();
+    for (std::set<Dyninst::DyninstAPI::patch_block *>::iterator iter = allBlocks.begin();
         iter != allBlocks.end(); ++iter)
     {
         if ((*iter)->start() == addr)
@@ -542,7 +543,7 @@ block_instance *mapped_object::findBlockByEntry(Address addr)
 }
 
 
-bool mapped_object::findBlocksByAddr(const Address addr, std::set<block_instance *> &return_blocks)
+bool mapped_object::findBlocksByAddr(const Address addr, std::set<Dyninst::DyninstAPI::patch_block *> &return_blocks)
 {
     // Quick bounds check...
     if (addr < codeAbs()) {
@@ -568,7 +569,7 @@ bool mapped_object::findBlocksByAddr(const Address addr, std::set<block_instance
         (*llb_iter)->getFuncs(ll_funcs);
         for (std::vector<ParseAPI::Function *>::iterator llf_iter = ll_funcs.begin();
             llf_iter != ll_funcs.end(); ++llf_iter) {
-           block_instance *block = findBlock(*llb_iter);
+           Dyninst::DyninstAPI::patch_block *block = findBlock(*llb_iter);
            assert(block);
            return_blocks.insert(block);
         }
@@ -580,9 +581,9 @@ bool mapped_object::findFuncsByAddr(const Address addr, std::set<func_instance *
 {
     bool ret = false;
     // Quick and dirty implementation
-    std::set<block_instance *> found_blocks;
+    std::set<Dyninst::DyninstAPI::patch_block *> found_blocks;
     if (!findBlocksByAddr(addr, found_blocks)) return false;
-    for (std::set<block_instance *>::iterator iter = found_blocks.begin();
+    for (std::set<Dyninst::DyninstAPI::patch_block *>::iterator iter = found_blocks.begin();
          iter != found_blocks.end(); ++iter) {
        (*iter)->getFuncs(std::inserter(return_funcs, return_funcs.end()));
        ret = true;
@@ -1001,7 +1002,7 @@ mapped_module* mapped_object::getDefaultModule()
 // Grabs all block_instances corresponding to the region (horribly inefficient)
 bool mapped_object::findBlocksByRange(Address startAddr,
                                       Address endAddr,
-                                      list<block_instance*> &rangeBlocks)//output
+                                      list<Dyninst::DyninstAPI::patch_block*> &rangeBlocks)//output
 {
    std::set<ParseAPI::Block *> papiBlocks;
    for (Address cur = startAddr; cur < endAddr; ++cur) {
@@ -1011,8 +1012,8 @@ bool mapped_object::findBlocksByRange(Address startAddr,
 
    for (std::set<ParseAPI::Block *>::iterator iter = papiBlocks.begin();
         iter != papiBlocks.end(); ++iter) {
-      // For each parseAPI block, up-map it to a block_instance
-      block_instance *bbl = this->findBlock(*iter);
+      // For each parseAPI block, up-map it to a Dyninst::DyninstAPI::patch_block
+      Dyninst::DyninstAPI::patch_block *bbl = this->findBlock(*iter);
       assert(bbl);
       rangeBlocks.push_back(bbl);
    }
@@ -1023,9 +1024,9 @@ void mapped_object::findFuncsByRange(Address startAddr,
                                       Address endAddr,
                                       std::set<func_instance*> &pageFuncs)
 {
-   std::list<block_instance *> bbls;
+   std::list<Dyninst::DyninstAPI::patch_block *> bbls;
    findBlocksByRange(startAddr, endAddr, bbls);
-   for (std::list<block_instance *>::iterator iter = bbls.begin();
+   for (std::list<Dyninst::DyninstAPI::patch_block *>::iterator iter = bbls.begin();
         iter != bbls.end(); ++iter) {
       (*iter)->getFuncs(std::inserter(pageFuncs, pageFuncs.end()));
    }
@@ -1159,7 +1160,7 @@ bool mapped_object::parseNewEdges(const std::vector<edgeStub> &stubs)
             // And we don't know what type of edge this is. Lovely. Let's
             // figure it out from the instruction class, since that's
             // the easy way to do things.
-            block_instance::Insns insns;
+            Dyninst::DyninstAPI::patch_block::Insns insns;
             stubs[idx].src->getInsns(insns);
             InstructionAPI::Instruction cf = insns[stubs[idx].src->last()];
             assert(cf.isValid());
@@ -1901,8 +1902,8 @@ void mapped_object::addEmulInsn(Address insnAddr, Register effectiveAddrReg)
     emulInsns_[insnAddr] = pair<Register,void*>(effectiveAddrReg,(void *)0);
 }
 
-std::string mapped_object::getCalleeName(block_instance *b) {
-   std::map<block_instance *, std::string>::iterator iter = calleeNames_.find(b);
+std::string mapped_object::getCalleeName(Dyninst::DyninstAPI::patch_block *b) {
+   std::map<Dyninst::DyninstAPI::patch_block *, std::string>::iterator iter = calleeNames_.find(b);
    if (iter != calleeNames_.end()) return iter->second;
 
 #if defined(os_windows)
@@ -1916,7 +1917,7 @@ std::string mapped_object::getCalleeName(block_instance *b) {
    return std::string();
 }
 
-void mapped_object::setCalleeName(block_instance *b, std::string s) {
+void mapped_object::setCalleeName(Dyninst::DyninstAPI::patch_block *b, std::string s) {
    calleeNames_[b] = s;
 }
 
@@ -1929,22 +1930,22 @@ void mapped_object::setCalleeName(block_instance *b, std::string s) {
 // findBlock (again)
 
 Dyninst::DyninstAPI::patch_edge *mapped_object::findEdge(ParseAPI::Edge *e,
-                                       block_instance *src,
-                                       block_instance *trg) {
+                                       Dyninst::DyninstAPI::patch_block *src,
+                                       Dyninst::DyninstAPI::patch_block *trg) {
   Dyninst::DyninstAPI::patch_edge *inst = SCAST_EI(getEdge(e, src, trg));
   return inst;
 }
 
-block_instance *mapped_object::findBlock(ParseAPI::Block *b) {
+Dyninst::DyninstAPI::patch_block *mapped_object::findBlock(ParseAPI::Block *b) {
   return SCAST_BI(getBlock(b));
 }
 
-block_instance *mapped_object::findOneBlockByAddr(const Address addr) {
-   std::set<block_instance *> possibles;
+Dyninst::DyninstAPI::patch_block *mapped_object::findOneBlockByAddr(const Address addr) {
+   std::set<Dyninst::DyninstAPI::patch_block *> possibles;
    findBlocksByAddr(addr, possibles);
-   for (std::set<block_instance *>::iterator iter = possibles.begin();
+   for (std::set<Dyninst::DyninstAPI::patch_block *>::iterator iter = possibles.begin();
         iter != possibles.end(); ++iter) {
-      block_instance::Insns insns;
+      Dyninst::DyninstAPI::patch_block::Insns insns;
       (*iter)->getInsns(insns);
       if (insns.find(addr) != insns.end()) {
          return *iter;
@@ -1953,11 +1954,11 @@ block_instance *mapped_object::findOneBlockByAddr(const Address addr) {
    return NULL;
 }
 
-void mapped_object::splitBlock(block_instance * b1, 
-                               block_instance * b2) 
+void mapped_object::splitBlock(Dyninst::DyninstAPI::patch_block * b1,
+                               Dyninst::DyninstAPI::patch_block * b2)
 {
-    // fix block mappings in: map<block_instance *, std::string> calleeNames_
-    map<block_instance *, std::string>::iterator nit = calleeNames_.find(b1);
+    // fix block mappings in: map<Dyninst::DyninstAPI::patch_block *, std::string> calleeNames_
+    map<Dyninst::DyninstAPI::patch_block *, std::string>::iterator nit = calleeNames_.find(b1);
     if (calleeNames_.end() != nit) {
         string name = nit->second;
         calleeNames_.erase(nit);
@@ -1965,20 +1966,20 @@ void mapped_object::splitBlock(block_instance * b1,
     }
 }
 
-func_instance *mapped_object::findFuncByEntry(const block_instance *blk) {
+func_instance *mapped_object::findFuncByEntry(const Dyninst::DyninstAPI::patch_block *blk) {
   parse_block *llb = SCAST_PB(blk->llb());
   parse_func* f = llb->getEntryFunc();
   if (!f) return NULL;
   return findFunction(f);
 }
 
-func_instance *mapped_object::getCallee(const block_instance *b) const {
-   std::map<const block_instance *, func_instance *>::const_iterator iter = callees_.find(b);
+func_instance *mapped_object::getCallee(const Dyninst::DyninstAPI::patch_block *b) const {
+   std::map<const Dyninst::DyninstAPI::patch_block *, func_instance *>::const_iterator iter = callees_.find(b);
    if (iter == callees_.end()) return NULL;
    return iter->second;
 }
 
-void mapped_object::setCallee(const block_instance *b, func_instance *f) {
+void mapped_object::setCallee(const Dyninst::DyninstAPI::patch_block *b, func_instance *f) {
    callees_[b] = f;
 }
 

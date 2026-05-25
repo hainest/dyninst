@@ -40,7 +40,7 @@
 #include "trampolines/baseTramp.h"
 #include "dyninstAPI/src/addressSpace.h"
 #include "dynproc/dynThread.h"
-
+#include "patching/patch_block.h"
 #include "instructionAPI/h/InstructionDecoder.h"
 #include "Location.h"
 #include "liveness.h"
@@ -62,23 +62,23 @@ instPoint *instPoint::funcEntry(func_instance *f) {
   return f->funcEntryPoint(true);
 }
 
-instPoint *instPoint::funcExit(func_instance *f, block_instance *b) {
+instPoint *instPoint::funcExit(func_instance *f, Dyninst::DyninstAPI::patch_block *b) {
   return f->funcExitPoint(b, true);
 }
 
-instPoint *instPoint::blockEntry(func_instance *f, block_instance *b) {
+instPoint *instPoint::blockEntry(func_instance *f, Dyninst::DyninstAPI::patch_block *b) {
   return f->blockEntryPoint(b, true);
 }
 
-instPoint *instPoint::blockExit(func_instance *f, block_instance *b) {
+instPoint *instPoint::blockExit(func_instance *f, Dyninst::DyninstAPI::patch_block *b) {
   return f->blockExitPoint(b, true);
 }
 
-instPoint *instPoint::preCall(func_instance *f, block_instance *b) {
+instPoint *instPoint::preCall(func_instance *f, Dyninst::DyninstAPI::patch_block *b) {
   return f->preCallPoint(b, true);
 }
 
-instPoint *instPoint::postCall(func_instance *f, block_instance *b) {
+instPoint *instPoint::postCall(func_instance *f, Dyninst::DyninstAPI::patch_block *b) {
   return f->postCallPoint(b, true);
 }
 
@@ -87,7 +87,7 @@ instPoint *instPoint::edge(func_instance *f, Dyninst::DyninstAPI::patch_edge *e)
 }
 
 instPoint *instPoint::preInsn(func_instance *f,
-                              block_instance *b,
+                              Dyninst::DyninstAPI::patch_block *b,
                               Address a,
                               Instruction insn,
                               bool trusted) {
@@ -95,7 +95,7 @@ instPoint *instPoint::preInsn(func_instance *f,
 }
 
 instPoint *instPoint::postInsn(func_instance *f,
-                               block_instance *b,
+                               Dyninst::DyninstAPI::patch_block *b,
                                Address a,
                                Instruction insn,
                                bool trusted) {
@@ -112,14 +112,14 @@ instPoint::instPoint(Type t,
 instPoint::instPoint(Type          t,
                      PatchMgrPtr   mgr,
                      func_instance *f,
-                     block_instance *b) :
+                     Dyninst::DyninstAPI::patch_block *b) :
   Point(t, mgr, f, b),
   baseTramp_(NULL) {
 }
 
 instPoint::instPoint(Type          t,
                      PatchMgrPtr   mgr,
-                     block_instance *b,
+                     Dyninst::DyninstAPI::patch_block *b,
                      func_instance *f) :
   Point(t, mgr, b, f),
   baseTramp_(NULL) {
@@ -127,7 +127,7 @@ instPoint::instPoint(Type          t,
 
 instPoint::instPoint(Type t,
                      PatchMgrPtr mgr,
-                     block_instance *b,
+                     Dyninst::DyninstAPI::patch_block *b,
                      Address a,
                      Instruction i,
                      func_instance *f) :
@@ -183,7 +183,7 @@ std::pair<instPoint *, instPoint *> instPoint::getInstpointPair(instPoint *i) {
 instPoint *instPoint::fork(instPoint *parent, AddressSpace *child) {
    // Return the equivalent instPoint within the child process
   func_instance *f = parent->func() ? child->findFunction(parent->func()->ifunc()) : NULL;
-  block_instance *b = parent->block() ? child->findBlock(parent->block()->llb()) : NULL;
+  Dyninst::DyninstAPI::patch_block *b = parent->block() ? child->findBlock(parent->block()->llb()) : NULL;
   Dyninst::DyninstAPI::patch_edge *e = parent->edge() ? child->findEdge(parent->edge()->edge()) : NULL;
    Instruction i = parent->insn_;
    Address a = parent->addr_;
@@ -273,7 +273,7 @@ func_instance *instPoint::func() const {
   return SCAST_FI(the_func_);
 }
 
-block_instance *instPoint::block() const {
+Dyninst::DyninstAPI::patch_block *instPoint::block() const {
   return SCAST_BI(the_block_);
 }
 
@@ -281,12 +281,12 @@ Dyninst::DyninstAPI::patch_edge *instPoint::edge() const {
   return SCAST_EI(the_edge_);
 }
 
-bool instPoint::checkInsn(block_instance *b,
+bool instPoint::checkInsn(Dyninst::DyninstAPI::patch_block *b,
                           Instruction &insn,
                           Address a) {
-   block_instance::Insns insns;
+   Dyninst::DyninstAPI::patch_block::Insns insns;
    b->getInsns(insns);
-   block_instance::Insns::iterator iter = insns.find(a);
+   Dyninst::DyninstAPI::patch_block::Insns::iterator iter = insns.find(a);
    if (iter != insns.end()) {
       insn = iter->second;
       return true;
@@ -308,7 +308,7 @@ baseTramp *instPoint::tramp() {
 // In some cases we may not know; function exit points
 // and the like. In this case we return the current block
 // as a "well, this is what we've got..."
-block_instance *instPoint::block_compat() const {
+Dyninst::DyninstAPI::patch_block *instPoint::block_compat() const {
    switch (type_) {
       case FuncEntry:
 	return func()->entryBlock();

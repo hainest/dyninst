@@ -43,10 +43,13 @@
 #include "RelocEdge.h"
 
 class baseTramp;
-class block_instance;
 class func_instance;
 
 namespace Dyninst {
+  namespace DyninstAPI {
+    class patch_block;
+  }
+
 namespace Relocation {
 
 class Transformer;
@@ -78,13 +81,13 @@ class RelocBlock {
       Stub } Type;
 
    // Standard creation
-   static RelocBlock *createReloc(block_instance *block, func_instance *func);
+   static RelocBlock *createReloc(Dyninst::DyninstAPI::patch_block *block, func_instance *func);
    // Instpoint creation
    static RelocBlock *createInst(instPoint *point, Address a, 
-                        block_instance *block, func_instance *func);
+                        Dyninst::DyninstAPI::patch_block *block, func_instance *func);
    // Stub creation; we're creating an empty RelocBlock associated
    // with some other block/function/thing
-   static RelocBlock *createStub(block_instance *block, func_instance *func);
+   static RelocBlock *createStub(Dyninst::DyninstAPI::patch_block *block, func_instance *func);
 
    RelocBlock *next() { return next_; }
    RelocBlock *prev() { return prev_; }
@@ -100,7 +103,7 @@ class RelocBlock {
    Address origAddr() const { return origAddr_; }
    int id() const { return id_; }
    func_instance *func() const { return func_; }
-   block_instance *block() const { return block_; }
+   Dyninst::DyninstAPI::patch_block *block() const { return block_; }
    mapped_object *obj() const;
    std::string format() const;
    Label getLabel() const;
@@ -126,7 +129,7 @@ class RelocBlock {
 
  private:
    
-  RelocBlock(block_instance *block, func_instance *f)
+  RelocBlock(Dyninst::DyninstAPI::patch_block *block, func_instance *f)
      : origAddr_(block->start()),
       block_(block),
       func_(f),
@@ -137,7 +140,7 @@ class RelocBlock {
       next_(NULL),
       type_(Relocated) {}
    // Constructor for a trace inserted later
-  RelocBlock(Address a, block_instance *b, func_instance *f)
+  RelocBlock(Address a, Dyninst::DyninstAPI::patch_block *b, func_instance *f)
       :origAddr_(a),
       block_(b),
       func_(f),
@@ -149,7 +152,7 @@ class RelocBlock {
       type_(Instrumentation) { 
    }
 
-  RelocBlock(Address a, block_instance *b, func_instance *f, bool relocateType)
+  RelocBlock(Address a, Dyninst::DyninstAPI::patch_block *b, func_instance *f, bool relocateType)
       :origAddr_(a),
       block_(b),
       func_(f),
@@ -182,7 +185,7 @@ class RelocBlock {
                     ParseAPI::EdgeTypeEnum edgeType);
 
    Address origAddr_;
-   block_instance *block_;
+   Dyninst::DyninstAPI::patch_block *block_;
    // If we're a func-specific copy
    func_instance *func_; 
 

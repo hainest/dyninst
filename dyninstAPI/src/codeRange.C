@@ -32,13 +32,14 @@
 
 #include <stdio.h>
 #include "codeRange.h"
-
+#include "patching/patch_block.h"
 #include "dyninstAPI/src/image.h"
 #include "trampolines/baseTramp.h"
 #include "dyninstAPI/src/mapped_object.h"
 #include "patching/function.h"
 #include "patching/instPoint.h"
 #include "dynproc/dynProcess.h"
+#include "patching/patch_block.h"
 
 inferiorRPCinProgress * codeRange::is_inferior_rpc() {
 	return dynamic_cast< inferiorRPCinProgress * >( this );
@@ -47,8 +48,8 @@ inferiorRPCinProgress * codeRange::is_inferior_rpc() {
 // This is a special case... the multitramp is the thing in the
 // codeRange tree, but people think of baseTramps.
 // So this is dangerous to use, actually.
-block_instance *codeRange::is_basicBlockInstance() {
-    return dynamic_cast<block_instance *>(this);
+Dyninst::DyninstAPI::patch_block *codeRange::is_basicBlockInstance() {
+    return dynamic_cast<Dyninst::DyninstAPI::patch_block *>(this);
 }
 
 func_instance *codeRange::is_function() {

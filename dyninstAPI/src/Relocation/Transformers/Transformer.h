@@ -37,10 +37,13 @@
 #include "parseAPI/h/CFG.h"
 #include "boost/shared_ptr.hpp"
 
-class block_instance;
 class baseTramp;
 
 namespace Dyninst {
+
+  namespace DyninstAPI {
+    class patch_block;
+  }
 
 namespace Relocation {
 
@@ -68,7 +71,7 @@ class Transformer {
  public:
   typedef boost::shared_ptr<Widget> WidgetPtr;
   typedef std::list<WidgetPtr> WidgetList;
-  typedef std::map<block_instance *, RelocBlock *> RelocBlockMap;
+  typedef std::map<Dyninst::DyninstAPI::patch_block *, RelocBlock *> RelocBlockMap;
 
   virtual bool processGraph(RelocGraph *);
   virtual bool process(RelocBlock *, 

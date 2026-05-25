@@ -41,7 +41,6 @@
 #include "BPatch_enums.h"
 #include "BPatch_callbacks.h"
 #include "patching/function.h"
-#include "patching/block.h"
 #include "BPatch_process.h"
 
 class BPatch_module;
@@ -54,7 +53,12 @@ class DefenseReport;
 class BPatchSnippetHandle;
 class BPatch_basicBlock;
 class BPatch_basicBlockLoop;
-class block_instance;
+
+namespace Dyninst {
+  namespace DyninstAPI {
+    class patch_block;
+  }
+}
 
 #if !defined(os_windows)
 #endif
@@ -123,7 +127,7 @@ public:
 
     void getCallBlocks(Dyninst::Address retAddr, 
                        func_instance *retFunc,
-                       block_instance *retBlock,
+                       Dyninst::DyninstAPI::patch_block *retBlock,
                        pair<ParseAPI::Block*, Dyninst::Address> & returningCallB, // output
                        set<ParseAPI::Block*> & callBlocks); // output
 
@@ -195,7 +199,7 @@ private:
 
     // utility functions that could go in another class, but that no one else 
     // really needs
-    bool getCallAndBranchTargets(block_instance *block, std::vector<Address> & targs);
+    bool getCallAndBranchTargets(Dyninst::DyninstAPI::patch_block *block, std::vector<Address> & targs);
     bool getCFTargets(BPatch_point *point, vector<Address> &targets);
 
     // needs to call removeInstrumentation
@@ -378,7 +382,7 @@ private:
                               owLoop *loop);
 
     bool isRealStore(Dyninst::Address insnAddr, 
-                     block_instance *blk, 
+                     Dyninst::DyninstAPI::patch_block *blk,
                      BPatch_function *func);
 
     // variables

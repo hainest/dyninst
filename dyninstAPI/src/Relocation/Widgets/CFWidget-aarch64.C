@@ -162,8 +162,8 @@ bool CFPatch::isPLT(codeGen &gen) {
         return false;
     }
 
-    Target<block_instance *> *t = static_cast<Target<block_instance *> *>(target);
-    block_instance *tb = t->t();
+    Target<patch_block *> *t = static_cast<Target<patch_block *> *>(target);
+    patch_block *tb = t->t();
     if (tb->proc() != gen.addrSpace())
         return true;
     else
@@ -182,8 +182,8 @@ bool CFPatch::applyPLT(codeGen &gen, CodeBuffer *) {
 
     relocation_cerr << "\t\t\t ApplyPLT..." << endl;
 
-    Target<block_instance *> *t = static_cast<Target<block_instance *> *>(target);
-    block_instance *tb = t->t();
+    Target<patch_block *> *t = static_cast<Target<patch_block *> *>(target);
+    patch_block *tb = t->t();
 
     // Set caller in codegen structure
     gen.setFunction(const_cast<func_instance *>(func));

@@ -1,15 +1,14 @@
 include_guard(GLOBAL)
 
-set(_headers
-    block.h
-    function.h
-    instMapping.h
-    instPoint.h
-    patch_edge.h
-    patch.h
-    Patching.h)
+set(_headers function.h instMapping.h instPoint.h patch_edge.h patch.h Patching.h)
 
-set(_sources block.C function.C instPoint.C patch_edge.C Patching.C)
+set(_sources function.C instPoint.C patch_block.C patch_edge.C Patching.C)
+
+if(DYNINST_OS_UNIX)
+  list(APPEND _sources patch_block-unix.C)
+elseif(DYNINST_OS_Windows)
+  list(APPEND _sources patch_block-winnt.C)
+endif()
 
 # cmake-format: off
 dyninst_library(

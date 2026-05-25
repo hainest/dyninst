@@ -30,6 +30,8 @@
 
 #include "RelocGraph.h"
 #include "RelocBlock.h"
+#include "patching/patch_block.h"
+
 #include <iostream>
 
 using namespace Dyninst;
@@ -110,7 +112,7 @@ void RelocGraph::addRelocBlockAfter(RelocBlock *cur, RelocBlock *t) {
 }
 
    
-RelocBlock *RelocGraph::find(block_instance *b, func_instance *f) const {
+RelocBlock *RelocGraph::find(Dyninst::DyninstAPI::patch_block *b, func_instance *f) const {
    InstanceMap::const_iterator iter = reloc.find(b->start());
    if (iter == reloc.end()) return NULL;
    SubMap::const_iterator iter2 = iter->second.find(f);
@@ -119,13 +121,13 @@ RelocBlock *RelocGraph::find(block_instance *b, func_instance *f) const {
    return iter2->second;
 }
 
-RelocBlock *RelocGraph::findSpringboard(block_instance *b, func_instance *f) const {
+RelocBlock *RelocGraph::findSpringboard(Dyninst::DyninstAPI::patch_block *b, func_instance *f) const {
    Map::const_iterator iter = springboards.find(std::make_pair(b, f));
    if (iter == springboards.end()) return NULL;
    return iter->second;
 }
 
-bool RelocGraph::setSpringboard(block_instance *from, func_instance *func, RelocBlock *to) {
+bool RelocGraph::setSpringboard(Dyninst::DyninstAPI::patch_block *from, func_instance *func, RelocBlock *to) {
    if (springboards.find(std::make_pair(from, func)) == springboards.end()) return false;
    springboards[std::make_pair(from, func)] = to;
    return true;

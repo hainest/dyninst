@@ -39,7 +39,7 @@
 #include "RelocBlock.h"
 #include "RelocTarget.h"
 #include "../Widgets/CFWidget.h"
-
+#include "patching/patch_block.h"
 #include "../CodeTracker.h"
 #include "../CodeBuffer.h"
 #include "../Transformers/Transformer.h" // transformer class
@@ -68,17 +68,17 @@ using namespace InstructionAPI;
 
 int RelocBlock::RelocBlockID = 0;
 
-RelocBlock *RelocBlock::createReloc(block_instance *block, func_instance *func) {
+RelocBlock *RelocBlock::createReloc(Dyninst::DyninstAPI::patch_block *block, func_instance *func) {
   if (!block) return NULL;
 
   relocation_cerr << "Creating new RelocBlock" << endl;
   RelocBlock *newRelocBlock = new RelocBlock(block, func);
 
   // Get the list of instructions in the block
-  block_instance::Insns insns;
+  Dyninst::DyninstAPI::patch_block::Insns insns;
   block->getInsns(insns);
   int cnt = 0;
-  for (block_instance::Insns::iterator iter = insns.begin();
+  for (Dyninst::DyninstAPI::patch_block::Insns::iterator iter = insns.begin();
        iter != insns.end(); ++iter, ++cnt) {
     if (block->_ignorePowerPreamble && cnt < 2) continue;
     relocation_cerr << "  Adding instruction @" 
@@ -104,7 +104,7 @@ RelocBlock *RelocBlock::createReloc(block_instance *block, func_instance *func) 
   return newRelocBlock;
 }
   
-RelocBlock *RelocBlock::createInst(instPoint *p, Address a, block_instance *block, func_instance *f) {
+RelocBlock *RelocBlock::createInst(instPoint *p, Address a, Dyninst::DyninstAPI::patch_block *block, func_instance *f) {
   if (!p) return NULL;
   if (p->empty()) return NULL;
 
@@ -115,7 +115,7 @@ RelocBlock *RelocBlock::createInst(instPoint *p, Address a, block_instance *bloc
   return newRelocBlock;
 }
 
-RelocBlock *RelocBlock::createStub(block_instance *block, func_instance *f) {
+RelocBlock *RelocBlock::createStub(Dyninst::DyninstAPI::patch_block *block, func_instance *f) {
    RelocBlock *newRelocBlock = new RelocBlock(block->start(), block, f);
    newRelocBlock->createCFWidget();
    newRelocBlock->type_ = Stub; 
@@ -145,8 +145,8 @@ void RelocBlock::getSuccessors(RelocGraph *cfg) {
    // Edges to a block that does not correspond to a RelocBlock (BlockEdges)
    // Edges to a raw address, caused by representing inter-CodeObject edges
    //   -- this last is a Defensive mode special.
-  /*   const block_instance::edgelist &targets = block_->targets();
-       for (block_instance::edgelist::const_iterator iter = targets.begin(); iter != targets.end(); ++iter) {*/
+  /*   const Dyninst::DyninstAPI::patch_block::edgelist &targets = block_->targets();
+       for (Dyninst::DyninstAPI::patch_block::edgelist::const_iterator iter = targets.begin(); iter != targets.end(); ++iter) {*/
    const PatchBlock::edgelist &targets = block_->targets();
    for (PatchBlock::edgelist::const_iterator iter = targets.begin(); iter != targets.end(); ++iter) {
      processEdge(OutEdge, SCAST_EI(*iter), cfg);
@@ -212,7 +212,7 @@ void RelocBlock::processEdge(EdgeDirection e, Dyninst::DyninstAPI::patch_edge *e
       }
    }
    else {
-      block_instance *block = (e == OutEdge) ? edge->trg() : edge->src();
+      Dyninst::DyninstAPI::patch_block *block = (e == OutEdge) ? edge->trg() : edge->src();
 
       func_instance *f = NULL;
       // Let's determine the function. If this is an interprocedural edge,
@@ -242,12 +242,12 @@ void RelocBlock::processEdge(EdgeDirection e, Dyninst::DyninstAPI::patch_edge *e
       else {
          if (e == OutEdge) {
             cfg->makeEdge(new Target<RelocBlock *>(this), 
-                          new Target<block_instance *>(block),
+                          new Target<Dyninst::DyninstAPI::patch_block *>(block),
                           edge,
                           type);
          }
          else {
-            cfg->makeEdge(new Target<block_instance *>(block), 
+            cfg->makeEdge(new Target<Dyninst::DyninstAPI::patch_block *>(block),
                           new Target<RelocBlock *>(this),
                           edge,
                           type);
@@ -358,8 +358,8 @@ void RelocBlock::createCFWidget() {
 #endif
 
 void RelocBlock::preserveBlockGap() {
-  /*   const block_instance::edgelist &targets = block_->targets();
-       for (block_instance::edgelist::const_iterator iter = targets.begin(); iter != targets.end(); ++iter) {*/
+  /*   const Dyninst::DyninstAPI::patch_block::edgelist &targets = block_->targets();
+       for (Dyninst::DyninstAPI::patch_block::edgelist::const_iterator iter = targets.begin(); iter != targets.end(); ++iter) {*/
    if (block_->wasUserAdded()) return;
    const PatchBlock::edgelist &targets = block_->targets();
    bool hasCall = false;
@@ -378,7 +378,7 @@ void RelocBlock::preserveBlockGap() {
          // Okay, I admit - I want to see this code trigger in the
          // fallthrough or cond_not_taken cases...
          hasFT = true;
-         block_instance *target = SCAST_EI(*iter)->trg();
+         Dyninst::DyninstAPI::patch_block *target = SCAST_EI(*iter)->trg();
          if (target && !(*iter)->sinkEdge()) {
             if (target->start() < block_->end()) {
                cerr << "Error: source should precede target; edge type " << ParseAPI::format((*iter)->type()) << hex

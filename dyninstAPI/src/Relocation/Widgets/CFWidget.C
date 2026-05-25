@@ -303,7 +303,7 @@ TrackerElement *CFWidget::tracker(const RelocBlock *trace) const {
 }
 
 TrackerElement *CFWidget::destTracker(TargetInt *dest, const RelocBlock *trace) const {
-   block_instance *destBlock = NULL;
+   Dyninst::DyninstAPI::patch_block *destBlock = NULL;
    func_instance *destFunc = NULL;
    switch (dest->type()) {
       case TargetInt::RelocBlockTarget: {
@@ -316,7 +316,7 @@ TrackerElement *CFWidget::destTracker(TargetInt *dest, const RelocBlock *trace) 
          break;
       }
       case TargetInt::BlockTarget:
-         destBlock = (static_cast<Target<block_instance *> *>(dest))->t();
+         destBlock = (static_cast<Target<Dyninst::DyninstAPI::patch_block *> *>(dest))->t();
          assert(destBlock);
          break;
       default:
@@ -472,7 +472,7 @@ unsigned CFPatch::estimate(codeGen &) {
    return 0;
 }
 
-PaddingPatch::PaddingPatch(unsigned size, bool registerDefensive, bool noop, block_instance *b)
+PaddingPatch::PaddingPatch(unsigned size, bool registerDefensive, bool noop, Dyninst::DyninstAPI::patch_block *b)
   : size_(size), registerDefensive_(registerDefensive), noop_(noop), block_(b) 
 {
 }

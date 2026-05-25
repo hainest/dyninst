@@ -31,11 +31,12 @@
 #include "../CodeBuffer.h"
 #include "CFG.h"
 #include "RelocTarget.h"
+#include "patching/patch_block.h"
 
 using namespace Dyninst;
 using namespace Relocation;
 
-int Target<block_instance *>::label(CodeBuffer *buf) const {
+int Target<Dyninst::DyninstAPI::patch_block *>::label(CodeBuffer *buf) const {
    return buf->defineLabel(t_->start());
 }
 
@@ -59,6 +60,6 @@ void Target<RelocBlock *>::removeSourceEdge(RelocEdge *e) {
    t_->ins()->erase(e);
 }
 
-block_instance *Target<RelocBlock *>::block() { 
+Dyninst::DyninstAPI::patch_block *Target<RelocBlock *>::block() {
    return t_->block();
 }

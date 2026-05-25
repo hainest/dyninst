@@ -34,22 +34,23 @@
 #include "CFG.h"
 #include "PatchCFG.h"
 #include "addressSpace.h"
-#include "patching/block.h"
 #include "mapped_object.h"
 
 namespace Dyninst { namespace DyninstAPI {
 
+  class patch_block;
+
   class patch_edge : public PatchAPI::PatchEdge {
   public:
-    patch_edge(ParseAPI::Edge *edge, block_instance *source, block_instance *target);
+    patch_edge(ParseAPI::Edge *edge, patch_block *source, patch_block *target);
 
     patch_edge(const patch_edge *parent, mapped_object *child);
 
     ~patch_edge() = default;
 
-    block_instance *src() const;
+    patch_block *src() const;
 
-    block_instance *trg() const;
+    patch_block *trg() const;
 
     AddressSpace *proc();
   };
