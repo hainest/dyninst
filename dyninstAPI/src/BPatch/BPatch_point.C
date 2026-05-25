@@ -58,7 +58,7 @@
 #include "mapped_module.h"
 #include "Instruction.h"
 #include "InstructionDecoder.h"
-
+#include "patching/patch_block.h"
 #include "mapped_object.h"
 #include "Snippet.h"
 
@@ -249,7 +249,7 @@ std::string BPatch_point::getCalledFunctionName() {
 BPatch_basicBlock *BPatch_point::getBlock()
 {
    if (!point) return NULL;
-   block_instance *llblock = point->block();
+   Dyninst::DyninstAPI::patch_block *llblock = point->block();
    if (!llblock) return NULL;
    return func->getCFG()->findBlock(llblock);
 

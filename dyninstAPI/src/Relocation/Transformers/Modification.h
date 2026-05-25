@@ -40,11 +40,15 @@
 #include <map>
 #include "../DynInstrumenter.h"
 
-class block_instance;
 class instPoint;
 class func_instance;
 
 namespace Dyninst {
+
+  namespace DyninstAPI {
+    class patch_block;
+  }
+
 namespace Relocation {
 
 class Modification : public Transformer {
@@ -74,7 +78,7 @@ class Modification : public Transformer {
     bool replaceFunction(RelocBlock *trace, RelocGraph *);
     bool wrapFunction(RelocBlock *trace, RelocGraph *);
 
-    RelocBlock *makeRelocBlock(block_instance *block, 
+    RelocBlock *makeRelocBlock(Dyninst::DyninstAPI::patch_block *block,
 			       func_instance *func, 
 			       RelocBlock *cur,
 			       RelocGraph *cfg);

@@ -40,7 +40,7 @@
 #include "mapped_module.h"
 #include "InstructionDecoder.h"
 #include "Relocation/Transformers/Movement-analysis.h"
-
+#include "patching/patch_block.h"
 #include "PatchMgr.h" // Scope
 
 #include "binaryEdit.h"
@@ -151,10 +151,10 @@ func_instance::~func_instance() {
 // function, whichever non-dead block we can find that has no intraprocedural 
 // incoming edges.  If there's no obvious block to choose, we stick with the
 // default block
-block_instance * func_instance::setNewEntry(block_instance *def,
-                                            std::set<block_instance*> &deadBlocks)
+Dyninst::DyninstAPI::patch_block * func_instance::setNewEntry(Dyninst::DyninstAPI::patch_block *def,
+                                            std::set<Dyninst::DyninstAPI::patch_block*> &deadBlocks)
 {
-    block_instance *newEntry = NULL;
+    Dyninst::DyninstAPI::patch_block *newEntry = NULL;
     assert(!all_blocks_.empty());
 
     // choose block with no intraprocedural incoming edges
@@ -163,7 +163,7 @@ block_instance * func_instance::setNewEntry(block_instance *def,
          bIter != all_blocks_.end(); 
          bIter++) 
     {
-        block_instance *block = static_cast<block_instance*>(*bIter);
+        Dyninst::DyninstAPI::patch_block *block = static_cast<Dyninst::DyninstAPI::patch_block*>(*bIter);
         if (deadBlocks.find(block) == deadBlocks.end()) {
             ParseAPI::Intraproc epred;
             const Block::edgelist & ib_ins = block->llb()->sources();
@@ -270,7 +270,7 @@ const func_instance::BlockSet &func_instance::unresolvedCF() {
        for (PatchFunction::Blockset::const_iterator iter = all_blocks_.begin(); 
             iter != all_blocks_.end(); ++iter) 
        {
-          block_instance* iblk = SCAST_BI(*iter);
+          Dyninst::DyninstAPI::patch_block* iblk = SCAST_BI(*iter);
           if (iblk->llb()->unresolvedCF()) {
              unresolvedCF_.insert(iblk);
          }
@@ -285,7 +285,7 @@ const func_instance::BlockSet &func_instance::abruptEnds() {
         for (PatchFunction::Blockset::const_iterator iter = all_blocks_.begin(); 
              iter != all_blocks_.end(); ++iter) 
         {
-            block_instance* iblk = SCAST_BI(*iter);
+            Dyninst::DyninstAPI::patch_block* iblk = SCAST_BI(*iter);
             if (iblk->llb()->abruptEnd()) {
                 abruptEnds_.insert(iblk);
             }
@@ -294,20 +294,20 @@ const func_instance::BlockSet &func_instance::abruptEnds() {
     return abruptEnds_;
 }
 
-void func_instance::removeAbruptEnd(const block_instance *block)
+void func_instance::removeAbruptEnd(const Dyninst::DyninstAPI::patch_block *block)
 {
     if (abruptEnds_.empty()) {
         return;
     }
 
-    BlockSet::iterator bit = abruptEnds_.find(const_cast<block_instance*>(block));
+    BlockSet::iterator bit = abruptEnds_.find(const_cast<Dyninst::DyninstAPI::patch_block*>(block));
     if (abruptEnds_.end() != bit) {
         abruptEnds_.erase(bit);
     }
 }
 
 
-block_instance *func_instance::entryBlock() {
+Dyninst::DyninstAPI::patch_block *func_instance::entryBlock() {
   return SCAST_BI(entry());
 }
 
@@ -317,7 +317,7 @@ unsigned func_instance::getNumDynamicCalls()
    for (PatchFunction::Blockset::const_iterator iter = callBlocks().begin(); 
         iter != callBlocks().end(); ++iter) 
    {
-      block_instance* iblk = SCAST_BI(*iter);
+      Dyninst::DyninstAPI::patch_block* iblk = SCAST_BI(*iter);
       if (iblk->containsDynamicCall()) {
          count++;
       }
@@ -357,7 +357,7 @@ void func_instance::debugPrint() const {
          cb != all_blocks_.end();
          cb++)
     {
-        block_instance* orig = SCAST_BI(*cb);
+        Dyninst::DyninstAPI::patch_block* orig = SCAST_BI(*cb);
         fprintf(stderr, "  Block start 0x%lx, end 0x%lx\n", orig->start(),
                 orig->end());
     }
@@ -378,7 +378,7 @@ void func_instance::addPrettyName(const std::string name, bool isPrimary) {
 // Dig down to the low-level block of b, find the low-level functions
 // that share it, and map up to int-level functions and add them
 // to the funcs list.
-bool func_instance::getSharingFuncs(block_instance *b,
+bool func_instance::getSharingFuncs(Dyninst::DyninstAPI::patch_block *b,
                                    std::set<func_instance *> & funcs)
 {
     bool ret = false;
@@ -412,7 +412,7 @@ bool func_instance::getSharingFuncs(std::set<func_instance *> &funcs) {
     for (bIter = blocks().begin();
          bIter != blocks().end();
          bIter++) {
-      block_instance* iblk = SCAST_BI(*bIter);
+      Dyninst::DyninstAPI::patch_block* iblk = SCAST_BI(*bIter);
        if (getSharingFuncs(iblk,funcs))
           ret = true;
     }
@@ -420,7 +420,7 @@ bool func_instance::getSharingFuncs(std::set<func_instance *> &funcs) {
     return ret;
 }
 
-bool func_instance::getOverlappingFuncs(block_instance *block,
+bool func_instance::getOverlappingFuncs(Dyninst::DyninstAPI::patch_block *block,
                                        std::set<func_instance *> &funcs)
 {
         ParseAPI::Block *llB = block->llb();
@@ -451,7 +451,7 @@ bool func_instance::getOverlappingFuncs(std::set<func_instance *> &funcs)
     for (bIter = blocks().begin();
          bIter != blocks().end();
          bIter++) {
-      block_instance* iblk = SCAST_BI(*bIter);
+      Dyninst::DyninstAPI::patch_block* iblk = SCAST_BI(*bIter);
        if (getOverlappingFuncs(iblk,funcs))
           ret = true;
     }
@@ -479,7 +479,7 @@ bool func_instance::consistency() const {
    for (auto iter = img_blocks.begin();
         iter != img_blocks.end(); ++iter) {
       parse_block *img_block = SCAST_PB(*iter);
-      block_instance *b_inst = obj()->findBlock(img_block);
+      Dyninst::DyninstAPI::patch_block *b_inst = obj()->findBlock(img_block);
       assert(b_inst->llb() == img_block);
    }
 
@@ -515,8 +515,8 @@ bool func_instance::isInstrumentable() {
   return false;
 }
 
-block_instance *func_instance::getBlockByEntry(const Address addr) {
-   block_instance *block = obj()->findBlockByEntry(addr);
+Dyninst::DyninstAPI::patch_block *func_instance::getBlockByEntry(const Address addr) {
+   Dyninst::DyninstAPI::patch_block *block = obj()->findBlockByEntry(addr);
    if (block) {
       blocks(); // force initialization of all_blocks_
       if (all_blocks_.find(block) != all_blocks_.end()) {
@@ -529,12 +529,12 @@ block_instance *func_instance::getBlockByEntry(const Address addr) {
 
 // get all blocks that have an instruction starting at addr, or if 
 // there are none, return all blocks containing addr
-bool func_instance::getBlocks(const Address addr, set<block_instance*> &blks) {
-   set<block_instance*> objblks;
+bool func_instance::getBlocks(const Address addr, set<Dyninst::DyninstAPI::patch_block*> &blks) {
+   set<Dyninst::DyninstAPI::patch_block*> objblks;
    obj()->findBlocksByAddr(addr, objblks);
    blocks(); // ensure that all_blocks_ is filled in 
-   std::vector<std::set<block_instance *>::iterator> to_erase; 
-   for (set<block_instance*>::iterator bit = objblks.begin(); bit != objblks.end(); bit++) {
+   std::vector<std::set<Dyninst::DyninstAPI::patch_block *>::iterator> to_erase;
+   for (set<Dyninst::DyninstAPI::patch_block*>::iterator bit = objblks.begin(); bit != objblks.end(); bit++) {
       // Make sure it's one of ours
       if (all_blocks_.find(*bit) == all_blocks_.end()) {
          to_erase.push_back(bit);
@@ -546,7 +546,7 @@ bool func_instance::getBlocks(const Address addr, set<block_instance*> &blks) {
 
    if (objblks.size() > 1) { 
       // only add blocks that have an instruction at "addr"
-      for (set<block_instance*>::iterator bit = objblks.begin(); bit != objblks.end(); bit++) {
+      for (set<Dyninst::DyninstAPI::patch_block*>::iterator bit = objblks.begin(); bit != objblks.end(); bit++) {
          if ((*bit)->getInsn(addr).isValid()) {
             blks.insert(*bit);
          }
@@ -560,10 +560,10 @@ bool func_instance::getBlocks(const Address addr, set<block_instance*> &blks) {
    return ! blks.empty();
 }
 
-block_instance *func_instance::getBlock(const Address addr) {
-   std::set<block_instance *> blks;
+Dyninst::DyninstAPI::patch_block *func_instance::getBlock(const Address addr) {
+   std::set<Dyninst::DyninstAPI::patch_block *> blks;
    getBlocks(addr, blks);
-   for (std::set<block_instance *>::iterator iter = blks.begin(); iter != blks.end(); ++iter) {
+   for (std::set<Dyninst::DyninstAPI::patch_block *>::iterator iter = blks.begin(); iter != blks.end(); ++iter) {
       if ((*iter)->getInsn(addr).isValid()) return *iter;
    }
    return NULL;
@@ -670,7 +670,7 @@ instPoint *func_instance::funcEntryPoint(bool create) {
    return p;
 }
 
-instPoint *func_instance::funcExitPoint(block_instance* b, bool create) {
+instPoint *func_instance::funcExitPoint(Dyninst::DyninstAPI::patch_block* b, bool create) {
    instPoint *p = IPCONV(proc()->mgr()->findPoint(Location::ExitSite(this, b), Point::FuncExit, create));
    return p;
 }
@@ -685,12 +685,12 @@ void func_instance::funcExitPoints(Points* pts) {
   }
 }
 
-instPoint *func_instance::preCallPoint(block_instance* b, bool create) {
+instPoint *func_instance::preCallPoint(Dyninst::DyninstAPI::patch_block* b, bool create) {
    instPoint *p = IPCONV(proc()->mgr()->findPoint(Location::CallSite(this, b), Point::PreCall, create));
   return p;
 }
 
-instPoint *func_instance::postCallPoint(block_instance* b, bool create) {
+instPoint *func_instance::postCallPoint(Dyninst::DyninstAPI::patch_block* b, bool create) {
    instPoint *p = IPCONV(proc()->mgr()->findPoint(Location::CallSite(this, b), Point::PostCall, create));
    return p;
 }
@@ -704,17 +704,17 @@ void func_instance::callPoints(Points* pts) {
   }
 }
 
-instPoint *func_instance::blockEntryPoint(block_instance* b, bool create) {
+instPoint *func_instance::blockEntryPoint(Dyninst::DyninstAPI::patch_block* b, bool create) {
    instPoint *p = IPCONV(proc()->mgr()->findPoint(Location::BlockInstance(this, b), Point::BlockEntry, create));
    return p;
 }
 
-instPoint *func_instance::blockExitPoint(block_instance* b, bool create) {
+instPoint *func_instance::blockExitPoint(Dyninst::DyninstAPI::patch_block* b, bool create) {
    instPoint *p = IPCONV(proc()->mgr()->findPoint(Location::BlockInstance(this, b), Point::BlockExit, create));
    return p;
 }
 
-instPoint *func_instance::preInsnPoint(block_instance *b, Address a,
+instPoint *func_instance::preInsnPoint(Dyninst::DyninstAPI::patch_block *b, Address a,
                                        InstructionAPI::Instruction insn,
                                        bool trusted, bool create) {
    Location loc = Location::InstructionInstance(this, b, a, insn, trusted);
@@ -723,7 +723,7 @@ instPoint *func_instance::preInsnPoint(block_instance *b, Address a,
    return p;
 }
 
-instPoint *func_instance::postInsnPoint(block_instance *b, Address a,
+instPoint *func_instance::postInsnPoint(Dyninst::DyninstAPI::patch_block *b, Address a,
                                         InstructionAPI::Instruction insn,
                                         bool trusted, bool create) {
    Location loc = Location::InstructionInstance(this, b, a, insn, trusted);
@@ -732,7 +732,7 @@ instPoint *func_instance::postInsnPoint(block_instance *b, Address a,
    return p;
 }
 
-void func_instance::blockInsnPoints(block_instance* b, Points* pts) {
+void func_instance::blockInsnPoints(Dyninst::DyninstAPI::patch_block* b, Points* pts) {
   std::vector<Point*> points;
   proc()->mgr()->findPoints(Scope(this, b), Point::PreInsn|Point::PostInsn, back_inserter(points));
   assert(points.size() > 0);
@@ -757,7 +757,7 @@ void func_instance::edgePoints(Points* pts) {
 }
 
 
-void func_instance::removeBlock(block_instance *block) {
+void func_instance::removeBlock(Dyninst::DyninstAPI::patch_block *block) {
     // Put things here that go away from the perspective of this function
     BlockSet::iterator bit = unresolvedCF_.find(block);
     if (bit != unresolvedCF_.end()) {
@@ -781,7 +781,7 @@ void func_instance::destroy(func_instance *f) {
    delete f;
 }
 
-void func_instance::split_block_cb(block_instance *b1, block_instance *b2)
+void func_instance::split_block_cb(Dyninst::DyninstAPI::patch_block *b1, Dyninst::DyninstAPI::patch_block *b2)
 {
 
     BlockSet::iterator bit = unresolvedCF_.find(b1);
@@ -802,9 +802,9 @@ void func_instance::markModified() {
 
 // get caller blocks that aren't in deadBlocks
 bool func_instance::getLiveCallerBlocks
-(const std::set<block_instance*> &deadBlocks, 
+(const std::set<Dyninst::DyninstAPI::patch_block*> &deadBlocks,
  const std::list<func_instance*> &deadFuncs, 
- std::map<Address,vector<block_instance*> > & stubs)  // output: block + target addr
+ std::map<Address,vector<Dyninst::DyninstAPI::patch_block*> > & stubs)  // output: block + target addr
 {
    using namespace ParseAPI;
 
@@ -812,7 +812,7 @@ bool func_instance::getLiveCallerBlocks
    PatchBlock::edgelist::const_iterator eit = callEdges.begin();
    for( ; eit != callEdges.end(); ++eit) {
       if (CALL == (*eit)->type()) {// includes tail calls
-          block_instance *cbbi = static_cast<block_instance*>((*eit)->src());
+          Dyninst::DyninstAPI::patch_block *cbbi = static_cast<Dyninst::DyninstAPI::patch_block*>((*eit)->src());
           if (deadBlocks.end() != deadBlocks.find(cbbi)) {
              continue; 
           }

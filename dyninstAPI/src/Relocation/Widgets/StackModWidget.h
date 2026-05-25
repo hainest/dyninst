@@ -33,7 +33,7 @@
 
 #include <string>
 #include "Widget.h"
-class block_instance;
+class patch_block;
 
 namespace Dyninst {
 namespace Relocation {

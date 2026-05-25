@@ -46,6 +46,7 @@
 #include "patching/instPoint.h"
 #include "mapped_object.h"
 #include "mapped_module.h"
+#include "patching/patch_block.h"
 
 using namespace Dyninst;
 
@@ -461,7 +462,7 @@ void HybridAnalysisOW::owLoop::instrumentOneWrite(Address writeInsnAddr,
     {
        // We can afford to be really slow and precise in the lookup, as this is the
        // very, very, very uncommon case.
-       block_instance *block = writeFuncs[fidx]->lowlevel_func()->obj()->findOneBlockByAddr(writeInsnAddr);
+       Dyninst::DyninstAPI::patch_block *block = writeFuncs[fidx]->lowlevel_func()->obj()->findOneBlockByAddr(writeInsnAddr);
        if (!block) continue;
        instPoint *ip = instPoint::postInsn(writeFuncs[fidx]->lowlevel_func(),
                                            block,
@@ -1329,7 +1330,7 @@ void HybridAnalysisOW::overwriteAnalysis(BPatch_point *point, void *loopID_)
 #endif
 
 
-bool HybridAnalysisOW::isRealStore(Address insnAddr, block_instance *block, 
+bool HybridAnalysisOW::isRealStore(Address insnAddr, Dyninst::DyninstAPI::patch_block *block,
                                    BPatch_function *func) 
 {
     using namespace InstructionAPI;

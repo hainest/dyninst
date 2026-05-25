@@ -238,8 +238,8 @@ bool CFPatch::isPLT(codeGen &gen) {
       return false;
    }
 
-   Target<block_instance *> *t = static_cast<Target<block_instance *> *>(target);
-   block_instance *tb = t->t();
+   Target<Dyninst::DyninstAPI::patch_block *> *t = static_cast<Target<Dyninst::DyninstAPI::patch_block *> *>(target);
+   Dyninst::DyninstAPI::patch_block *tb = t->t();
    if (tb->proc() != gen.addrSpace())
       return true;
    else
@@ -262,8 +262,8 @@ bool CFPatch::applyPLT(codeGen &gen, CodeBuffer *) {
       return false;
    }
 
-   Target<block_instance *> *t = static_cast<Target<block_instance *> *>(target);
-   block_instance *tb = t->t();
+   Target<Dyninst::DyninstAPI::patch_block *> *t = static_cast<Target<Dyninst::DyninstAPI::patch_block *> *>(target);
+   Dyninst::DyninstAPI::patch_block *tb = t->t();
 
    // We can (for now) only jump to functions
    func_instance *callee = tb->entryOfFunc();

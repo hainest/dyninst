@@ -54,6 +54,7 @@
 #include "debug.h"
 #include "hybridAnalysis.h"
 #include "addressSpace.h"
+#include "patching/patch_block.h"
 
 #if defined(cap_stack_mods)
 #include "StackMod/StackModChecker.h"
@@ -359,7 +360,7 @@ bool BPatch_function::parseNewEdge(Dyninst::Address source,
     }
 
     // set up arguments to lower level parseNewEdges and call it
-    block_instance *sblock = func->obj()->findBlockByEntry(source);
+    Dyninst::DyninstAPI::patch_block *sblock = func->obj()->findBlockByEntry(source);
     assert(sblock);
     vector<edgeStub> stubs;
     stubs.push_back(edgeStub(sblock, target, ParseAPI::NOEDGE, true));
@@ -466,9 +467,9 @@ void BPatch_function::getAbruptEndPoints
 // That we know about. 
 void BPatch_function::getCallerPoints(std::vector<BPatch_point*>& callerPoints)
 {
-   std::vector<block_instance *> callerBlocks;
+   std::vector<Dyninst::DyninstAPI::patch_block *> callerBlocks;
    func->getCallerBlocks(std::back_inserter(callerBlocks));
-   for (std::vector<block_instance *>::iterator iter = callerBlocks.begin(); 
+   for (std::vector<Dyninst::DyninstAPI::patch_block *>::iterator iter = callerBlocks.begin();
         iter != callerBlocks.end(); ++iter) 
    {
       vector<func_instance*> callerFuncs;
@@ -491,7 +492,7 @@ void BPatch_function::getCallPoints(BPatch_Vector<BPatch_point *> &callPoints) {
    const PatchFunction::Blockset &blocks = func->callBlocks();
   for (PatchFunction::Blockset::const_iterator iter = blocks.begin();
        iter != blocks.end(); ++iter) {
-    block_instance* iblk = SCAST_BI(*iter);
+    Dyninst::DyninstAPI::patch_block* iblk = SCAST_BI(*iter);
     instPoint *point = instPoint::preCall(func, iblk);
     BPatch_point *curPoint = addSpace->findOrCreateBPPoint(this, point,
                                                            BPatch_locSubroutine);
@@ -672,7 +673,7 @@ BPatch_Vector<BPatch_point*> *BPatch_function::findPoint(const std::set<BPatch_o
 BPatch_point *BPatch_function::findPoint(Dyninst::Address addr) {
    // Find the matching block and feed this into
 
-   block_instance *llb = lowlevel_func()->getBlock(addr);
+   Dyninst::DyninstAPI::patch_block *llb = lowlevel_func()->getBlock(addr);
    if (!llb) return NULL;
    
    instPoint *p = instPoint::preInsn(lowlevel_func(), llb, addr);

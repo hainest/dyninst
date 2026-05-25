@@ -29,16 +29,16 @@
  */
 
 #include "patching/Patching.h"
-#include "patching/block.h"
 #include "patching/function.h"
 #include "mapped_object.h"
+#include "patching/patch_block.h"
 
 using namespace Dyninst;
 using namespace PatchAPI;
 
 void DynPatchCallback::split_block_cb(PatchBlock *first, PatchBlock *second)
 {
-    // no splitting needed on block_instance itself
+    // no splitting needed on patch_block itself
     // 1) split mapped_object data structures 
     // 2) split function data structures
 
@@ -47,7 +47,7 @@ void DynPatchCallback::split_block_cb(PatchBlock *first, PatchBlock *second)
     obj->splitBlock(SCAST_BI(first),SCAST_BI(second));
 
     // 2)
-    block_instance *b1 = SCAST_BI(first);
+    Dyninst::DyninstAPI::patch_block *b1 = SCAST_BI(first);
     std::vector<func_instance*> funcs;
     b1->getFuncs(std::back_inserter(funcs));
     for (vector<func_instance*>::iterator fit = funcs.begin();

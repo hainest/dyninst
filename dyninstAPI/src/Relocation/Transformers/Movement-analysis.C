@@ -79,7 +79,7 @@ bool PCSensitiveTransformer::process(RelocBlock *reloc, RelocGraph *g) {
     if(adhoc_required)
         adhoc_result = adhoc.process(reloc, g);
 
-    const block_instance *block = reloc->block();
+    const Dyninst::DyninstAPI::patch_block *block = reloc->block();
     const func_instance *func = reloc->func();
 
     /* We need a block in order to do sensitivity analysis */
@@ -246,7 +246,7 @@ bool PCSensitiveTransformer::process(RelocBlock *reloc, RelocGraph *g) {
 bool PCSensitiveTransformer::isPCSensitive(Instruction insn,
                                            Address addr,
                                            const func_instance *func,
-                                           const block_instance *block,
+                                           const Dyninst::DyninstAPI::patch_block *block,
                                            AssignList &sensitiveAssignments) {
   if (!(insn.getOperation().getID() == e_call)) return false;
     if(func->obj()->hybridMode() == BPatch_normalMode) return false;
@@ -560,7 +560,7 @@ void PCSensitiveTransformer::emulateInsn(RelocBlock *reloc,
  * is returned.
  * @return Whether or not the given address is exception senstive.
  */
-bool PCSensitiveTransformer::exceptionSensitive(Address a, const block_instance *bbl) {
+bool PCSensitiveTransformer::exceptionSensitive(Address a, const Dyninst::DyninstAPI::patch_block *bbl) {
     return false;
     sensitivity_cerr << "Checking address 0x" << std::hex << a << std::dec 
         << " for exception sensitivity" << endl;
@@ -630,11 +630,11 @@ bool PCSensitiveTransformer::exceptionSensitive(Address a, const block_instance 
     return false;
 }
 
-void PCSensitiveTransformer::cacheAnalysis(const block_instance *bbl, Address addr, bool intSens, bool extSens) {
+void PCSensitiveTransformer::cacheAnalysis(const Dyninst::DyninstAPI::patch_block *bbl, Address addr, bool intSens, bool extSens) {
    analysisCache_[bbl][addr] = std::make_pair(intSens, extSens);
 }
 
-bool PCSensitiveTransformer::queryCache(const block_instance *bbl, Address addr, bool &intSens, bool &extSens) {
+bool PCSensitiveTransformer::queryCache(const Dyninst::DyninstAPI::patch_block *bbl, Address addr, bool &intSens, bool &extSens) {
 	AnalysisCache::const_iterator iter = analysisCache_.find(bbl);
    if (iter == analysisCache_.end()) return false;
    CacheEntry::const_iterator iter2 = iter->second.find(addr);
@@ -644,7 +644,7 @@ bool PCSensitiveTransformer::queryCache(const block_instance *bbl, Address addr,
    return true;
 }
 
-void PCSensitiveTransformer::invalidateCache(const block_instance *b) {
+void PCSensitiveTransformer::invalidateCache(const Dyninst::DyninstAPI::patch_block *b) {
    // Clear everything corresponding to an addr in the block;
    // overapproximation for shared functions and shared blocks,
    // but hey. 

@@ -1,6 +1,5 @@
 #include "arch-regs-x86.h"
 #include "ast_helpers.h"
-#include "patching/block.h"
 #include "codegen/codegen.h"
 #include "patching/instPoint.h"
 #include "Instruction.h"

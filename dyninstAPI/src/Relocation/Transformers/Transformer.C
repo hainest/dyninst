@@ -36,6 +36,7 @@
 #include "../CFG/RelocGraph.h"
 #include "patching/function.h"
 #include "dyninstAPI/src/mapped_module.h"
+#include "patching/patch_block.h"
 
 using namespace Dyninst;
 using namespace Relocation;

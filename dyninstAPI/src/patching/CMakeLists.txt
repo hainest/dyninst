@@ -20,6 +20,12 @@ set(
   Patching.C
 )
 
+if(DYNINST_OS_UNIX)
+  list(APPEND _sources patch_block-unix.C)
+elseif(DYNINST_OS_Windows)
+  list(APPEND _sources patch_block-winnt.C)
+endif()
+
 dyninst_library(
   dyninstAPI_patching
   INTERNAL_LIBRARY

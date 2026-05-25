@@ -37,6 +37,11 @@
 #include "RelocBlock.h"
 
 namespace Dyninst {
+
+  namespace DyninstAPI {
+    class patch_block;
+  }
+
 namespace Relocation {
 
 // Wraps an object that can serve as a  control flow target. This
@@ -82,7 +87,7 @@ class TargetInt {
   virtual void addSourceEdge(RelocEdge *) {}
   virtual void removeTargetEdge(RelocEdge *) {}
   virtual void removeSourceEdge(RelocEdge *) {}
-  virtual block_instance *block() { return NULL; }
+  virtual DyninstAPI::patch_block *block() { return NULL; }
 
   virtual TargetInt *copy() const {return NULL; }
 
@@ -130,7 +135,7 @@ template <>
   virtual void addSourceEdge(RelocEdge *e);
   virtual void removeTargetEdge(RelocEdge *e);
   virtual void removeSourceEdge(RelocEdge *e);
-  virtual block_instance *block();
+  virtual DyninstAPI::patch_block *block();
 
   virtual TargetInt *copy() const { return new Target<RelocBlock *>(t_); }
 
@@ -139,13 +144,13 @@ template <>
 };
 
 template <>
-class Target<block_instance *> : public TargetInt {
+class Target<DyninstAPI::patch_block *> : public TargetInt {
  public:
    //Address addr() const { return t_->firstInsnAddr(); }
-  Target(block_instance *t) : t_(t) { assert(t_); }
+  Target(DyninstAPI::patch_block *t) : t_(t) { assert(t_); }
   ~Target() {}
 
-  block_instance *t() const { return t_; }
+  DyninstAPI::patch_block *t() const { return t_; }
 
   virtual type_t type() const { return BlockTarget; }
 
@@ -158,12 +163,12 @@ class Target<block_instance *> : public TargetInt {
   }
 
   int label(CodeBuffer *) const;
-  virtual block_instance *block() { return t_; }
+  virtual DyninstAPI::patch_block *block() { return t_; }
 
-  virtual TargetInt *copy() const { return new Target<block_instance *>(t_); }
+  virtual TargetInt *copy() const { return new Target<DyninstAPI::patch_block *>(t_); }
 
  private:
-  block_instance *t_;
+  DyninstAPI::patch_block *t_;
 };
 
 

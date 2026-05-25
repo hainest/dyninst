@@ -46,6 +46,11 @@ class AddressSpace;
 class func_instance;
 
 namespace Dyninst {
+
+  namespace DyninstAPI {
+    class patch_block;
+  }
+
 namespace Relocation {
 
 typedef enum {
@@ -87,7 +92,7 @@ struct SpringboardReq {
    Address from;
    Priority priority;
    func_instance *func;
-   block_instance *block;
+   Dyninst::DyninstAPI::patch_block *block;
    Destinations destinations;
    bool checkConflicts;
    bool includeRelocatedCopies;
@@ -97,7 +102,7 @@ struct SpringboardReq {
                   const Address to_, 
                   const Priority priority_, 
                   func_instance *func_,
-                  block_instance *block_, 
+                  Dyninst::DyninstAPI::patch_block *block_,
                   bool checkConflicts_, 
                   bool includeRelocCopies_, 
                   bool fromRelocCode_,
@@ -123,7 +128,7 @@ SpringboardReq()
       useTrap(false) {}
    void addReq (const Address from_, const Address to_,
                 const Priority priority_, 
-                func_instance *func_, block_instance *block_,
+                func_instance *func_, Dyninst::DyninstAPI::patch_block *block_,
                 bool checkConflicts_,
                 bool includeRelocCopies_,
                 bool fromRelocCode_, 
@@ -172,7 +177,7 @@ class SpringboardBuilder;
    }
 
    void addFromOrigCode(Address from, Address to, 
-                        Priority p, func_instance *func, block_instance *bbl) {
+                        Priority p, func_instance *func, Dyninst::DyninstAPI::patch_block *bbl) {
 // This uses the default constructor if it isn't already there.
       sBoardMap_[p][from].addReq(from, to, p, func, bbl, true, true, false, false);
    }
@@ -190,7 +195,7 @@ class SpringboardBuilder;
    }
    
    void addRaw(Address from, Address to, Priority p, 
-               func_instance *func, block_instance *bbl,
+               func_instance *func, Dyninst::DyninstAPI::patch_block *bbl,
                bool checkConflicts, bool includeRelocatedCopies, bool fromRelocatedCode,
                bool useTrap) {
       sBoardMap_[p][from] = SpringboardReq(from, to, p, func, bbl,

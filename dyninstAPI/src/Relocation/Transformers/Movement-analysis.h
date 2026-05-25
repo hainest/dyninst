@@ -36,7 +36,6 @@
 #include <utility>
 #include "Transformer.h"
 #include "common/src/LinearVariable.h"
-
 #include "dataflowAPI/h/Absloc.h"
 #include "dataflowAPI/h/AbslocInterface.h" // And more of the same
 
@@ -57,6 +56,10 @@ namespace Dyninst {
  class AbsRegionAST;
  class RoseAST;
  class StackAST;
+ }
+
+ namespace DyninstAPI {
+   class patch_block;
  }
 
 namespace Relocation {
@@ -98,7 +101,7 @@ class PCSensitiveTransformer : public Transformer {
   virtual ~PCSensitiveTransformer() {}
 
   static void invalidateCache(func_instance *);
-  static void invalidateCache(const block_instance *);
+  static void invalidateCache(const Dyninst::DyninstAPI::patch_block *);
 
  private:
   bool analysisRequired(RelocBlock *);
@@ -106,7 +109,7 @@ class PCSensitiveTransformer : public Transformer {
   bool isPCSensitive(InstructionAPI::Instruction insn,
 					 Address addr,
 					 const func_instance *func,
-					 const block_instance *block,
+					 const Dyninst::DyninstAPI::patch_block *block,
 					 AssignList &sensitiveAssignment);
   Graph::Ptr forwardSlice(Assignment::Ptr ptr,
 			  parse_block *block,
@@ -128,10 +131,10 @@ class PCSensitiveTransformer : public Transformer {
 				   InstructionAPI::Instruction insn,
 				   Address addr);
   
-  bool exceptionSensitive(Address addr, const block_instance *bbl);
+  bool exceptionSensitive(Address addr, const Dyninst::DyninstAPI::patch_block *bbl);
 
-  static void cacheAnalysis(const block_instance *bbl, Address addr, bool intSens, bool extSens);
-  static bool queryCache(const block_instance *bbl, Address addr, bool &intSens, bool &extSens);
+  static void cacheAnalysis(const Dyninst::DyninstAPI::patch_block *bbl, Address addr, bool intSens, bool extSens);
+  static bool queryCache(const Dyninst::DyninstAPI::patch_block *bbl, Address addr, bool &intSens, bool &extSens);
 
 
   AssignmentConverter aConverter;
@@ -149,7 +152,7 @@ class PCSensitiveTransformer : public Transformer {
   adhocMovementTransformer adhoc;
   typedef std::pair<bool, bool> CacheData;
   typedef std::map<Address, CacheData> CacheEntry;
-  typedef std::map<const block_instance *, CacheEntry > AnalysisCache;
+  typedef std::map<const Dyninst::DyninstAPI::patch_block *, CacheEntry > AnalysisCache;
   static AnalysisCache analysisCache_;
   
 };

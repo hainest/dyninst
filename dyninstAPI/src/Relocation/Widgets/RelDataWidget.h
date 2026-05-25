@@ -34,8 +34,7 @@
 #include <string>
 #include "Widget.h"
 #include "patching/function.h"
-
-class block_instance;
+#include "patching/patch_block.h"
 
 namespace Dyninst {
 namespace Relocation {
@@ -82,7 +81,7 @@ struct RelDataPatch : public Patch {
   virtual ~RelDataPatch() {}
 
   void setFunc(func_instance *_func) { func = _func; }
-  void setBlock(block_instance *_block) { block = _block; }
+  void setBlock(Dyninst::DyninstAPI::patch_block *_block) { block = _block; }
   
   InstructionAPI::Instruction orig_insn;
   Address target_addr{};
@@ -90,7 +89,7 @@ struct RelDataPatch : public Patch {
 
 private:
   func_instance *func{};
-  block_instance *block{};
+  Dyninst::DyninstAPI::patch_block *block{};
 };
 
 

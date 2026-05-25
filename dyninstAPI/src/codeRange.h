@@ -44,6 +44,12 @@
 #include "dyntypes.h"
 #include "patching/patch.h"
 
+namespace Dyninst {
+  namespace DyninstAPI {
+    class patch_block;
+  }
+}
+
 /** template class for codeRangeTree. The implementation is based on red black
   * tree implementation for efficiency concerns and for getting sorted
   * elements easier.
@@ -52,8 +58,6 @@
 
 
 class func_instance;
-class block_instance;
-class block_instance;
 class image;
 class mapped_object;
 class parse_func;
@@ -87,8 +91,8 @@ class codeRange : public patchTarget {
     // if we're in a function, and this suffices. We actually do a
     // basic block lookup, then transform that into a function.
     func_instance *is_function();
-    block_instance *is_basicBlock();
-    block_instance *is_basicBlockInstance();
+    Dyninst::DyninstAPI::patch_block *is_basicBlock();
+    Dyninst::DyninstAPI::patch_block *is_basicBlockInstance();
 
     image *is_image();
     mapped_object *is_mapped_object();

@@ -36,6 +36,7 @@
 #include "ASTs/codeGenAST.h"
 #include "codegen/RegControl.h"
 #include "patching/instPoint.h"
+#include "patching/patch_block.h"
 
 #include <cassert>
 #include <vector>
@@ -151,8 +152,8 @@ public:
 
   /*** PowerPC-only ***/
   virtual bool emitCallRelative(Register, Address, Register, codeGen &) = 0;
-  virtual bool emitTOCCall(block_instance *, codeGen &) { assert(0); return false; }
-  virtual bool emitTOCJump(block_instance *, codeGen &) { assert(0); return false; }
+  virtual bool emitTOCCall(Dyninst::DyninstAPI::patch_block *, codeGen &) { assert(0); return false; }
+  virtual bool emitTOCJump(Dyninst::DyninstAPI::patch_block *, codeGen &) { assert(0); return false; }
 };
 
 #endif

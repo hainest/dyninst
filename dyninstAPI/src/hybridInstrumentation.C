@@ -44,6 +44,7 @@
 #include "mapped_module.h"
 #include <iostream>
 #include <fstream>
+#include "patching/patch_block.h"
 
 using namespace Dyninst;
 
@@ -1008,7 +1009,7 @@ bool HybridAnalysis::hasEdge(BPatch_function *func, Address source, Address targ
 {
 // 0. first see if the edge needs to be parsed
 
-   block_instance *block = func->lowlevel_func()->obj()->findBlockByEntry(source);
+   Dyninst::DyninstAPI::patch_block *block = func->lowlevel_func()->obj()->findBlockByEntry(source);
    const PatchBlock::edgelist &targets = block->targets();
    for (PatchBlock::edgelist::const_iterator iter = targets.begin(); iter != targets.end(); ++iter) {
 
@@ -1312,7 +1313,7 @@ void HybridAnalysis::addReplacedFuncs
     }
 }
 
-bool HybridAnalysis::getCallAndBranchTargets(block_instance *block, 
+bool HybridAnalysis::getCallAndBranchTargets(Dyninst::DyninstAPI::patch_block *block,
                                              std::vector<Address> & targs)
 {
     using namespace ParseAPI;
