@@ -42,7 +42,7 @@
 
 #include "mapped_module.h"
 #include "mapped_object.h"
-
+#include "patching/patch_block.h"
 #include "BPatch_libInfo.h"
 #include "BPatch.h"
 #include "BPatch_point.h"
@@ -1425,7 +1425,7 @@ void BPatch_process::overwriteAnalysisUpdate
 {
     //1.  get the overwritten blocks and regions
     std::list<std::pair<Address,Address> > owRegions;
-    std::list<block_instance *> owBBIs;
+    std::list<Dyninst::DyninstAPI::patch_block *> owBBIs;
     llproc->getOverwrittenBlocks(owPages, owRegions, owBBIs);
     changedPages = ! owRegions.empty();
     changedCode = ! owBBIs.empty();
@@ -1438,14 +1438,14 @@ void BPatch_process::overwriteAnalysisUpdate
 
     /*2. remove dead code from the analysis */
 
-    std::set<block_instance*> delBlocks; 
-    std::map<func_instance*,set<block_instance*> > elimMap; 
+    std::set<Dyninst::DyninstAPI::patch_block*> delBlocks;
+    std::map<func_instance*,set<Dyninst::DyninstAPI::patch_block*> > elimMap;
     std::list<func_instance*> deadFuncs; 
-    std::map<func_instance*,block_instance*> newFuncEntries; 
+    std::map<func_instance*,Dyninst::DyninstAPI::patch_block*> newFuncEntries;
 
     // remove instrumentation from affected funcs
     beginInsertionSet();
-    for(std::map<func_instance*,set<block_instance*> >::iterator fIter = elimMap.begin();
+    for(std::map<func_instance*,set<Dyninst::DyninstAPI::patch_block*> >::iterator fIter = elimMap.begin();
         fIter != elimMap.end();
         fIter++)
     {
@@ -1475,7 +1475,7 @@ void BPatch_process::overwriteAnalysisUpdate
        llproc->getStubs(owBBIs,delBlocks,deadFuncs);
 
     // get stubs for dead funcs
-    map<Address,vector<block_instance*> > deadFuncCallers;
+    map<Address,vector<Dyninst::DyninstAPI::patch_block*> > deadFuncCallers;
     for(std::list<func_instance*>::iterator fit = deadFuncs.begin();
         fit != deadFuncs.end();
         fit++)
@@ -1487,7 +1487,7 @@ void BPatch_process::overwriteAnalysisUpdate
           // but mark the caller point as unresolved so we'll re-parse
           // if we actually call into the garbage func
           Address funcAddr = (*fit)->addr();
-          vector<block_instance*>::iterator sit = deadFuncCallers[funcAddr].begin();
+          vector<Dyninst::DyninstAPI::patch_block*>::iterator sit = deadFuncCallers[funcAddr].begin();
           for ( ; sit != deadFuncCallers[funcAddr].end(); sit++) {
              (*sit)->llb()->setUnresolvedCF(true);
              vector<func_instance*> cfuncs;
@@ -1505,7 +1505,7 @@ void BPatch_process::overwriteAnalysisUpdate
     // set new entry points for functions with NewF blocks, the active blocks
     // in newFuncEntries serve as suggested entry points, but will not be 
     // chosen if there are other blocks in the function with no incoming edges
-    for (map<func_instance*,block_instance*>::iterator nit = newFuncEntries.begin();
+    for (map<func_instance*,Dyninst::DyninstAPI::patch_block*>::iterator nit = newFuncEntries.begin();
          nit != newFuncEntries.end();
          nit++)
     {
@@ -1514,7 +1514,7 @@ void BPatch_process::overwriteAnalysisUpdate
     
     // delete delBlocks and set new function entry points, if necessary
     vector<PatchBlock*> delVector;
-    for(set<block_instance*>::reverse_iterator bit = delBlocks.rbegin(); 
+    for(set<Dyninst::DyninstAPI::patch_block*>::reverse_iterator bit = delBlocks.rbegin();
         bit != delBlocks.rend();
         bit++)
     {
@@ -1569,11 +1569,11 @@ void BPatch_process::overwriteAnalysisUpdate
 
     // set up data structures for re-parsing dead functions from stubs
     map<mapped_object*,vector<edgeStub> > dfstubs;
-    for (map<Address, vector<block_instance*> >::iterator sit = deadFuncCallers.begin();
+    for (map<Address, vector<Dyninst::DyninstAPI::patch_block*> >::iterator sit = deadFuncCallers.begin();
          sit != deadFuncCallers.end();
          sit++)
     {
-       for (vector<block_instance*>::iterator bit = sit->second.begin();
+       for (vector<Dyninst::DyninstAPI::patch_block*>::iterator bit = sit->second.begin();
             bit != sit->second.end();
             bit++) 
        {
@@ -1609,7 +1609,7 @@ void BPatch_process::overwriteAnalysisUpdate
     }
 
     //3. parse new code, one overwritten function at a time
-    for(std::map<func_instance*,set<block_instance*> >::iterator
+    for(std::map<func_instance*,set<Dyninst::DyninstAPI::patch_block*> >::iterator
         fit = elimMap.begin();
         fit != elimMap.end();
         fit++)
@@ -1631,7 +1631,7 @@ void BPatch_process::overwriteAnalysisUpdate
     }
 
     // do a consistency check
-    for(std::map<func_instance*,set<block_instance*> >::iterator 
+    for(std::map<func_instance*,set<Dyninst::DyninstAPI::patch_block*> >::iterator
         fit = elimMap.begin();
         fit != elimMap.end();
         fit++) 

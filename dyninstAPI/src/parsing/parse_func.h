@@ -33,12 +33,14 @@
 
 #include "codeRange.h"
 #include "Function.h"
+#include "parsing/DynParseCallback.h"
 #include "parsing/parse_block.h"
 #include "Symbol.h"
 
 #include <string>
 
 class pdmodule;
+class image;
 
 class parse_func : public Dyninst::ParseAPI::Function {
   enum UnresolvedCF {

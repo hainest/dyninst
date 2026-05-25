@@ -49,10 +49,11 @@
 #include "patching/instPoint.h"
 #include "mapped_object.h"
 #include "addressSpace.h"
+#include "patching/patch_block.h"
 
 int bpatch_basicBlock_count = 0;
 
-BPatch_basicBlock::BPatch_basicBlock(block_instance *ib, BPatch_flowGraph *fg):
+BPatch_basicBlock::BPatch_basicBlock(Dyninst::DyninstAPI::patch_block *ib, BPatch_flowGraph *fg):
   iblock(ib),
   flowGraph(fg),
   immediateDominates(NULL),
@@ -99,7 +100,7 @@ void source_helper(ParseAPI::Edge* e,
 // function, since our CFGs at the BPatch level are intraprocedural
 void BPatch_basicBlock::getSources(BPatch_Vector<BPatch_basicBlock*>& srcs){
   //  BPatch_basicBlock *b;
-  std::vector<block_instance *> in_blocks;
+  std::vector<Dyninst::DyninstAPI::patch_block *> in_blocks;
   // can't iterate over the PatchAPI cfg since that doesn't allow you to detect
   // edges from shared blocks into blocks that are not shared and not in the 
   // target block's function
@@ -120,7 +121,7 @@ void BPatch_basicBlock::getSources(BPatch_Vector<BPatch_basicBlock*>& srcs){
 //returns the successors of the basic block in a set
 void BPatch_basicBlock::getTargets(BPatch_Vector<BPatch_basicBlock*>& tgrts){
   BPatch_basicBlock *b;
-  std::vector<block_instance *> out_blocks;
+  std::vector<Dyninst::DyninstAPI::patch_block *> out_blocks;
   const PatchBlock::edgelist &itrgs = iblock->targets();
   for (PatchBlock::edgelist::const_iterator iter = itrgs.begin(); iter != itrgs.end(); ++iter) {
     Dyninst::DyninstAPI::patch_edge* iedge = SCAST_EI(*iter);
@@ -416,9 +417,9 @@ BPatch_Vector<BPatch_point*>*
 BPatch_basicBlock::findPointByPredicate(insnPredicate& f)
 {
   BPatch_Vector<BPatch_point*>* ret = new BPatch_Vector<BPatch_point*>;
-  block_instance::Insns insns;
+  Dyninst::DyninstAPI::patch_block::Insns insns;
   block()->getInsns(insns);
-  for (block_instance::Insns::iterator iter = insns.begin();
+  for (Dyninst::DyninstAPI::patch_block::Insns::iterator iter = insns.begin();
        iter != insns.end(); ++iter) {
     if(f(iter->second)) {
       instPoint *p = instPoint::preInsn(ifunc(), block(), iter->first, iter->second, true);

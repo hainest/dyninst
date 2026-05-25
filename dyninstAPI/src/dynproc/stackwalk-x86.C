@@ -33,6 +33,7 @@
 #include "trampolines/baseTramp.h"
 #include "patching/function.h"
 #include "frameChecker.h"
+#include "patching/patch_block.h"
 
 using namespace Dyninst;
 
@@ -186,8 +187,8 @@ FrameFuncHelper::alloc_frame_t DynFrameHelper::allocatesFrame(Address addr)
 {
   FrameFuncHelper::alloc_frame_t result;
   func_instance *func = proc_->findOneFuncByAddr(addr);
-  std::set<block_instance*> blocks;
-  block_instance *aBlock = NULL;
+  std::set<Dyninst::DyninstAPI::patch_block*> blocks;
+  Dyninst::DyninstAPI::patch_block *aBlock = NULL;
 
   result.first = FrameFuncHelper::unknown_t; // frame type
   result.second = FrameFuncHelper::unknown_s; // frame state

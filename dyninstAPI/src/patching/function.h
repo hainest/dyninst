@@ -44,7 +44,6 @@
 
 #include "bitArray.h"
 
-#include "patching/block.h"
 #include "patching/instPoint.h"
 #include "PatchCFG.h"
 #include "Point.h"
@@ -61,20 +60,24 @@
 #include "Relocation/DynCommon.h"
 
 #include "parsing/parse_func.h"
+#include "patching/patch_block.h"
+#include "patching/patch_edge.h"
 
 class PCProcess;
 class mapped_module;
 class mapped_object;
 
 class func_instance;
-class block_instance;
 class instPoint;
 
-namespace Dyninst {
-  namespace DyninstAPI {
-    class patch_edge;
-  }
-}
+struct BlockInstanceAddrCompare {
+   bool operator()(Dyninst::DyninstAPI::patch_block * const &b1,
+       Dyninst::DyninstAPI::patch_block * const &b2) const {
+      return (b1->start() < b2->start());
+   }
+};
+
+typedef std::set<Dyninst::DyninstAPI::patch_block *, BlockInstanceAddrCompare> AddrOrderedBlockSet;
 
 typedef enum callType {
   unknown_call,
@@ -87,7 +90,7 @@ typedef enum callType {
 using Dyninst::PatchAPI::Point;
 
 class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunction {
-  friend class block_instance;
+  friend class Dyninst::DyninstAPI::patch_block;
   friend class Dyninst::DyninstAPI::patch_edge;
   friend class instPoint;
   public:
@@ -165,15 +168,15 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   ////////////////////////////////////////////////
   typedef AddrOrderedBlockSet BlockSet;
 
-  block_instance *entryBlock();
+  Dyninst::DyninstAPI::patch_block *entryBlock();
 
   // Kevin's defensive mode shtuff
   // Blocks that have a sink target, essentially.
   const BlockSet &unresolvedCF();// Blocks that have a sink target, essentially
   const BlockSet &abruptEnds(); // Blocks where we provisionally stopped 
                                 // parsing because things looked weird.
-  block_instance * setNewEntry(block_instance *def, // if no better choice
-                               std::set<block_instance*> &deadBlocks);
+  Dyninst::DyninstAPI::patch_block * setNewEntry(Dyninst::DyninstAPI::patch_block *def, // if no better choice
+                               std::set<Dyninst::DyninstAPI::patch_block*> &deadBlocks);
   // kevin signal-handler information
   bool isSignalHandler() {return handlerFaultAddr_ != 0;}
   Address getHandlerFaultAddr() {return handlerFaultAddr_;}
@@ -182,11 +185,11 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   void setHandlerFaultAddrAddr(Address faa, bool set);
   void triggerModified();
 
-  block_instance *getBlockByEntry(const Address addr);
+  Dyninst::DyninstAPI::patch_block *getBlockByEntry(const Address addr);
   // get all blocks that contain the given address
-  bool getBlocks(const Address addr, std::set<block_instance*> &blks);
+  bool getBlocks(const Address addr, std::set<Dyninst::DyninstAPI::patch_block*> &blks);
   // Get the block with an instruction that starts at addr
-  block_instance *getBlock(const Address addr);
+  Dyninst::DyninstAPI::patch_block *getBlock(const Address addr);
 
   Offset addrToOffset(const Address addr) const;
 
@@ -203,7 +206,7 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   // interprocedural edge, but I expect that would
   // break all manner of things
   ////////////////////////////////////////////////
-  func_instance *findCallee(block_instance *callBlock);
+  func_instance *findCallee(Dyninst::DyninstAPI::patch_block *callBlock);
 
   bool isInstrumentable();
 
@@ -216,12 +219,12 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   // Code overlapping
   ////////////////////////////////////////////////
   // Get all functions that "share" the block. Actually, the
-  // block_instance will not be shared (they are per function),
+  // Dyninst::DyninstAPI::patch_block will not be shared (they are per function),
   // but the underlying parse_block records the sharing status.
   // So dodge through to the image layer and find out that info.
   // Returns true if such functions exist.
 
-  bool getSharingFuncs(block_instance *b,
+  bool getSharingFuncs(Dyninst::DyninstAPI::patch_block *b,
                        std::set<func_instance *> &funcs);
 
   // The same, but for any function that overlaps with any of
@@ -235,7 +238,7 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   // the same address range, even if they do not share blocks - this can
   // be caused by overlapping but disjoint assembly sequences
   bool getOverlappingFuncs(std::set<func_instance *> &funcs);
-  bool getOverlappingFuncs(block_instance *b, std::set<func_instance *> &funcs);
+  bool getOverlappingFuncs(Dyninst::DyninstAPI::patch_block *b, std::set<func_instance *> &funcs);
 
   ////////////////////////////////////////////////
   // Misc
@@ -250,9 +253,9 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
     void getCallerBlocks(OutputIterator result);
   template <class OutputIterator>
     void getCallerFuncs(OutputIterator result);
-  bool getLiveCallerBlocks(const std::set<block_instance*> &deadBlocks,
+  bool getLiveCallerBlocks(const std::set<Dyninst::DyninstAPI::patch_block*> &deadBlocks,
                            const std::list<func_instance*> &deadFuncs,
-                           std::map<Address,vector<block_instance*> > & output_stubs);
+                           std::map<Address,vector<Dyninst::DyninstAPI::patch_block*> > & output_stubs);
 
 
 
@@ -272,15 +275,15 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
 
   // Wrappers for patchapi findPoints to find a single instPoint
   instPoint *funcEntryPoint(bool create);
-  instPoint *funcExitPoint(block_instance* blk, bool create);
-  instPoint *preCallPoint(block_instance* blk, bool create);
-  instPoint *postCallPoint(block_instance* blk, bool create);
-  instPoint *blockEntryPoint(block_instance* blk, bool create);
-  instPoint *blockExitPoint(block_instance* b, bool create);
-  instPoint *preInsnPoint(block_instance *b, Address a,
+  instPoint *funcExitPoint(Dyninst::DyninstAPI::patch_block* blk, bool create);
+  instPoint *preCallPoint(Dyninst::DyninstAPI::patch_block* blk, bool create);
+  instPoint *postCallPoint(Dyninst::DyninstAPI::patch_block* blk, bool create);
+  instPoint *blockEntryPoint(Dyninst::DyninstAPI::patch_block* blk, bool create);
+  instPoint *blockExitPoint(Dyninst::DyninstAPI::patch_block* b, bool create);
+  instPoint *preInsnPoint(Dyninst::DyninstAPI::patch_block *b, Address a,
                           InstructionAPI::Instruction insn,
                           bool trusted, bool create);
-  instPoint *postInsnPoint(block_instance *b, Address a,
+  instPoint *postInsnPoint(Dyninst::DyninstAPI::patch_block *b, Address a,
                            InstructionAPI::Instruction insn,
                            bool trusted, bool create);
   instPoint *edgePoint(Dyninst::DyninstAPI::patch_edge* eg, bool create);
@@ -289,7 +292,7 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   typedef std::vector<instPoint*> Points;
   void funcExitPoints(Points*);
   void callPoints(Points*);
-  void blockInsnPoints(block_instance*, Points*);
+  void blockInsnPoints(Dyninst::DyninstAPI::patch_block*, Points*);
   void edgePoints(Points*);
 
   // Function wrapping
@@ -301,9 +304,9 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   void createWrapperSymbol(Address entry, std::string name);
 
   static void destroy(func_instance *f);
-  void removeBlock(block_instance *block);
+  void removeBlock(Dyninst::DyninstAPI::patch_block *block);
 
-  void split_block_cb(block_instance *b1, block_instance *b2);
+  void split_block_cb(Dyninst::DyninstAPI::patch_block *b1, Dyninst::DyninstAPI::patch_block *b2);
 
   virtual void markModified();
 
@@ -352,8 +355,8 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
 
  private:
 
-  // helper func for block_instance::setNotAbruptEnd(), do not call directly 
-  void removeAbruptEnd(const block_instance *); 
+  // helper func for Dyninst::DyninstAPI::patch_block::setNotAbruptEnd(), do not call directly
+  void removeAbruptEnd(const Dyninst::DyninstAPI::patch_block *);
 
   ///////////////////// Basic func info
   //Address addr_; // Absolute address of the start of the function
@@ -375,7 +378,7 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
                                 that last caused the handler to be invoked. */
   Address handlerFaultAddrAddr_;
 
-  void addblock_instance(block_instance *instance);
+  void addblock_instance(Dyninst::DyninstAPI::patch_block *instance);
 
 #if defined(os_windows)
   callType callingConv;
@@ -442,8 +445,8 @@ void func_instance::getCallerBlocks(OutputIterator result)
   if(!ifunc() || !ifunc()->entryBlock())
     return;
   /*
-  const block_instance::edgelist &ins = entryBlock()->sources();
-  for (block_instance::edgelist::const_iterator iter = ins.begin();
+  const Dyninst::DyninstAPI::patch_block::edgelist &ins = entryBlock()->sources();
+  for (Dyninst::DyninstAPI::patch_block::edgelist::const_iterator iter = ins.begin();
        iter != ins.end(); ++iter) {
   */
   const PatchBlock::edgelist &ins = entryBlock()->sources();
@@ -460,9 +463,9 @@ void func_instance::getCallerBlocks(OutputIterator result)
 template <class OutputIterator>
 void func_instance::getCallerFuncs(OutputIterator result)
 {
-  std::set<block_instance *> callerBlocks;
+  std::set<Dyninst::DyninstAPI::patch_block *> callerBlocks;
   getCallerBlocks(std::inserter(callerBlocks, callerBlocks.end()));
-  for (std::set<block_instance *>::iterator iter = callerBlocks.begin();
+  for (std::set<Dyninst::DyninstAPI::patch_block *>::iterator iter = callerBlocks.begin();
        iter != callerBlocks.end(); ++iter) {
     (*iter)->getFuncs(result);
   }

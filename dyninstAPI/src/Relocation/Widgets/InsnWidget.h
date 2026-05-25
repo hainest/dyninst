@@ -34,7 +34,7 @@
 #include <string>
 #include "Widget.h"
 
-class block_instance;
+class patch_block;
 class func_instance;
 
 namespace Dyninst {

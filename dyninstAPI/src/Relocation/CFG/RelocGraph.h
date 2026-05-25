@@ -41,10 +41,13 @@
 #include <utility>
 
 class codeGen;
-class block_instance;
 class func_instance;
 
 namespace Dyninst {
+
+  namespace DyninstAPI {
+    class patch_block;
+  }
 
 namespace Relocation {
 
@@ -59,7 +62,7 @@ class RelocGraph {
   public:
    typedef std::map<func_instance *, RelocBlock *> SubMap;
    typedef std::map<Address, SubMap> InstanceMap;
-   typedef std::map<std::pair<block_instance *, func_instance *>,
+   typedef std::map<std::pair<DyninstAPI::patch_block *, func_instance *>,
       RelocBlock *> Map;
    typedef std::vector<RelocEdge *> Edges;
    
@@ -93,9 +96,9 @@ class RelocGraph {
    Map springboards;
    InstanceMap reloc;
 
-   RelocBlock *find(block_instance *, func_instance *) const;
-   bool setSpringboard(block_instance *from, func_instance *func, RelocBlock *to);
-   RelocBlock *findSpringboard(block_instance *from, func_instance *to) const;
+   RelocBlock *find(DyninstAPI::patch_block *, func_instance *) const;
+   bool setSpringboard(DyninstAPI::patch_block *from, func_instance *func, RelocBlock *to);
+   RelocBlock *findSpringboard(DyninstAPI::patch_block *from, func_instance *to) const;
 
   // Should this go here? Well, it's a transformation on RelocBlocks...
   void link(RelocBlock *s, RelocBlock *t);

@@ -47,7 +47,7 @@
 #include "BPatch_statement.h"
 #include "BPatch_collections.h"
 #include "symtabAPI/h/Type.h"    // For BPatch_type related stuff
-
+#include "patching/patch_block.h"
 #include "mapped_module.h"
 #include "mapped_object.h"
 #include "patching/instPoint.h"
@@ -916,7 +916,7 @@ BPatch_function *BPatch_module::findFunctionByEntry(Dyninst::Address entry)
 bool BPatch_module::findPoints(Dyninst::Address addr,
                                           std::vector<BPatch_point *> &points) {
    mapped_object *obj = mod->obj();
-   block_instance *blk = obj->findOneBlockByAddr(addr);
+   Dyninst::DyninstAPI::patch_block *blk = obj->findOneBlockByAddr(addr);
    if (!blk) return false;
 
    std::vector<func_instance *> funcs;

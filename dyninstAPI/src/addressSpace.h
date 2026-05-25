@@ -62,7 +62,6 @@ class codeRange;
 class replacedFunctionCall;
 
 class func_instance;
-class block_instance;
 
 class parse_func;
 class parse_block;
@@ -99,6 +98,7 @@ namespace Dyninst {
    }
    namespace DyninstAPI {
      class patch_edge;
+     class patch_block;
    }
 }
 
@@ -126,7 +126,7 @@ class AddressSpace : public InstructionSource {
    //   ... if F_c is not specified, we use NULL
    // F specifies the replacement callee; if we want to remove the call entirely,
    // also use NULL
-   //typedef std::map<block_instance *, std::map<func_instance *, func_instance *> > CallModMap;
+   //typedef std::map<Dyninst::DyninstAPI::patch_block *, std::map<func_instance *, func_instance *> > CallModMap;
    //typedef std::map<func_instance *, func_instance *> FuncModMap;
     
     // Down-conversion functions
@@ -256,22 +256,22 @@ class AddressSpace : public InstructionSource {
     
     // Find the code sequence containing an address
     bool findFuncsByAddr(Address addr, std::set<func_instance *> &funcs, bool includeReloc = false);
-    bool findBlocksByAddr(Address addr, std::set<block_instance *> &blocks, bool includeReloc = false);
+    bool findBlocksByAddr(Address addr, std::set<Dyninst::DyninstAPI::patch_block *> &blocks, bool includeReloc = false);
     // Don't use this...
     // I take it back. Use it when you _know_ that you want one function,
     // picked arbitrarily, from the possible functions.
     func_instance *findOneFuncByAddr(Address addr);
     // And the one thing that is unique: entry address!
     func_instance *findFuncByEntry(Address addr);
-    block_instance *findBlockByEntry(Address addr);
+    Dyninst::DyninstAPI::patch_block *findBlockByEntry(Address addr);
 
     // And a lookup by "internal" function to find clones during fork...
     func_instance *findFunction(parse_func *ifunc);
-    block_instance *findBlock(parse_block *iblock);
+    Dyninst::DyninstAPI::patch_block *findBlock(parse_block *iblock);
     Dyninst::DyninstAPI::patch_edge *findEdge(ParseAPI::Edge *iedge);
 
 	// Fast lookups across all mapped_objects
-	func_instance *findFuncByEntry(const block_instance *block);
+	func_instance *findFuncByEntry(const Dyninst::DyninstAPI::patch_block *block);
     
     // true if the addrs are in the same object and region within the object
     bool sameRegion(Dyninst::Address addr1, Dyninst::Address addr2);
@@ -327,8 +327,8 @@ class AddressSpace : public InstructionSource {
     // instances since we generate them lazily.
     // Shouldn't this be an instPoint member function?
 
-    void modifyCall(block_instance *callBlock, func_instance *newCallee, func_instance *context = NULL);
-    void revertCall(block_instance *callBlock, func_instance *context = NULL);
+    void modifyCall(Dyninst::DyninstAPI::patch_block *callBlock, func_instance *newCallee, func_instance *context = NULL);
+    void revertCall(Dyninst::DyninstAPI::patch_block *callBlock, func_instance *context = NULL);
     void replaceFunction(func_instance *oldfunc, func_instance *newfunc);
     bool wrapFunction(func_instance *original, 
                       func_instance *wrapper, 
@@ -337,7 +337,7 @@ class AddressSpace : public InstructionSource {
 
     void revertWrapFunction(func_instance *original);                      
     void revertReplacedFunction(func_instance *oldfunc);
-    void removeCall(block_instance *callBlock, func_instance *context = NULL);
+    void removeCall(Dyninst::DyninstAPI::patch_block *callBlock, func_instance *context = NULL);
     const func_instance *isFunctionReplacement(func_instance *func) const;
 
     // And this....
@@ -451,7 +451,7 @@ class AddressSpace : public InstructionSource {
     // Get the list of addresses an address (in a block) 
     // has been relocated to.
     void getRelocAddrs(Address orig,
-                       block_instance *block,
+                       Dyninst::DyninstAPI::patch_block *block,
                        func_instance *func,
                        std::list<Address> &relocs,
                        bool getInstrumentationAddrs) const;
@@ -470,11 +470,11 @@ class AddressSpace : public InstructionSource {
     bool inEmulatedCode(Address addr);
 
     std::map<func_instance*,std::vector<edgeStub> > 
-    getStubs(const std::list<block_instance *> &owBBIs,
-             const std::set<block_instance*> &delBBIs,
+    getStubs(const std::list<Dyninst::DyninstAPI::patch_block *> &owBBIs,
+             const std::set<Dyninst::DyninstAPI::patch_block*> &delBBIs,
              const std::list<func_instance*> &deadFuncs);
 
-    void addDefensivePad(block_instance *callBlock, func_instance *callFunc,
+    void addDefensivePad(Dyninst::DyninstAPI::patch_block *callBlock, func_instance *callFunc,
                          Address padStart, unsigned size);
 
     void getPreviousInstrumentationInstances(baseTramp *bt,
@@ -483,7 +483,7 @@ class AddressSpace : public InstructionSource {
     void addInstrumentationInstance(baseTramp *bt, Address addr);
 
     void addModifiedFunction(func_instance *func);
-    void addModifiedBlock(block_instance *block);
+    void addModifiedBlock(Dyninst::DyninstAPI::patch_block *block);
 
  protected:
 

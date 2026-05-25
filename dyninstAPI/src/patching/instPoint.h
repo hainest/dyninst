@@ -40,15 +40,14 @@
 #include "dyninstAPI/src/codeRange.h"
 #include "common/src/stats.h"
 #include "bitArray.h"
-
 #include "trampolines/baseTramp.h"
-
+#include "dyntypes.h"
+#include "Instruction.h"
 #include "Point.h"
 #include "Snippet.h"
 #include "Relocation/DynPointMaker.h"
 #include "Relocation/DynCommon.h"
 
-class block_instance;
 class func_instance;
 class baseTramp;
 
@@ -60,6 +59,7 @@ namespace Dyninst {
    }
    namespace DyninstAPI {
      class patch_edge;
+     class patch_block;
    }
 }
 
@@ -70,33 +70,33 @@ using Dyninst::PatchAPI::PatchMgrPtr;
 
 class instPoint : public Dyninst::PatchAPI::Point {
   friend class func_instance;
-  friend class block_instance;
+  friend class patch_block;
   friend class Dyninst::DyninstAPI::patch_edge;
   friend class DynPointMaker;
   public:
 
     // The compleat list of instPoint creation methods
     static instPoint *funcEntry(func_instance *);
-    static instPoint *funcExit(func_instance *, block_instance *exitPoint);
+    static instPoint *funcExit(func_instance *, Dyninst::DyninstAPI::patch_block *exitPoint);
     // Now with added context!
     // We can restrict instrumentation to a particular instance of a block, edge,
     // or instruction by additionally specifying a function for context.
-    static instPoint *blockEntry(func_instance *, block_instance *);
-    static instPoint *blockExit(func_instance *, block_instance *);
+    static instPoint *blockEntry(func_instance *, Dyninst::DyninstAPI::patch_block *);
+    static instPoint *blockExit(func_instance *, Dyninst::DyninstAPI::patch_block *);
     static instPoint *edge(func_instance *, Dyninst::DyninstAPI::patch_edge *);
     static instPoint *preInsn(func_instance *,
-                              block_instance *,
-                              Address,
+                              Dyninst::DyninstAPI::patch_block *,
+                              Dyninst::Address,
                               InstructionAPI::Instruction = InstructionAPI::Instruction(),
                               bool trusted = false);
     static instPoint *postInsn(func_instance *,
-                               block_instance *, Address,
+                               Dyninst::DyninstAPI::patch_block *, Dyninst::Address,
                                InstructionAPI::Instruction = InstructionAPI::Instruction(),
                                bool trusted = false);
     static instPoint *preCall(func_instance *,
-                              block_instance *);
+                              Dyninst::DyninstAPI::patch_block *);
     static instPoint *postCall(func_instance *,
-                               block_instance *);
+                               Dyninst::DyninstAPI::patch_block *);
 
     static std::pair<instPoint *, instPoint *> getInstpointPair(instPoint *);
     static instPoint *fork(instPoint *parent, AddressSpace *as);
@@ -105,11 +105,11 @@ class instPoint : public Dyninst::PatchAPI::Point {
   private:
     instPoint(Type, PatchMgrPtr, func_instance *);
     // Call/exit site
-    instPoint(Type, PatchMgrPtr, func_instance *, block_instance *);
+    instPoint(Type, PatchMgrPtr, func_instance *, Dyninst::DyninstAPI::patch_block *);
     // (possibly func context) block
-    instPoint(Type, PatchMgrPtr, block_instance *, func_instance *);
+    instPoint(Type, PatchMgrPtr, Dyninst::DyninstAPI::patch_block *, func_instance *);
     // Insn
-    instPoint(Type, PatchMgrPtr, block_instance *, Address, InstructionAPI::Instruction, func_instance *);
+    instPoint(Type, PatchMgrPtr, Dyninst::DyninstAPI::patch_block *, Dyninst::Address, InstructionAPI::Instruction, func_instance *);
     instPoint(Type, PatchMgrPtr, Dyninst::DyninstAPI::patch_edge *, func_instance *);
 
   public:
@@ -117,7 +117,7 @@ class instPoint : public Dyninst::PatchAPI::Point {
 
     AddressSpace *proc() const;
     func_instance *func() const;
-    block_instance *block() const;
+    Dyninst::DyninstAPI::patch_block *block() const;
     Dyninst::DyninstAPI::patch_edge *edge() const;
 
     // I'm commenting this out so that we don't reinvent the wheel.
@@ -126,15 +126,15 @@ class instPoint : public Dyninst::PatchAPI::Point {
     // as to the _next_ address that will execute.
 
     //Address addr() const;
-    Address insnAddr() const { return addr_; }
+    Dyninst::Address insnAddr() const { return addr_; }
 
     // This is for address tracking... if we're between
     // blocks (e.g., post-call, function exit, or edge
     // instrumentation) and thus aren't strongly tied to
     // a block give us the next block that will execute.
     // Unlike block() above, this always works.
-    block_instance *block_compat() const;
-    Address addr_compat() const;
+    Dyninst::DyninstAPI::patch_block *block_compat() const;
+    Dyninst::Address addr_compat() const;
 
     bitArray liveRegisters();
 
@@ -152,9 +152,9 @@ class instPoint : public Dyninst::PatchAPI::Point {
     bitArray liveRegs_;
     void calcLiveness();
     // Will fill in insn if it's NULL-equivalent
-    static bool checkInsn(block_instance *,
+    static bool checkInsn(Dyninst::DyninstAPI::patch_block *,
                           InstructionAPI::Instruction &insn,
-                          Address a);
+                          Dyninst::Address a);
 
     baseTramp *baseTramp_;
 };

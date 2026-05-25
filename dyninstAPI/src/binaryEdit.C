@@ -45,6 +45,7 @@
 #include "image.h"
 #include "Symbol.h"
 #include "Archive.h"
+#include "patching/patch_block.h"
 
 #include <cstdio>
 #include <iostream>
@@ -882,7 +883,7 @@ bool BinaryEdit::replaceTrapHandler() {
 
             for (PatchFunction::Blockset::const_iterator iter = func->blocks().begin();
                  iter != func->blocks().end(); ++iter) {
-                block_instance* iblk = SCAST_BI(*iter);
+                Dyninst::DyninstAPI::patch_block* iblk = SCAST_BI(*iter);
                 if (iblk->containsCall()) {
                     
                     // the function name could have up to two underscores

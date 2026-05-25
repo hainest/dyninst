@@ -46,7 +46,6 @@
 class image;
 class func_instance;
 class instPoint;
-class block_instance;
 class BPatch_point;
 class BPatch_edge;
 class BPatch_function;
@@ -64,6 +63,9 @@ namespace Dyninst {
   namespace PatchAPI {
     class PatchBlock;
     DYNINST_EXPORT PatchBlock *convert(const BPatch_basicBlock *);
+  }
+  namespace DyninstAPI {
+    class patch_block;
   }
 }
 
@@ -119,7 +121,7 @@ class DYNINST_EXPORT BPatch_basicBlock {
 
  private:
   /** the internal basic block structure **/
-  block_instance *iblock;
+  Dyninst::DyninstAPI::patch_block *iblock;
 
   /** the flow graph that contains this basic block */
   BPatch_flowGraph *flowGraph;
@@ -148,14 +150,14 @@ class DYNINST_EXPORT BPatch_basicBlock {
 
  public:
   BPatch_flowGraph *fg() const { return flowGraph; }
-  block_instance *block() const { return iblock; }
+  Dyninst::DyninstAPI::patch_block *block() const { return iblock; }
   BPatch_function *func() const;
   func_instance *ifunc() const;
 
  protected:
 
   /** constructor of class */
-  BPatch_basicBlock(block_instance *ib, BPatch_flowGraph *fg);
+  BPatch_basicBlock(Dyninst::DyninstAPI::patch_block *ib, BPatch_flowGraph *fg);
 
 
    
@@ -166,9 +168,9 @@ class DYNINST_EXPORT BPatch_basicBlock {
    
   // Internal functions. Don't use these unless you know what you're
   // doing.
-  block_instance *lowlevel_block()  { return iblock; }
+  Dyninst::DyninstAPI::patch_block *lowlevel_block()  { return iblock; }
 
-  void setlowlevel_block(block_instance *b)  { iblock = b; }
+  void setlowlevel_block(Dyninst::DyninstAPI::patch_block *b)  { iblock = b; }
   void  getAllPoints(std::vector<BPatch_point*>& allPoints);
   BPatch_point *convertPoint(instPoint *pt);
   BPatch_function *getCallTarget();

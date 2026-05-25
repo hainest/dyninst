@@ -35,8 +35,8 @@
 #include <string>
 #include "Widget.h"
 #include "common/src/dyn_register.h"
+#include "patching/patch_block.h"
 
-class block_instance;
 class func_instance;
 class instPoint;
 
@@ -249,7 +249,7 @@ struct PaddingPatch : public Patch {
   // do statically, but the second requires a patch so that
   // we get notified of address finickiness.
 
-   PaddingPatch(unsigned size, bool registerDefensive, bool noop, block_instance *b);
+   PaddingPatch(unsigned size, bool registerDefensive, bool noop, Dyninst::DyninstAPI::patch_block *b);
    virtual bool apply(codeGen &gen, CodeBuffer *buf);
    virtual unsigned estimate(codeGen &templ);
    virtual ~PaddingPatch() {}
@@ -257,7 +257,7 @@ struct PaddingPatch : public Patch {
    unsigned size_;
    bool registerDefensive_;
    bool noop_;
-   block_instance *block_;
+   Dyninst::DyninstAPI::patch_block *block_;
 };
 
 }

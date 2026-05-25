@@ -40,6 +40,8 @@
 #include "../Widgets/InstWidget.h"
 #include "../Widgets/CFWidget.h"
 #include "../CFG/RelocGraph.h"
+#include "patching/patch_edge.h"
+#include "patching/patch_block.h"
 
 using namespace std;
 using namespace Dyninst;
@@ -451,7 +453,7 @@ bool Instrumenter::postCallInstrumentation(RelocBlock *trace, RelocGraph *cfg) {
    relocation_cerr << "Adding post-call instrumentation to " << trace->id() << endl;
 
    Address postCallAddr = trace->block()->end();
-   block_instance *FT = trace->block()->getFallthroughBlock();
+   Dyninst::DyninstAPI::patch_block *FT = trace->block()->getFallthroughBlock();
    if (FT) postCallAddr = FT->start();
    else relocation_cerr << "Odd: post-call inst with no fallthrough block" << endl;
 
@@ -509,7 +511,7 @@ bool Instrumenter::funcEntryInstrumentation(RelocBlock *trace, RelocGraph *cfg) 
 bool Instrumenter::edgeInstrumentation(RelocBlock *trace, RelocGraph *cfg) {
    // Comparitively simple given the previous functions...
    assert(trace->type() == RelocBlock::Relocated);
-   block_instance *block = trace->block();
+   Dyninst::DyninstAPI::patch_block *block = trace->block();
    assert(block);
    const PatchBlock::edgelist &targets = block->targets();
    for (PatchBlock::edgelist::const_iterator iter = targets.begin();

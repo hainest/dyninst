@@ -32,7 +32,7 @@
 #include "Springboard.h"
 #include "dyninstAPI/src/debug.h"
 #include "codegen/codegen.h"
-
+#include "patching/patch_block.h"
 #include "dyninstAPI/src/addressSpace.h"
 #include "patching/function.h"
 
@@ -156,7 +156,7 @@ bool InstalledSpringboards::addBlocks(func_instance* func, BlockIter blocks_begi
   // TODO: map these addresses to relocated blocks as well so we 
   // can do our thang.
   for (; blocks_begin != blocks_end; ++blocks_begin) {
-     block_instance *bbl = SCAST_BI(*blocks_begin);
+     Dyninst::DyninstAPI::patch_block *bbl = SCAST_BI(*blocks_begin);
 
      //if (bbl->wasUserAdded()) continue;
      // Don't try to springboard a user-added block...
@@ -533,7 +533,7 @@ bool SpringboardBuilder::createRelocSpringboards(const SpringboardReq &req,
    // Just the requests for now.
    springboard_cerr << "createRelocSpringboards for " << hex << req.from << dec << endl;
    std::list<Address> relocAddrs;
-   block_instance *bbl = req.block;
+   Dyninst::DyninstAPI::patch_block *bbl = req.block;
    for (SpringboardReq::Destinations::const_iterator b_iter = req.destinations.begin(); 
        b_iter != req.destinations.end(); ++b_iter) {
       func_instance *func = b_iter->first;

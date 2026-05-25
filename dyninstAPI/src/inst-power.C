@@ -2036,16 +2036,16 @@ bool EmitterPOWER32Stat::emitPLTJump(func_instance *callee, codeGen &gen) {
   return emitPLTCommon(callee, false, gen);
 }
 
-bool EmitterPOWER32Stat::emitTOCCall(block_instance *block, codeGen &gen) {
+bool EmitterPOWER32Stat::emitTOCCall(patch_block *block, codeGen &gen) {
   return emitTOCCommon(block, true, gen);
 }
 
-bool EmitterPOWER32Stat::emitTOCJump(block_instance *block, codeGen &gen) {
+bool EmitterPOWER32Stat::emitTOCJump(patch_block *block, codeGen &gen) {
   return emitTOCCommon(block, false, gen);
 }
 
 
-bool EmitterPOWER32Stat::emitTOCCommon(block_instance *block, bool call, codeGen &gen) {
+bool EmitterPOWER32Stat::emitTOCCommon(patch_block *block, bool call, codeGen &gen) {
   Dyninst::Register scratchReg = gen.rs()->getScratchRegister(gen);
   if (scratchReg == Null_Register) return false;
 
@@ -2172,7 +2172,7 @@ bool EmitterPOWER64Stat::emitPLTCommon(func_instance *callee, bool call, codeGen
   return true;
 }
 
-bool EmitterPOWER64Dyn::emitTOCCommon(block_instance *block, bool call, codeGen &gen) {
+bool EmitterPOWER64Dyn::emitTOCCommon(patch_block *block, bool call, codeGen &gen) {
   // This code is complicated by the need to set the new TOC and restore it
   // post-(call/branch). That means we can't use a branch if asked, since we won't
   // regain control. Fun. 
@@ -2257,15 +2257,15 @@ bool EmitterPOWER64Stat::emitPLTJump(func_instance *callee, codeGen &gen) {
   return emitPLTCommon(callee, false, gen);
 }
 
-bool EmitterPOWER64Stat::emitTOCCall(block_instance *block, codeGen &gen) {
+bool EmitterPOWER64Stat::emitTOCCall(patch_block *block, codeGen &gen) {
   return emitTOCCommon(block, true, gen);
 }
 
-bool EmitterPOWER64Stat::emitTOCJump(block_instance *block, codeGen &gen) {
+bool EmitterPOWER64Stat::emitTOCJump(patch_block *block, codeGen &gen) {
   return emitTOCCommon(block, false, gen);
 }
 
-bool EmitterPOWER64Stat::emitTOCCommon(block_instance *block, bool call, codeGen &gen) {
+bool EmitterPOWER64Stat::emitTOCCommon(patch_block *block, bool call, codeGen &gen) {
   // Right now we can only jump to a block if it's the entry of a function
   // since it needs a relocation entry, which implies symbols, which implies... a function.
   // Theoretically, we could create symbols for this block, if anyone ever cares.

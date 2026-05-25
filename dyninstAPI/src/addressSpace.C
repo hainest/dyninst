@@ -55,6 +55,7 @@
 
 #include "PatchMgr.h"
 #include "patching/Patching.h"
+#include "patching/patch_block.h"
 #include "Relocation/DynAddrSpace.h"
 #include "Relocation/DynPointMaker.h"
 #include "Relocation/DynObject.h"
@@ -199,7 +200,7 @@ void AddressSpace::copyAddressSpace(AddressSpace *parent) {
     PatchAPI::CallModMap& cmm = parent->mgr()->instrumenter()->callModMap();
     for (PatchAPI::CallModMap::iterator iter = cmm.begin(); iter != cmm.end(); ++iter) {
        // Need to forward map the lot
-      block_instance *newB = findBlock(SCAST_BI(iter->first)->llb());
+      Dyninst::DyninstAPI::patch_block *newB = findBlock(SCAST_BI(iter->first)->llb());
       for (std::map<PatchFunction*, PatchFunction*>::iterator iter2 = iter->second.begin();
             iter2 != iter->second.end(); ++iter2) {
         func_instance *context = (SCAST_FI(iter2->first) == NULL) ? NULL : findFunction(SCAST_FI(iter2->first)->ifunc());
@@ -843,7 +844,7 @@ func_instance *AddressSpace::findFunction(parse_func *ifunc) {
    return findObject(ifunc->obj())->findFunction(ifunc);
 }
 
-block_instance *AddressSpace::findBlock(parse_block *iblk) {
+Dyninst::DyninstAPI::patch_block *AddressSpace::findBlock(parse_block *iblk) {
    assert(iblk);
 
    return findObject(iblk->obj())->findBlock(iblk);
@@ -1325,7 +1326,7 @@ bool AddressSpace::findFuncsByAddr(Address addr, std::set<func_instance*> &funcs
             if (!obj) {
                return false;
             }
-            std::set<block_instance*> blocks;
+            std::set<Dyninst::DyninstAPI::patch_block*> blocks;
             if (!obj->findBlocksByAddr(ri.orig, blocks)) {
                return false; // block no longer exists
             }
@@ -1347,7 +1348,7 @@ bool AddressSpace::findFuncsByAddr(Address addr, std::set<func_instance*> &funcs
    return obj->findFuncsByAddr(addr, funcs);
 }
 
-bool AddressSpace::findBlocksByAddr(Address addr, std::set<block_instance *> &blocks, bool includeReloc) {
+bool AddressSpace::findBlocksByAddr(Address addr, std::set<Dyninst::DyninstAPI::patch_block *> &blocks, bool includeReloc) {
    if (includeReloc) {
       RelocInfo ri;
       if (getRelocInfo(addr, ri)) {
@@ -1364,13 +1365,13 @@ bool AddressSpace::findBlocksByAddr(Address addr, std::set<block_instance *> &bl
    return false;
 }
 
-func_instance *AddressSpace::findFuncByEntry(const block_instance *block) {
+func_instance *AddressSpace::findFuncByEntry(const Dyninst::DyninstAPI::patch_block *block) {
    mapped_object *obj = findObject(block->start());
    if (!obj) return NULL;
    return obj->findFuncByEntry(block);
 }
 
-block_instance *AddressSpace::findBlockByEntry(Address a) {
+Dyninst::DyninstAPI::patch_block *AddressSpace::findBlockByEntry(Address a) {
    mapped_object *obj = findObject(a);
    if (!obj) return NULL;
    return obj->findBlockByEntry(a);
@@ -1462,7 +1463,7 @@ bool AddressSpace::sameRegion(Address addr1, Address addr2)
 }
 ////////////////////////////////////////////////////////////////////////////////////////
 
-void AddressSpace::modifyCall(block_instance *block, func_instance *newFunc, func_instance *context) {
+void AddressSpace::modifyCall(Dyninst::DyninstAPI::patch_block *block, func_instance *newFunc, func_instance *context) {
    // Just register it for later code generation
    //callModifications_[block][context] = newFunc;
    mgr()->instrumenter()->modifyCall(block, newFunc, context);
@@ -1524,13 +1525,13 @@ void AddressSpace::wrapFunctionPostPatch(func_instance *func, Dyninst::SymtabAPI
    }
 }
 
-void AddressSpace::removeCall(block_instance *block, func_instance *context) {
+void AddressSpace::removeCall(Dyninst::DyninstAPI::patch_block *block, func_instance *context) {
   mgr()->instrumenter()->removeCall(block, context);
   if (context) addModifiedFunction(context);
   else addModifiedBlock(block);
 }
 
-void AddressSpace::revertCall(block_instance *block, func_instance *context) {
+void AddressSpace::revertCall(Dyninst::DyninstAPI::patch_block *block, func_instance *context) {
   /*
    if (callModifications_.find(block) != callModifications_.end()) {
       callModifications_[block].erase(context);
@@ -1594,7 +1595,7 @@ bool AddressSpace::relocate() {
            // Check whether any blocks in the function are are members of any other functions
             func_instance* curFunc = *iter2;
             for (auto iter3 = curFunc->blocks().begin(); iter3 != curFunc->blocks().end(); ++iter3) {
-                block_instance* curBlock = SCAST_BI(*iter3);
+                Dyninst::DyninstAPI::patch_block* curBlock = SCAST_BI(*iter3);
                 curBlock->getFuncs(std::inserter(overlappingFuncs,overlappingFuncs.begin()));
            }
         }
@@ -1719,7 +1720,7 @@ bool AddressSpace::relocateInt(FuncSet::const_iterator begin, FuncSet::const_ite
           Address curAddr = tframe.getPC();
 
           Address orig = 0;
-          block_instance *block = NULL;
+          Dyninst::DyninstAPI::patch_block *block = NULL;
           func_instance *func = NULL;
           unsigned offset = 0;
 
@@ -1899,7 +1900,7 @@ bool AddressSpace::patchCode(CodeMover::Ptr cm,
 }
 
 void AddressSpace::getRelocAddrs(Address orig, 
-                                 block_instance *block,
+                                 Dyninst::DyninstAPI::patch_block *block,
                                  func_instance *func,
                                  std::list<Address> &relocs,
                                  bool getInstrumentationAddrs) const {
@@ -1991,7 +1992,7 @@ void AddressSpace::addModifiedFunction(func_instance *func) {
   modifiedFunctions_[func->obj()].insert(func);
 }
 
-void AddressSpace::addModifiedBlock(block_instance *block) {
+void AddressSpace::addModifiedBlock(Dyninst::DyninstAPI::patch_block *block) {
    // TODO someday this will decouple from functions. Until
    // then...
    std::list<func_instance *> tmp;
@@ -2003,9 +2004,9 @@ void AddressSpace::addModifiedBlock(block_instance *block) {
 }
 
 
-void AddressSpace::addDefensivePad(block_instance *callBlock, func_instance *callFunc,
+void AddressSpace::addDefensivePad(Dyninst::DyninstAPI::patch_block *callBlock, func_instance *callFunc,
                                    Address padStart, unsigned size) {
-  // We want to register these in terms of a block_instance that the pad ends, but 
+  // We want to register these in terms of a Dyninst::DyninstAPI::patch_block that the pad ends, but
   // the CFG can change out from under us; therefore, for lookup we use an instPoint
   // as they are invariant. 
    instPoint *point = instPoint::preCall(callFunc, callBlock);
@@ -2052,15 +2053,15 @@ void updateSrcListAndVisited(ParseAPI::Edge* e,
 //     e->trg() in owBlocks and e->src() not in delBlocks, 
 //     in which case, choose stub from among e->src()->sources()
 std::map<func_instance*,vector<edgeStub> > 
-AddressSpace::getStubs(const std::list<block_instance *> &owBlocks,
-                       const std::set<block_instance*> &delBlocks,
+AddressSpace::getStubs(const std::list<Dyninst::DyninstAPI::patch_block *> &owBlocks,
+                       const std::set<Dyninst::DyninstAPI::patch_block*> &delBlocks,
                        const std::list<func_instance*> &deadFuncs)
 {
     std::map<func_instance*,vector<edgeStub> > stubs;
     std::set<ParseAPI::Edge*> stubEdges;
     std::set<ParseAPI::Edge*> visited;
 
-    for (list<block_instance*>::const_iterator bit = owBlocks.begin();
+    for (list<Dyninst::DyninstAPI::patch_block*>::const_iterator bit = owBlocks.begin();
          bit != owBlocks.end(); 
          bit++) 
     {
@@ -2107,7 +2108,7 @@ AddressSpace::getStubs(const std::list<block_instance *> &owBlocks,
             // find all stub blocks for this edge
             for (list<ParseAPI::Edge*>::iterator eit = srcList.begin(); eit != srcList.end(); eit++) {
                 parse_block *isrc = (parse_block*)((*eit)->src());
-                block_instance *src = (*fit)->obj()->findBlockByEntry(base + isrc->start());
+                Dyninst::DyninstAPI::patch_block *src = (*fit)->obj()->findBlockByEntry(base + isrc->start());
                 assert(src);
 
                 if ( delBlocks.end() == delBlocks.find(src) ) {
