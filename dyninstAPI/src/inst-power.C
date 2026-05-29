@@ -56,7 +56,6 @@
 #include "parseAPI/h/CFG.h"
 #include "RegisterConversion.h"
 #include "emitter.h"
-#include "emit-power.h"
 #include "codegen/emitters/PowerPC/generators.h"
 #include "codegen/emitters/PowerPC/ppc32/EmitterPPC32Dyn.h"
 #include "codegen/emitters/PowerPC/ppc32/EmitterPPC32Stat.h"

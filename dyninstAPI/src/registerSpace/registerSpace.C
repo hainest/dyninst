@@ -38,7 +38,7 @@
 #include "dyninstAPI/src/function.h"
 #include "dyninstAPI/src/mapped_object.h"
 #include "registerSpace.h"
-
+#include "emitter.h"
 #include "dyninstAPI/h/BPatch.h"
 #include "BPatch_collections.h"
 #include "dyninstAPI/h/BPatch_type.h"
@@ -53,7 +53,6 @@
 
 #if defined(DYNINST_CODEGEN_ARCH_POWER)
 #include "dyninstAPI/src/inst-power.h"
-#include "dyninstAPI/src/emit-power.h"
 #elif defined(DYNINST_CODEGEN_ARCH_I386) || defined(DYNINST_CODEGEN_ARCH_X86_64)
 #include "dyninstAPI/src/inst-x86.h"
 #include "dyninstAPI/src/emit-x86.h"
