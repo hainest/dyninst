@@ -31,11 +31,13 @@ elseif(DYNINST_CODEGEN_ARCH_PPC64LE)
     emitters/PowerPC/EmitterPowerPC.h
     emitters/PowerPC/generators.h
     emitters/PowerPC/ppc32/EmitterPPC32Dyn.h
+    emitters/PowerPC/ppc32/EmitterPPC32Stat.h
   )
   
   list(APPEND _sources
     emitters/PowerPC/EmitterPowerPC.C
     emitters/PowerPC/generators.C
+    emitters/PowerPC/ppc32/EmitterPPC32Stat.C
   )
 
 endif()
