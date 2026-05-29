@@ -27,22 +27,26 @@ if(DYNINST_CODEGEN_ARCH_I386 OR DYNINST_CODEGEN_ARCH_X86_64)
     emitters/x86/IA32/EmitterIA32Stat.C)
 
 elseif(DYNINST_CODEGEN_ARCH_PPC64LE)
-  list(APPEND _headers
+  list(
+    APPEND
+    _headers
     emitters/PowerPC/EmitterPowerPC.h
     emitters/PowerPC/generators.h
     emitters/PowerPC/ppc32/EmitterPPC32Dyn.h
     emitters/PowerPC/ppc32/EmitterPPC32Stat.h
     emitters/PowerPC/ppc64/EmitterPowerPC64Dyn.h
-    emitters/PowerPC/ppc64/generators.h
-  )
-  
-  list(APPEND _sources
+    emitters/PowerPC/ppc64/EmitterPowerPC64Stat.h
+    emitters/PowerPC/ppc64/generators.h)
+
+  list(
+    APPEND
+    _sources
     emitters/PowerPC/EmitterPowerPC.C
     emitters/PowerPC/generators.C
     emitters/PowerPC/ppc32/EmitterPPC32Stat.C
     emitters/PowerPC/ppc64/EmitterPowerPC64Dyn.C
-    emitters/PowerPC/ppc64/generators.C
-  )
+    emitters/PowerPC/ppc64/EmitterPowerPC64Stat.C
+    emitters/PowerPC/ppc64/generators.C)
 
 endif()
 
