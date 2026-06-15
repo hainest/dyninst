@@ -2,8 +2,8 @@ include:
   - component: $CI_SERVER_FQDN/dav-sdk/gh-gl-sync/github-sync@~latest
     inputs:
       github_project: hainest/dyninst
-      gitlab_repo: https://gitlab.spack.io/tools-sdk/dyninst.git
-      gitlab_host: https://gitlab.spack.io/
+      gitlab_repo: git@ssh.gitlab.spack.io:tools-sdk/dyninst
+      gitlab_host: https://gitlab.spack.io
       gitlab_project: tools-sdk/dyninst
       sync_draft_prs: false
       environment: ghgl-bridge
