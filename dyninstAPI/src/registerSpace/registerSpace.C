@@ -60,6 +60,9 @@
 #elif defined(DYNINST_CODEGEN_ARCH_AARCH64)
 #include "dyninstAPI/src/inst-aarch64.h"
 #include "codegen/emitters/aarch64/EmitterAarch64.h"
+#elif defined(DYNINST_CODEGEN_ARCH_RISCV64)
+#include "dyninstAPI/src/inst-riscv64.h"
+#include "dyninstAPI/src/emit-riscv64.h"
 #elif defined(DYNINST_CODEGEN_ARCH_AMDGPU_GFX908)
 #include "arch-amdgpu.h"
 #include "dyninstAPI/src/emit-amdgpu.h"
@@ -1310,6 +1313,9 @@ bool registerSpace::checkLive(Register reg, const bitArray &liveRegs){
 #if defined(DYNINST_CODEGEN_ARCH_AARCH64)
 	assert(0);
 	//#error "aarch64 should not be 32bit long"
+#elif defined(DYNINST_CODEGEN_ARCH_RISCV64)
+	assert(0);
+	//#error "riscv64 should not be 32bit long"
 #else
 		range = regToMachReg32.equal_range(reg);
 		live = &live1;
