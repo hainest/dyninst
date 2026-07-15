@@ -138,7 +138,9 @@ class SpackCIBridge(object):
         else:
             url = url._replace(netloc=f"spackbot:{token}@" + url.netloc)
 
-        _write_secret(".git-credentials", urllib.parse.urlunparse(url) + "\n")
+        self.gitlab_repo = urllib.parse.urlunparse(url)
+
+        _write_secret(".git-credentials", self.gitlab_repo + "\n")
 
         # Write the credentials to the file
         _durable_subprocess_run(
