@@ -163,7 +163,6 @@ class SpackCIBridge(object):
         else:
             pid = match.group(1)
             os.environ["SSH_AGENT_PID"] = pid
-            self.cleanup_ssh_agent = True
 
         # Search for socket in output.
         socket_regexp = re.compile(r"SSH_AUTH_SOCK=([^;]+);")
