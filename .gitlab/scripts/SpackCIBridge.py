@@ -594,6 +594,10 @@ class SpackCIBridge(object):
             print(inst)
             return None
 
+        if response.status_code != 200:
+            print("GitLab API request error accessing {0}".format(api_url))
+            raise Exception(f"Got {response.json()}")
+
         try:
             pipelines = response.json()
         except json.decoder.JSONDecodeError as inst:
