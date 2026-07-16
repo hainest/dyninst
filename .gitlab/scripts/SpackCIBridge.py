@@ -163,7 +163,6 @@ class SpackCIBridge(object):
         else:
             pid = match.group(1)
             os.environ["SSH_AGENT_PID"] = pid
-            self.cleanup_ssh_agent = True
 
         # Search for socket in output.
         socket_regexp = re.compile(r"SSH_AUTH_SOCK=([^;]+);")
@@ -593,6 +592,10 @@ class SpackCIBridge(object):
             print("GitLab API request error accessing {0}".format(api_url))
             print(inst)
             return None
+
+        if response.status_code != 200:
+            print("GitLab API request error accessing {0}".format(api_url))
+            raise Exception(f"Got {response.json()}")
 
         try:
             pipelines = response.json()
