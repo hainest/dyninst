@@ -62,7 +62,7 @@ dyninst_library(
   DEFINES INSTRUCTION_LIB
   DYNINST_DEPS common
   HEADER_DEPS Dyninst::Boost_headers
-  PRIVATE_DEPS ${_subprojects}
+  PRIVATE_DEPS ${_subprojects} Dyninst::Zydis
 )
 
 unset(_subprojects)
