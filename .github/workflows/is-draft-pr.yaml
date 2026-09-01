@@ -1,0 +1,23 @@
+# Check if the PR is a draft
+
+on:
+  workflow_call:
+     outputs:
+        is-draft:
+           value: ${{ jobs.draft-check.outputs.is-draft }}
+
+permissions: {}
+
+jobs:
+
+   draft-check:
+      runs-on: ubuntu-latest
+      outputs:
+         is-draft: ${{ steps.check.outputs.is_draft }}
+      steps:
+         - id: check
+           shell: bash
+           run: |
+              set -xv
+              readonly val="${{ github.event.pull_request.draft }}"
+              echo "is_draft='$val'" >> $GITHUB_OUTPUT
