@@ -1,0 +1,28 @@
+# The primary driver for running CI for pull requests
+
+name: CI driver
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+       - master
+
+concurrency:
+  group: Testing-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+
+  # Don't run any checks for draft PRs
+  check-if-needed:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.draft == false }}
+    steps:
+      - shell: bash
+        run: true
+
