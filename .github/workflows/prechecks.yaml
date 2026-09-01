@@ -1,28 +1,25 @@
-name: CMake Formatting
-
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches: [ master ]
-    paths:
-       - '**.cmake'
-       - '**CMakeLists.txt'
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  workflow_call:
 
 permissions: {}
 
 jobs:
+
   cmake-formatting:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.draft == false }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+    - uses: dorny/paths-filter@v4
+      id: filter
+      with:
+        filters: |
+          cmake:
+            - '**.cmake'
+            - '**CMakeLists.txt'
+
     - name: Install dependencies
+      if: steps.filter.outputs.cmake == 'true'
       shell: bash
       run: |
         sudo apt-get update
@@ -30,6 +27,7 @@ jobs:
         python3 -m pip install cmake-format
 
     - name: cmake-format
+      if: steps.filter.outputs.cmake == 'true'
       shell: bash
       run: |
         set +e
