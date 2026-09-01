@@ -81,3 +81,5 @@ if(DYNINST_ENABLE_TESTS)
 endif()
 
 include(DyninstInstall)
+
+message(STATUS "moo")
