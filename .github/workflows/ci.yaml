@@ -1,0 +1,74 @@
+name: CI driver
+
+on:
+  pull_request:
+     types: [opened, synchronize, reopened, ready_for_review]
+     branches:
+        - master
+     paths:
+       - '**.h'
+       - '**.C'
+       - '**.c'
+       - '**.cmake'
+       - '**CMakeLists.txt'
+       - 'tests/*'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+
+  # Don't run the check if the PR is a draft
+  check-if-needed:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: precheck-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    if: ${{ github.event.pull_request.draft == false }}
+    steps:
+      - shell: bash
+        run: true
+
+  get-oses:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: precheck-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    needs: check-if-needed
+    outputs:
+      all: ${{ steps.all.outputs.all }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - id: all
+        uses: ./.github/actions/os-versions
+
+  get-compilers:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: precheck-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    needs: check-if-needed
+    outputs:
+      all: ${{ steps.compilers.outputs.value }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        
+      - id: compilers
+        shell: bash
+        run: |
+          set -ex
+          script="./.github/scripts/compiler_configs.py"
+          names=$(python3 ${script} --print-names)
+          echo "value=${names}" >> $GITHUB_OUTPUT
+
+  say-hi:
+     runs-on: ubuntu-latest
+     needs: [get-oses, get-compilers]
+     steps:
+       - name: Test
+         shell: bash
+         run: |
+            echo ${{ fromJson(needs.get-oses.outputs.latest) }}
