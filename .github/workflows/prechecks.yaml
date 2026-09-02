@@ -39,3 +39,62 @@ jobs:
           echo
           exit 1
         fi
+
+
+  dependency-version:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+  
+    - uses: dorny/paths-filter@v4
+      id: filter
+      with:
+        filters: |
+          cmake:
+            - '**.cmake'
+            - '**CMakeLists.txt'
+            - 'docker/dependencies.versions'
+
+      - name: Version check
+        if: steps.filter.outputs.cmake == 'true'
+        shell: bash
+        run: |
+          set -ex
+          
+          res=0
+          current=$(awk 'match($0,/set\(_min_version (.+)\)/,a){print a[1]}' cmake/tpls/DyninstBoost.cmake)
+          expected=$(awk 'match($0,/boost:(.+)/,a){print a[1]}' docker/dependencies.versions)
+          if test "$current" != "$expected"; then
+            echo "Boost mismatch: Found $current, expected $expected" >/dev/stderr
+            res=1
+          fi
+          
+          current=$(awk 'match($0,/set\(_min_version (.+)\)/,a){print a[1]}' cmake/tpls/DyninstTBB.cmake)
+          expected=$(awk 'match($0,/tbb:(.+)/,a){print a[1]}' docker/dependencies.versions)
+          if test "$current" != "$expected"; then
+            echo "TBB mismatch: Found $current, expected $expected" >/dev/stderr
+            res=1
+          fi
+          
+          current=$(awk 'match($0,/set\(_min_version (.+)\)/,a){print a[1]}' cmake/tpls/DyninstElfUtils.cmake)
+          expected=$(awk 'match($0,/elfutils:(.+)/,a){print a[1]}' docker/dependencies.versions)
+          if test "$current" != "$expected"; then
+            echo "Elfutils mismatch: Found $current, expected $expected" >/dev/stderr
+            res=1
+          fi
+          
+          current=$(awk 'match($0,/cmake_minimum_required\(VERSION (.+) FATAL_ERROR\)/,a){print a[1]}' CMakeLists.txt)
+          expected=$(awk 'match($0,/cmake:(.+)/,a){print a[1]}' docker/dependencies.versions)
+          if test "$current" != "$expected"; then
+            echo "CMake mismatch: Found $current, expected $expected" >/dev/stderr
+            res=1
+          fi
+
+          current=$(awk 'match($0,/set\(_min_version (.+)\)/,a){print a[1]}' cmake/tpls/DyninstCapstone.cmake)
+          expected=$(awk 'match($0,/capstone:(.+)/,a){print a[1]}' docker/dependencies.versions)
+          if test "$current" != "$expected"; then
+            echo "Capstone mismatch: Found $current, expected $expected" >/dev/stderr
+            res=1
+          fi
+
+          exit $res
