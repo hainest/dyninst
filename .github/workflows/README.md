@@ -10,7 +10,7 @@ Reading through the [overview](https://resources.github.com/devops/ci-cd/) of Gi
 [consumers](workflows/consumers.yaml)
   - The version of *must* has to be updated manually
 
-[Pull Request tests](workflows/pr-tests.yaml)
+[Pull Request tests](workflows/basic-tests.yaml)
   - The external tests can't be executed when built with clang because it doesn't work with libdyninstAPI_RT
 
 
