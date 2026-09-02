@@ -1,3 +1,9 @@
+# These are checks that should be run (and pass) before
+# any actual tests are run. They include code formatting
+# and version verification.
+
+name: Prechecks
+
 on:
   workflow_call:
 
@@ -20,6 +26,7 @@ jobs:
           cmake:
             - '**.cmake'
             - '**CMakeLists.txt'
+            - '**.cmake.in'
 
     - name: Install dependencies
       if: steps.filter.outputs.cmake == 'true'
