@@ -1,0 +1,113 @@
+# These are checks that should be run (and pass) before
+# any actual tests are run. They include code formatting
+# and version verification.
+
+name: Prechecks
+
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+
+  # Require all CMake files are correctly formatted according to the
+  # configuration in .cmake-format.yaml. Only runs if a CMake file is
+  # modified or added.
+  cmake-formatting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - uses: dorny/paths-filter@v4
+      id: filter
+      with:
+        filters: |
+          cmake:
+            - '**.cmake'
+            - '**CMakeLists.txt'
+            - '**.cmake.in'
+
+    - name: Install dependencies
+      if: steps.filter.outputs.cmake == 'true'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip
+        python3 -m pip install cmake-format
+
+    - name: cmake-format
+      if: steps.filter.outputs.cmake == 'true'
+      shell: bash
+      run: |
+        set +e
+        cmake-format -i $(find . -type f | egrep 'CMakeLists.txt|\.cmake$')
+        if [ $(git diff | wc -l) -gt 0 ]; then
+          echo -e "\nError! CMake files not formatted."
+          echo -e "\nRun the following to fix:"
+          for f in $(git diff --name-only); do echo -e "  cmake-format -i $f"; done
+          echo
+          exit 1
+        fi
+
+# ---------------------------------------------------------------------------------
+
+  # Ensure that the third-party library versions in the cmake/tpls CMake
+  # files are the ones used by the Docker files in docker/dependencies.versions
+  dependency-version:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - uses: dorny/paths-filter@v4
+      id: filter
+      with:
+        filters: |
+          cmake:
+            - '**.cmake'
+            - '**CMakeLists.txt'
+            - 'docker/dependencies.versions'
+
+    - name: Version check
+      if: steps.filter.outputs.cmake == 'true'
+      shell: bash
+      run: |
+        set -ex
+        
+        res=0
+        current=$(awk 'match($0,/set\(_min_version (.+)\)/,a){print a[1]}' cmake/tpls/DyninstBoost.cmake)
+        expected=$(awk 'match($0,/boost:(.+)/,a){print a[1]}' docker/dependencies.versions)
+        if test "$current" != "$expected"; then
+          echo "Boost mismatch: Found $current, expected $expected" >/dev/stderr
+          res=1
+        fi
+        
+        current=$(awk 'match($0,/set\(_min_version (.+)\)/,a){print a[1]}' cmake/tpls/DyninstTBB.cmake)
+        expected=$(awk 'match($0,/tbb:(.+)/,a){print a[1]}' docker/dependencies.versions)
+        if test "$current" != "$expected"; then
+          echo "TBB mismatch: Found $current, expected $expected" >/dev/stderr
+          res=1
+        fi
+        
+        current=$(awk 'match($0,/set\(_min_version (.+)\)/,a){print a[1]}' cmake/tpls/DyninstElfUtils.cmake)
+        expected=$(awk 'match($0,/elfutils:(.+)/,a){print a[1]}' docker/dependencies.versions)
+        if test "$current" != "$expected"; then
+          echo "Elfutils mismatch: Found $current, expected $expected" >/dev/stderr
+          res=1
+        fi
+        
+        current=$(awk 'match($0,/cmake_minimum_required\(VERSION (.+) FATAL_ERROR\)/,a){print a[1]}' CMakeLists.txt)
+        expected=$(awk 'match($0,/cmake:(.+)/,a){print a[1]}' docker/dependencies.versions)
+        if test "$current" != "$expected"; then
+          echo "CMake mismatch: Found $current, expected $expected" >/dev/stderr
+          res=1
+        fi
+
+        current=$(awk 'match($0,/set\(_min_version (.+)\)/,a){print a[1]}' cmake/tpls/DyninstCapstone.cmake)
+        expected=$(awk 'match($0,/capstone:(.+)/,a){print a[1]}' docker/dependencies.versions)
+        if test "$current" != "$expected"; then
+          echo "Capstone mismatch: Found $current, expected $expected" >/dev/stderr
+          res=1
+        fi
+
+        exit $res
