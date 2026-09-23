@@ -35,14 +35,13 @@
 #include "boost/weak_ptr.hpp"
 #include <stddef.h>
 #include <set>
-#include "Annotatable.h"
 #include <unordered_set>
 
 namespace Dyninst {
 class Graph;
 class Node;
     
-class DYNINST_EXPORT Edge : public AnnotatableSparse {
+class DYNINST_EXPORT Edge {
     friend class Node;
     friend class Graph;
     friend class Creator;
