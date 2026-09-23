@@ -33,6 +33,7 @@
 
 #include "boost/shared_ptr.hpp"
 #include "boost/weak_ptr.hpp"
+#include "dyninst_visibility.h"
 #include <stddef.h>
 #include <set>
 #include <unordered_set>
