@@ -36,7 +36,6 @@
 
 #include "dyninst_visibility.h"
 #include "dyntypes.h"
-#include "Annotatable.h"
 #include "Region.h"
 
 // The minimum version of libelf Dyninst supports (0.173) does not define:
@@ -62,7 +61,7 @@ namespace SymtabAPI {
 
 class Symbol;
 
-class DYNINST_EXPORT relocationEntry : public AnnotatableSparse {
+class DYNINST_EXPORT relocationEntry {
    public:
 
       relocationEntry();
