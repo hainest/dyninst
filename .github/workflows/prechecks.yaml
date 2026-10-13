@@ -1,0 +1,16 @@
+# These are checks that should be run (and pass) before
+# any actual tests are run.
+
+name: Prechecks
+
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
