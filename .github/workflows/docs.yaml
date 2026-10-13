@@ -1,40 +1,51 @@
+############################################################################
+#
+#  Build every manual with the diagnostics that make a defect fatal:
+#
+#    DYNINST_BUILD_DOCS        pdflatex is required rather than optional
+#    DYNINST_WARNINGS_AS_ERRORS  a LaTeX warning or an overfull box that
+#                              leaves the paper fails the target, and so
+#                              does a warning from compiling the examples
+#    DYNINST_DOCS_FORCE_VALIDATE  Ghostscript is required, and each finished
+#                              PDF is measured for ink reaching the edge
+#
+#  DYNINST_DOCS_VALIDATE_LISTINGS is ON by default, so <module>.pdf also
+#  compiles the example sources that manual typesets.
+#
+
 name: Documentation
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches: [ master ]
-    paths:
-      - 'docs/**'
-      - '**.cmake'
-      - '**CMakeLists.txt'
-      - '.github/workflows/docs.yaml'
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  workflow_call:
+    inputs:
+      num_jobs:
+        description: "Number of build jobs"
+        default: 1
+        required: false
+        type: string
 
 permissions: {}
 
-env:
-  # Use the maximum number of cores
-  # docs.github.com/en/actions/reference/runners/github-hosted-runners#standard-github-hosted-runners-for-public-repositories
-  NUM_BUILD_JOBS: 4
-
 jobs:
 
-  # Don't run the check if the PR is a draft
-  check-if-needed:
+  file-check:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.draft == false }}
     steps:
-      - shell: bash
-        run: true
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: changes
+        with:
+          filters: |
+            docs:
+              - 'docs/**'
+              - '**.cmake'
+              - '**CMakeLists.txt'
+              - '.github/workflows/docs.yaml'
 
   get-oses:
     runs-on: ubuntu-latest
-    needs: check-if-needed
+    needs: file-check
+    if: ${{ needs.file-check.changes.docs == 'true' }}
     outputs:
       latest: ${{ steps.all.outputs.latest }}
     steps:
@@ -44,20 +55,6 @@ jobs:
       - id: all
         uses: ./.github/actions/os-versions
 
-  ############################################################################
-  #
-  #  Build every manual with the diagnostics that make a defect fatal:
-  #
-  #    DYNINST_BUILD_DOCS        pdflatex is required rather than optional
-  #    DYNINST_WARNINGS_AS_ERRORS  a LaTeX warning or an overfull box that
-  #                              leaves the paper fails the target, and so
-  #                              does a warning from compiling the examples
-  #    DYNINST_DOCS_FORCE_VALIDATE  Ghostscript is required, and each finished
-  #                              PDF is measured for ink reaching the edge
-  #
-  #  DYNINST_DOCS_VALIDATE_LISTINGS is ON by default, so <module>-manual also
-  #  compiles the example sources that manual typesets.
-  #
   docs:
     runs-on: ubuntu-latest
     needs: get-oses
@@ -112,7 +109,7 @@ jobs:
         shell: bash
         run: |
           set -ex
-          cmake --build "${GITHUB_WORKSPACE}/build" --target docs-install -j ${{ env.NUM_BUILD_JOBS }}
+          cmake --build "${GITHUB_WORKSPACE}/build" --target docs-install -j ${{ inputs.num_jobs }}
 
       - name: Check every manual was installed
         shell: bash
