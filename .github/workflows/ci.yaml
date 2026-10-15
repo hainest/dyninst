@@ -39,3 +39,9 @@ jobs:
   prechecks:
     needs: labeler
     uses: $/.github/workflows/prechecks.yaml
+
+  docs:
+    needs: prechecks
+    uses: $/.github/workflows/docs.yaml
+    permissions:
+      packages: read
