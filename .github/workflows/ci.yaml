@@ -51,3 +51,11 @@ jobs:
     steps:
       - id: all
         uses: $/.github/actions/config
+
+  docs:
+    needs: config
+    uses: $/.github/workflows/docs.yaml
+    with:
+      num_jobs: ${{ needs.config.outputs.num_build_jobs }}
+    permissions:
+      packages: read
