@@ -18,3 +18,7 @@ jobs:
   cmake-formatting:
     needs: checkout
     uses: $/.github/workflows/cmake-formatting.yaml
+
+  dependency-version:
+    needs: checkout
+    uses: $/.github/workflows/dependency-version.yaml
