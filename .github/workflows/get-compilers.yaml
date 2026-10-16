@@ -1,0 +1,29 @@
+# Return the list of compilers and their versions
+
+name: Get Compilers
+
+on:
+  workflow_call:
+    outputs:
+      compilers:
+        value: ${{ jobs.get-compilers.outputs.all }}
+
+permissions: {}
+
+jobs:
+
+  get-compilers:
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.compilers.outputs.value }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        
+      - id: compilers
+        shell: bash
+        run: |
+          set -ex
+          script="./.github/scripts/compiler_configs.py"
+          names=$(python3 ${script} --print-names)
+          echo "value=${names}" >> $GITHUB_OUTPUT

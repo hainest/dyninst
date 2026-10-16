@@ -1,25 +1,29 @@
 name: Check dependency versions
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches: [ master ]
-    paths:
-       - '**.cmake'
-       - '**CMakeLists.txt'
-       - 'docker/dependencies.versions'
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  workflow_call:
 
 permissions: {}
 
 jobs:
+
+  file-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: changes
+        with:
+          filters: |
+            dep-versions:
+              - '**.cmake'
+              - '**CMakeLists.txt'
+              - 'docker/dependencies.versions'
+
   dependency-version:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.draft == false }}
+    needs: file-check
+    if: ${{ needs.file-check.changes.dep-versions == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
