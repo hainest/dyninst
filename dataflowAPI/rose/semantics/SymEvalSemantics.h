@@ -139,7 +139,6 @@ namespace rose {
                 typedef boost::shared_ptr<class RegisterStateAST> RegisterStateASTPtr;
                 typedef boost::shared_ptr<class RegisterStateASTARM64> RegisterStateASTARM64Ptr;
                 typedef boost::shared_ptr<class RegisterStateASTRiscv64> RegisterStateASTRiscv64Ptr;
-                typedef boost::shared_ptr<class RegisterStateASTPPC32> RegisterStateASTPPC32Ptr;
                 typedef boost::shared_ptr<class RegisterStateASTPPC64> RegisterStateASTPPC64Ptr;
                 typedef boost::shared_ptr<class RegisterStateAST_amdgpu_gfx908> RegisterStateAST_amdgpu_gfx908_Ptr;
                 typedef boost::shared_ptr<class RegisterStateAST_amdgpu_gfx90a> RegisterStateAST_amdgpu_gfx90a_Ptr;
@@ -249,25 +248,6 @@ namespace rose {
             virtual Dyninst::Absloc convert(const RegisterDescriptor &reg);
         };
 		
-		class RegisterStateASTPPC32 : public RegisterStateAST {
-		public:
-		    RegisterStateASTPPC32(const BaseSemantics::SValuePtr &protoval,
-                                          const RegisterDictionary *regdict_) : RegisterStateAST(protoval, regdict_) { }
-
-                    static RegisterStateASTPPC32Ptr instance(const BaseSemantics::SValuePtr &protoval,
-                                                             const RegisterDictionary *regdict) {
-                        return RegisterStateASTPPC32Ptr(new RegisterStateASTPPC32(protoval, regdict));
-                    }
-
-                    static RegisterStateASTPPC32Ptr promote(const BaseSemantics::RegisterStatePtr &from) {
-                        RegisterStateASTPPC32Ptr retval = boost::dynamic_pointer_cast<RegisterStateASTPPC32>(from);
-                        ASSERT_not_null(retval);
-                        return retval;
-                    }
-		private:
-		    virtual Dyninst::Absloc convert(const RegisterDescriptor &reg);
-
-                };
 		class RegisterStateASTPPC64 : public RegisterStateAST {
 		public:
 		    RegisterStateASTPPC64(const BaseSemantics::SValuePtr &protoval,
