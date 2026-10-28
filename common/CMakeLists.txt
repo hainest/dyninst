@@ -53,8 +53,6 @@ set(
   h/registers/AMDGPU/amdgpu_gfx950_regs.def
   h/registers/cuda_regs.h
   h/registers/cuda_regs.def
-  h/registers/ppc32_regs.h
-  h/registers/ppc32_regs.def
   h/registers/ppc64_regs.h
   h/registers/ppc64_regs.def
   h/registers/reg_def.h

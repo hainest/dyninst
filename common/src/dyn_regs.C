@@ -61,9 +61,6 @@ namespace {
 #define DYN_REG_NS Dyninst::x86_64
 #include "registers/x86_64_regs.def"
 #undef DYN_REG_NS
-#define DYN_REG_NS Dyninst::ppc32
-#include "registers/ppc32_regs.def"
-#undef DYN_REG_NS
 #define DYN_REG_NS Dyninst::ppc64
 #include "registers/ppc64_regs.def"
 #undef DYN_REG_NS
