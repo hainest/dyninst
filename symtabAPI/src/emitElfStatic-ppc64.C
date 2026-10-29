@@ -418,19 +418,7 @@ Offset emitElfStatic::getGOTSize(Symtab * /*target*/, LinkMap &lmap, Offset & /*
 }
 
 Offset emitElfStatic::getGOTAlign(LinkMap &) {
-
-    if( PPC32_WIDTH == addressWidth_ ) {
-	return 0;
-    }
-    if( PPC32_WIDTH == addressWidth_ ) {
-        return sizeof(Elf32_Word);
-    }else if( PPC64_WIDTH == addressWidth_ ) {
-        return sizeof(Elf64_Xword);
-    }else{
-        assert(!UNKNOWN_ADDRESS_WIDTH_ASSERT);
-    }
-
-    return 0;
+  return sizeof(Elf64_Xword);
 }
 
 void emitElfStatic::buildGOT(Symtab * /*target*/, LinkMap &lmap) {
