@@ -34,7 +34,6 @@
 #include "instructionAPI/h/syscalls.h"
 
 #include "common/src/arch-power.h"
-#include "registers/ppc32_regs.h"
 #include "registers/ppc64_regs.h"
 #include "parseAPI/src/debug_parse.h"
 
@@ -50,10 +49,6 @@ using namespace Dyninst;
 using namespace InstructionAPI;
 using namespace Dyninst::ParseAPI;
 using namespace Dyninst::InsnAdapter;
-
-static RegisterAST::Ptr ppc32_R11 (new RegisterAST (ppc32::r11));
-static RegisterAST::Ptr ppc32_LR  (new RegisterAST (ppc32::lr));
-static RegisterAST::Ptr ppc32_SP  (new RegisterAST (ppc32::r1));
 
 static RegisterAST::Ptr ppc64_R11 (new RegisterAST (ppc64::r11));
 static RegisterAST::Ptr ppc64_LR  (new RegisterAST (ppc64::lr));
