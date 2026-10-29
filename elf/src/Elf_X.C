@@ -1820,8 +1820,6 @@ Dyninst::Architecture Elf_X::getArch() const
 {
     switch(e_machine())
     {
-        case EM_PPC:
-            return Dyninst::Arch_ppc32;
         case EM_PPC64:
             return Dyninst::Arch_ppc64;
         case EM_386:
