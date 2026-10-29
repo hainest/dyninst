@@ -1135,174 +1135,8 @@ bool ObjectELF::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp,
             Offset next_plt_entry_addr = plt_addr_;
             if (getArch() == Dyninst::Arch_x86 || getArch() == Dyninst::Arch_x86_64) {
                 next_plt_entry_addr += plt_entry_size_;  // 1st PLT entry is special
-            } else if (getArch() == Dyninst::Arch_ppc32) {
-                bool extraStubs = false;
-
-                // Sanity check.
-                if (!plt_entry_size_) {
-                    create_printf("%s[%d]:  FIXME:  plt_entry_size not established\n", FILE__, __LINE__);
-                    plt_entry_size_ = 8;
-                }
-
-                if (plt_entry_size_ == 8) {
-                    // Old style executable PLT section
-                    next_plt_entry_addr += 9 * plt_entry_size_;  // 1st 9 PLT entries are special
-
-                } else if (plt_entry_size_ == 16) {
-                    // New style secure PLT
-                    Region *plt = NULL, *dynamic = NULL,
-                            *got = NULL, *glink = NULL;
-                    unsigned int glink_addr = 0;
-                    unsigned int stub_addr = 0;
-
-                    // Find the GLINK section.  See ppc_elf_get_synthetic_symtab() in
-                    // bfd/elf32-ppc.c of GNU's binutils for more information.
-
-                    for (unsigned iter = 0; iter < regions_.size(); ++iter) {
-                        std::string name = regions_[iter]->getRegionName();
-                        if (name == PLT_NAME) plt = regions_[iter];
-                        else if (name == DYNAMIC_NAME) dynamic = regions_[iter];
-                        else if (name == GOT_NAME) got = regions_[iter];
-                    }
-
-                    // Rely on .dynamic section for prelinked binaries.
-                    if (dynamic != NULL) {
-                        Elf32_Dyn *dyn = (Elf32_Dyn *) dynamic->getPtrToRawData();
-                        unsigned int count = dynamic->getMemSize() / sizeof(Elf32_Dyn);
-
-                        for (unsigned int i = 0; i < count; ++i) {
-                            // Use DT_LOPROC instead of DT_PPC_GOT to circumvent problems
-                            // caused by early versions of libelf where DT_PPC_GOT has
-                            // yet to be defined.
-                            if (dyn[i].d_tag == DT_LOPROC) {
-                                unsigned int g_o_t = dyn[i].d_un.d_val;
-                                if (got != NULL) {
-                                    unsigned char *data =
-                                            (unsigned char *) got->getPtrToRawData();
-                                    glink_addr = Dyninst::read_memory_as<unsigned int>
-                                            (data + (g_o_t - got->getMemOffset() + 4));
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    // Otherwise, first entry in .plt section holds the glink address
-                    if (glink_addr == 0) {
-                        unsigned char *data = (unsigned char *) plt->getPtrToRawData();
-                        glink_addr = Dyninst::read_memory_as<uint32_t>(data);
-                    }
-
-                    // Search for region that contains glink address
-                    for (unsigned iter = 0; iter < regions_.size(); ++iter) {
-                        unsigned int start = regions_[iter]->getMemOffset();
-                        unsigned int end = start + regions_[iter]->getMemSize();
-                        if (start <= glink_addr && glink_addr < end) {
-                            glink = regions_[iter];
-                            break;
-                        }
-                    }
-
-                    if (!glink) {
-                        return false;
-                    }
-
-                    // Find PLT function stubs.  They preceed the glink section.
-                    stub_addr = glink_addr - (rel_plt_size_ / rel_plt_entry_size_) * 16;
-
-                    const unsigned int LWZ_11_30 = 0x817e0000;
-                    const unsigned int ADDIS_11_30 = 0x3d7e0000;
-                    const unsigned int LWZ_11_11 = 0x816b0000;
-                    const unsigned int MTCTR_11 = 0x7d6903a6;
-                    const unsigned int BCTR = 0x4e800420;
-
-                    unsigned char *sec_data = (unsigned char *) glink->getPtrToRawData();
-                    auto insn = alignas_cast<unsigned int>
-                            (sec_data + (stub_addr - glink->getMemOffset()));
-
-                    // Keep moving pointer back if more -fPIC stubs are found.
-                    while (sec_data < reinterpret_cast<decltype(sec_data)>(insn)) {
-                        unsigned int *back = insn - 4;
-
-                        if (((back[0] & 0xffff0000) == LWZ_11_30
-                             && back[1] == MTCTR_11
-                             && back[2] == BCTR)
-
-                            || ((back[0] & 0xffff0000) == ADDIS_11_30
-                                && (back[1] & 0xffff0000) == LWZ_11_11
-                                && back[2] == MTCTR_11
-                                && back[3] == BCTR)) {
-                            extraStubs = true;
-                            stub_addr -= 16;
-                            insn = back;
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // Okay, this is where things get hairy.  If we have a one to one
-                    // relationship between the glink stubs and plt entries (meaning
-                    // extraStubs == false), then we can generate our relocationEntry
-                    // objects normally below.
-
-                    // However, if we have extra glink stubs, then we must generate
-                    // relocations with unknown destinations for *all* stubs.  Then,
-                    // we use the loop below to store additional information about
-                    // the data plt entry keyed by plt entry address.
-
-                    // Finally, if a symbol with any of the following forms:
-                    //     [hex_addr].got2.plt_pic32.[sym_name]
-                    //     [hex_addr].plt_pic32.[sym_name]
-                    //
-                    // matches the glink stub address, then stub symbols exist and we
-                    // can rely on these tell us where the stub will eventually go.
-
-                    if (extraStubs == true) {
-                        std::string name;
-                        relocationEntry re;
-
-                        while (stub_addr < glink_addr) {
-                            {
-                            dyn_c_hash_map<Offset,std::vector<Symbol*>>::const_accessor ca;
-                            if (symsByOffset_.find(ca, stub_addr)) {
-                                name = ca->second[0]->getMangledName();
-                                name = name.substr(name.rfind("plt_pic32.") + 10);
-                            }
-                            }
-
-                            if (!name.empty()) {
-                                re = relocationEntry(stub_addr, 0, name, NULL, 0);
-                            } else {
-                                re = relocationEntry(stub_addr, 0, "@plt", NULL, 0);
-                            }
-                            fbt_.push_back(re);
-                            stub_addr += 16;
-                        }
-
-                        // Now prepare to iterate over plt below.
-                        next_plt_entry_addr = plt_addr_;
-                        plt_entry_size_ = 4;
-
-                    } else {
-                        next_plt_entry_addr = stub_addr;
-                    }
-
-                } else {
-                    create_printf("ERROR: Can't handle %u PLT entry size\n",
-                                  plt_entry_size_);
-                    return false;
-                }
-
-                //  actually this is just fudged to make the offset value 72, which is what binutils uses
-                //  Note that binutils makes the distinction between PLT_SLOT_SIZE (8),
-                //  and PLT_ENTRY_SIZE (12).  PLT_SLOT_SIZE seems to be what we want, even though we also
-                //  have PLT_INITIAL_ENTRY_SIZE (72)
-                //  see binutils/bfd/elf32-ppc.c/h if more info is needed
-                //next_plt_entry_addr += 72;  // 1st 6 PLT entries art special
-
-
             } else if (getArch() == Dyninst::Arch_ppc64) {
-                // Unlike PPC32 Linux, we don't have a deterministic way of finding
+                // We don't have a deterministic way of finding
                 // PPC64 Linux linker stubs.  So, we'll wait until the CFG is built
                 // inside Dyninst, and code read at that point.  To find them at this
                 // point would require a scan of the entire .text section.
@@ -1315,7 +1149,7 @@ bool ObjectELF::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp,
                 //     [hex_addr].plt_branch_r2off.[sym_name]
                 //     [hex_addr].long_branch_r2off.[sym_name]
                 //
-                // Again unlike PPC32 above, we have no glink stub address to compare
+                // We have no glink stub address to compare
                 // against, so we must search through all symbols to find these names.
                 //
 
@@ -1434,8 +1268,6 @@ bool ObjectELF::get_relocation_entries(Elf_X_Shdr *&rel_plt_scnp,
 
             if (sym.isValid() && (rel.isValid() || rela.isValid()) && strs) {
 
-                // Sometimes, PPC32 Linux may use this loop to update fbt entries.
-                // Should stay -1 for all other platforms.  See notes above.
                 int fbt_iter = -1;
                 if (fbt_.size() > 0 && !fbt_[0].rel_addr() && fbt_[0].name() != "@plt")
                     fbt_iter = 0;
