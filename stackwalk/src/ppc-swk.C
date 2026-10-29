@@ -36,7 +36,6 @@
 #include "stackwalk/h/walker.h"
 #include "registers/abstract_regs.h"
 #include "registers/ppc64_regs.h"
-#include "registers/ppc32_regs.h"
 #include "stackwalk/src/sw.h"
 
 #include "get_trap_instruction.h"
@@ -201,14 +200,7 @@ gcframe_ret_t FrameFuncStepperImpl::getCallerFrame(const Frame &in, Frame &out)
   {
     // Leaf function - does not save return address
     // Get the RA from the PC register
-    if (sizeof(uint64_t) == addrWidth)
-    {
-      result = getProcessState()->getRegValue(ppc64::lr, in.getThread(), out_ra);
-    }
-    else
-    {
-      result = getProcessState()->getRegValue(ppc32::lr, in.getThread(), out_ra);
-    }
+    result = getProcessState()->getRegValue(ppc64::lr, in.getThread(), out_ra);
     if (!result) {
         sw_printf("[%s:%d] - Error getting PC value for thrd %d\n",
                   FILE__, __LINE__, (int) in.getThread());
