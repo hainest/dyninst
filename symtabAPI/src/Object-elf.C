@@ -831,23 +831,7 @@ bool ObjectELF::loaded_elf(Offset &txtaddr, Offset &dataddr,
                 plt_entry_size_ = 16;
             } else {
                 plt_entry_size_ = scn.sh_entsize();
-                if (getArch() == Dyninst::Arch_ppc32) {
-                    if (scn.sh_flags() & SHF_EXECINSTR) {
-                        // Old style executable PLT
-                        if (!plt_entry_size_)
-                            plt_entry_size_ = 8;
-                        else {
-                            if (plt_entry_size_ != 8)
-                                create_printf("%s[%d]:  weird plt_entry_size_ is %u, not 8\n",
-                                              FILE__, __LINE__, plt_entry_size_);
-                        }
-
-                    } else {
-                        // New style secure PLT
-                        plt_entry_size_ = 16;
-                    }
-                }
-                else if (getArch() == Dyninst::Arch_riscv64) {
+                if (getArch() == Dyninst::Arch_riscv64) {
                     plt_entry_size_ = 16;
                 }
             }
