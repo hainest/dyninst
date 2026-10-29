@@ -1181,6 +1181,7 @@ linux_ppc_process::linux_ppc_process(Dyninst::PID p, std::string e, std::vector<
    linux_process(p, e, a, envp, f),
    ppc_process(p, e, a, envp, f)
 {
+  this->arch = Dyninst::Arch_ppc64;
 }
 
 linux_ppc_process::linux_ppc_process(Dyninst::PID pid_, int_process *p) :
@@ -1189,6 +1190,7 @@ linux_ppc_process::linux_ppc_process(Dyninst::PID pid_, int_process *p) :
    linux_process(pid_, p),
    ppc_process(pid_, p)
 {
+  this->arch = Dyninst::Arch_ppc64;
 }
 
 
@@ -1198,7 +1200,6 @@ linux_ppc_process::~linux_ppc_process()
 
 Dyninst::Architecture linux_ppc_process::getTargetArch()
 {
-   arch = Dyninst::Arch_ppc64;
    return arch;
 }
 
