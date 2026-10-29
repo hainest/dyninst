@@ -105,7 +105,7 @@ bool ProcSelf::getRegValue(Dyninst::MachRegister reg, THR_ID, Dyninst::MachRegis
 
 Dyninst::Architecture ProcSelf::getArchitecture()
 {
-   return Arch_ppc32;
+   return Arch_ppc64;
 }
 
 bool Walker::checkValidFrame(const Frame & /*in*/, const Frame & /*out*/)
