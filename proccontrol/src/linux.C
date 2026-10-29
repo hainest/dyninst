@@ -2501,38 +2501,6 @@ bool linux_thread::plat_setAllRegisters(int_registerPool &regpool)
          assert(i->first.getArchitecture() == curplat);
          dynreg_to_user_t::iterator di = dynreg_to_user.find(i->first);
          assert(di != dynreg_to_user.end());
-
-         //Don't treat errors on these registers as real errors.
-         bool not_present = true;
-         if (curplat == Arch_ppc32)
-            not_present = (i->first == ppc32::mq || i->first == ppc32::dar ||
-                           i->first == ppc32::dsisr || i->first == ppc32::trap ||
-                           i->first == ppc32::or3);
-
-         if (not_present)
-            continue;
-
-         int result;
-         uintptr_t res;
-         if (Dyninst::getArchAddressWidth(curplat) == 4) {
-            res = (uint32_t) i->second;
-         }
-         else {
-            res = (uint64_t) i->second;
-         }
-         result = do_ptrace((pt_req) PTRACE_POKEUSER, lwp, (void *) (unsigned long) di->second.first, (void *) res);
-
-         //if (result != 0) {
-         if (result != 0) {
-            int error = errno;
-            perr_printf("Error setting register %s for %d at %d: %s\n", i->first.name().c_str(),
-                        lwp, (int) di->second.first, strerror(error));
-            if (error == ESRCH)
-               setLastError(err_exited, "Process exited during operation");
-            else
-               setLastError(err_internal, "Could not read user area from thread");
-            return false;
-         }
       }
 #endif
    }
