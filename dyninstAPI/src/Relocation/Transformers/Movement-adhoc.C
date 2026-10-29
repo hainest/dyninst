@@ -254,11 +254,8 @@ bool adhocMovementTransformer::isPCDerefCF(Widget::Ptr ptr,
    Expression::Ptr cf = insn.getControlFlowTarget();
    if (!cf) return false;
    
-//   Architecture fixme = insn->getArch();
-//   if (fixme == Arch_ppc32) fixme = Arch_ppc64;
    
    Expression::Ptr thePC(new RegisterAST(MachRegister::getPC(insn.getArch())));
-//   Expression::Ptr thePCFixme(new RegisterAST(MachRegister::getPC(fixme)));
 
    // Okay, see if we're memory
    set<Expression::Ptr> mems;
