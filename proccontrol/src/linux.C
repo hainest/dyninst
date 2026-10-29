@@ -44,7 +44,6 @@
 
 #include "registers/x86_regs.h"
 #include "registers/x86_64_regs.h"
-#include "registers/ppc32_regs.h"
 #include "registers/ppc64_regs.h"
 #include "registers/aarch64_regs.h"
 #include "common/h/dyntypes.h"
@@ -1199,11 +1198,7 @@ linux_ppc_process::~linux_ppc_process()
 
 Dyninst::Architecture linux_ppc_process::getTargetArch()
 {
-   if (arch != Dyninst::Arch_none) {
-      return arch;
-   }
-   int addr_width = computeAddrWidth();
-   arch = (addr_width == 4) ? Dyninst::Arch_ppc32 : Dyninst::Arch_ppc64;
+   arch = Dyninst::Arch_ppc64;
    return arch;
 }
 
