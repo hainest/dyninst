@@ -423,19 +423,9 @@ Offset emitElfStatic::getGOTAlign(LinkMap &) {
 
 void emitElfStatic::buildGOT(Symtab * /*target*/, LinkMap &lmap) {
 
-    if( PPC32_WIDTH == addressWidth_ ) {
-	return;
-    }
     char *targetData = lmap.allocatedData;
 
-    unsigned slotSize = 0;
-    if( PPC32_WIDTH == addressWidth_ ) {
-        slotSize = sizeof(Elf32_Addr);
-    }else if( PPC64_WIDTH == addressWidth_ ) {
-        slotSize = sizeof(Elf64_Addr);
-    }else{
-        assert(!UNKNOWN_ADDRESS_WIDTH_ASSERT);
-    }
+    unsigned slotSize = sizeof(Elf64_Addr);
 
     Offset curOffset = 0;
 
