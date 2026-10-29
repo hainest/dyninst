@@ -405,14 +405,7 @@ void emitElfStatic::cleanupTLSRegionOffsets(map<Region *, LinkMap::AllocPair> &r
 Offset emitElfStatic::getGOTSize(Symtab * /*target*/, LinkMap &lmap, Offset & /*layoutStart*/) {
     Offset size = 0;
 
-    unsigned slotSize = 0;
-    if( PPC32_WIDTH == addressWidth_ ) {
-        slotSize = sizeof(Elf32_Addr);
-    }else if( PPC64_WIDTH == addressWidth_ ) {
-        slotSize = sizeof(Elf64_Addr);
-    }else{
-        assert(!UNKNOWN_ADDRESS_WIDTH_ASSERT);
-    }
+    unsigned slotSize = sizeof(Elf64_Addr);
 
     // According to the ELF abi, entries 0, 1, 2 are reserved in a GOT on x86
     if( lmap.gotSymbolTable.size() > 0 ) {
