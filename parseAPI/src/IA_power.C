@@ -339,7 +339,7 @@ AST::Ptr PPC_BLR_Visitor::visit(DataflowAPI::ConstantAST *c) {
 }
 
 AST::Ptr PPC_BLR_Visitor::visit(DataflowAPI::VariableAST *v) {
-  if ((v->val().reg == AbsRegion(ppc32::lr)) &&
+  if ((v->val().reg == AbsRegion(ppc64::lr)) &&
       (v->val().addr == ret_)) {
     return_ = PPC_BLR_RETURN;
   }
