@@ -1450,7 +1450,6 @@ which are both 0).
 
     // FIXME in parsing
     insn_in_progress->arch_decoded_from = m_Arch;
-    // insn_in_progress->arch_decoded_from = Arch_ppc32;
     if(field<0, 5>(insn) == 0x04) {
       insn_in_progress->m_InsnOp.isVectorInsn = true;
     }
