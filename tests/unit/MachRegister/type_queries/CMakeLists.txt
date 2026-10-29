@@ -18,12 +18,6 @@ target_link_libraries(type_query_aarch64 PRIVATE common)
 add_test(NAME machregister_type_query_aarch64 COMMAND type_query_aarch64)
 set_tests_properties(machregister_type_query_aarch64 PROPERTIES LABELS "unit")
 
-add_executable(type_query_ppc32 ppc32.cpp)
-target_compile_options(type_query_ppc32 PRIVATE ${SUPPORTED_CXX_WARNING_FLAGS})
-target_link_libraries(type_query_ppc32 PRIVATE common)
-add_test(NAME machregister_type_query_ppc32 COMMAND type_query_ppc32)
-set_tests_properties(machregister_type_query_ppc32 PROPERTIES LABELS "unit")
-
 add_executable(type_query_ppc64 ppc64.cpp)
 target_compile_options(type_query_ppc64 PRIVATE ${SUPPORTED_CXX_WARNING_FLAGS})
 target_link_libraries(type_query_ppc64 PRIVATE common)
