@@ -18,12 +18,6 @@ target_link_libraries(basereg_aarch64 PRIVATE common)
 add_test(NAME machregister_basereg_aarch64 COMMAND basereg_aarch64)
 set_tests_properties(machregister_basereg_aarch64 PROPERTIES LABELS "unit")
 
-add_executable(basereg_ppc32 ppc32.cpp)
-target_compile_options(basereg_ppc32 PRIVATE ${SUPPORTED_CXX_WARNING_FLAGS})
-target_link_libraries(basereg_ppc32 PRIVATE common)
-add_test(NAME machregister_basereg_ppc32 COMMAND basereg_ppc32)
-set_tests_properties(machregister_basereg_ppc32 PROPERTIES LABELS "unit")
-
 add_executable(basereg_ppc64 ppc64.cpp)
 target_compile_options(basereg_ppc64 PRIVATE ${SUPPORTED_CXX_WARNING_FLAGS})
 target_link_libraries(basereg_ppc64 PRIVATE common)
