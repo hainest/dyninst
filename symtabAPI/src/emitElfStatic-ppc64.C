@@ -569,9 +569,6 @@ bool emitElfStatic::isDestructorRegion(Region *reg) {
 
 bool emitElfStatic::isGOTRegion(Region *reg) {
 
-    if( PPC32_WIDTH == addressWidth_ ) {
-	return false;
-    }
 	return ( TOC_NAME.compare(reg->getRegionName()) == 0 );
 }
 bool emitElfStatic::isGOTRelocation(unsigned long relType) {
