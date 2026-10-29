@@ -74,7 +74,7 @@ Instruction(Operation what,
   instruction, and \code{raw} contains a pointer to the buffer from which
   this \code{Instruction} object was decoded. The architecture is
   specified by \code{arch}, and may be an element from the following
-  set: \code{\{Arch\_x86, Arch\_x86\_64, Arch\_ppc32, Arch\_ppc64\}}
+  set: \code{\{Arch\_x86, Arch\_x86\_64, Arch\_ppc64\}}
   (as defined in \code{dyn\_regs.h}).
 
     Construct an Instruction from an Operation and a collection of Expressions.
@@ -340,7 +340,7 @@ Architecture getArch() const;
 \end{apient}
 \apidesc{Returns the architecture containing the instruction. As
   above, this will be an element from the set \code{\{Arch\_x86,
-    Arch\_x86\_64, Arch\_ppc32, Arch\_ppc64\}}.}
+    Arch\_x86\_64, Arch\_ppc64\}}.}
 
 \begin{apient}
 InsnCategory getCategory() const;
