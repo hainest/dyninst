@@ -248,7 +248,7 @@ bool IA_power::sliceReturn(ParseAPI::Block* bit, Address ret_addr, ParseAPI::Fun
 bool IA_power::isReturnAddrSave(Address& retAddr) const
 {
   RegisterAST::Ptr regLR, regSP;
-  regLR = ppc32_LR; regSP = ppc32_SP;
+  regLR = ppc64_LR; regSP = ppc64_SP;
 
   std::set < RegisterAST::Ptr > regs;
   RegisterAST::Ptr destLRReg;
