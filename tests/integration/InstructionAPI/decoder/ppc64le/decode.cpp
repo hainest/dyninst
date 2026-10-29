@@ -2,9 +2,9 @@
 #include "InstructionDecoder.h"
 #include "Register.h"
 #include "register_tests.h"
+#include "registers/ppc64_regs.h"
 #include "registers/MachRegister.h"
 #include "registers/register_set.h"
-#include "registers/ppc32_regs.h"
 
 #include <cstdint>
 #include <cstdlib>
@@ -17,10 +17,6 @@
  *  These verify the register read/write sets produced by the decoder for a
  *  selection of fixed-point, floating-point, load/store, and branch
  *  instructions.
- *
- *  NOTE: The decoder currently produces registers from the ppc32 namespace
- *  even when decoding in 64-bit mode, so these tests decode with
- *  Dyninst::Arch_ppc32 and expect ppc32 registers.
  */
 
 namespace di = Dyninst::InstructionAPI;
@@ -35,7 +31,7 @@ static std::vector<decode_test> make_tests();
 int main() {
   bool failed = false;
   int test_id = 0;
-  const auto arch = Dyninst::Arch_ppc32;
+  const auto arch = Dyninst::Arch_ppc64;
 
   for(auto const &t : make_tests()) {
     test_id++;
@@ -73,38 +69,38 @@ int main() {
 }
 
 std::vector<decode_test> make_tests() {
-  auto r0 = Dyninst::ppc32::r0;
-  auto r1 = Dyninst::ppc32::r1;
-  auto r2 = Dyninst::ppc32::r2;
-  auto r3 = Dyninst::ppc32::r3;
-  auto r4 = Dyninst::ppc32::r4;
-  auto r5 = Dyninst::ppc32::r5;
-  auto r7 = Dyninst::ppc32::r7;
-  auto r8 = Dyninst::ppc32::r8;
-  auto r9 = Dyninst::ppc32::r9;
-  auto r10 = Dyninst::ppc32::r10;
-  auto cr0 = Dyninst::ppc32::cr0;
-  auto cr1 = Dyninst::ppc32::cr1;
-  auto cr2 = Dyninst::ppc32::cr2;
-  auto cr4 = Dyninst::ppc32::cr4;
-  auto cr6 = Dyninst::ppc32::cr6;
-  auto cr7 = Dyninst::ppc32::cr7;
-  auto xer = Dyninst::ppc32::xer;
-  auto fpr0 = Dyninst::ppc32::fpr0;
-  auto fpr1 = Dyninst::ppc32::fpr1;
-  auto fpr2 = Dyninst::ppc32::fpr2;
-  auto fsr0 = Dyninst::ppc32::fsr0;
-  auto fsr1 = Dyninst::ppc32::fsr1;
-  auto fsr2 = Dyninst::ppc32::fsr2;
-  auto fpscw = Dyninst::ppc32::fpscw;
-  auto fpscw0 = Dyninst::ppc32::fpscw0;
-  auto fpscw2 = Dyninst::ppc32::fpscw2;
-  auto fpscw4 = Dyninst::ppc32::fpscw4;
-  auto fpscw6 = Dyninst::ppc32::fpscw6;
-  auto fpscw7 = Dyninst::ppc32::fpscw7;
-  auto pc = Dyninst::ppc32::pc;
-  auto ctr = Dyninst::ppc32::ctr;
-  auto lr = Dyninst::ppc32::lr;
+  auto r0 = Dyninst::ppc64::r0;
+  auto r1 = Dyninst::ppc64::r1;
+  auto r2 = Dyninst::ppc64::r2;
+  auto r3 = Dyninst::ppc64::r3;
+  auto r4 = Dyninst::ppc64::r4;
+  auto r5 = Dyninst::ppc64::r5;
+  auto r7 = Dyninst::ppc64::r7;
+  auto r8 = Dyninst::ppc64::r8;
+  auto r9 = Dyninst::ppc64::r9;
+  auto r10 = Dyninst::ppc64::r10;
+  auto cr0 = Dyninst::ppc64::cr0;
+  auto cr1 = Dyninst::ppc64::cr1;
+  auto cr2 = Dyninst::ppc64::cr2;
+  auto cr4 = Dyninst::ppc64::cr4;
+  auto cr6 = Dyninst::ppc64::cr6;
+  auto cr7 = Dyninst::ppc64::cr7;
+  auto xer = Dyninst::ppc64::xer;
+  auto fpr0 = Dyninst::ppc64::fpr0;
+  auto fpr1 = Dyninst::ppc64::fpr1;
+  auto fpr2 = Dyninst::ppc64::fpr2;
+  auto fsr0 = Dyninst::ppc64::fsr0;
+  auto fsr1 = Dyninst::ppc64::fsr1;
+  auto fsr2 = Dyninst::ppc64::fsr2;
+  auto fpscw = Dyninst::ppc64::fpscw;
+  auto fpscw0 = Dyninst::ppc64::fpscw0;
+  auto fpscw2 = Dyninst::ppc64::fpscw2;
+  auto fpscw4 = Dyninst::ppc64::fpscw4;
+  auto fpscw6 = Dyninst::ppc64::fpscw6;
+  auto fpscw7 = Dyninst::ppc64::fpscw7;
+  auto pc = Dyninst::ppc64::pc;
+  auto ctr = Dyninst::ppc64::ctr;
+  auto lr = Dyninst::ppc64::lr;
 
   using reg_set = Dyninst::register_set;
 
