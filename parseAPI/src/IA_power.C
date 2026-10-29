@@ -50,10 +50,6 @@ using namespace InstructionAPI;
 using namespace Dyninst::ParseAPI;
 using namespace Dyninst::InsnAdapter;
 
-static RegisterAST::Ptr ppc64_R11 (new RegisterAST (ppc64::r11));
-static RegisterAST::Ptr ppc64_LR  (new RegisterAST (ppc64::lr));
-static RegisterAST::Ptr ppc64_SP  (new RegisterAST (ppc64::r1));
-
 IA_power::IA_power(Dyninst::InstructionAPI::InstructionDecoder dec_,
                Address start_, 
 	       Dyninst::ParseAPI::CodeObject* o,
@@ -247,8 +243,8 @@ bool IA_power::sliceReturn(ParseAPI::Block* bit, Address ret_addr, ParseAPI::Fun
 
 bool IA_power::isReturnAddrSave(Address& retAddr) const
 {
-  RegisterAST::Ptr regLR, regSP;
-  regLR = ppc64_LR; regSP = ppc64_SP;
+  RegisterAST::Ptr regLR  (new RegisterAST (ppc64::lr));
+  RegisterAST::Ptr regSP  (new RegisterAST (ppc64::r1));
 
   std::set < RegisterAST::Ptr > regs;
   RegisterAST::Ptr destLRReg;
