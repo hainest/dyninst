@@ -53,11 +53,6 @@ namespace Dyninst {
             static bool expandX86_64(SgAsmInstruction *rose_insn,
                                      SymEvalPolicy_64 &policy);
 
-
-            static bool expandPPC32(SgAsmInstruction *rose_insn,
-                                      BaseSemantics::RiscOperatorsPtr ops,
-                                      const std::string &insn_dump);
-
             static bool expandPPC64(SgAsmInstruction *rose_insn,
                                       BaseSemantics::RiscOperatorsPtr ops,
                                       const std::string &insn_dump);

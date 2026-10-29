@@ -77,22 +77,6 @@ bool SymbolicExpansion::expandX86_64(SgAsmInstruction *rose_insn,
     return true;
 }
 
-bool SymbolicExpansion::expandPPC32(SgAsmInstruction *rose_insn,
-                                    BaseSemantics::RiscOperatorsPtr ops, 
-				    const std::string &/*insn_dump*/) {
-    SgAsmPowerpcInstruction *insn = static_cast<SgAsmPowerpcInstruction *>(rose_insn);
-
-    BaseSemantics::DispatcherPtr cpu = DispatcherPowerpc::instance(ops, 32);
-
-    try {
-        cpu->processInstruction(insn);
-    } catch (rose::BinaryAnalysis::InstructionSemantics2::BaseSemantics::Exception &e) {
-      expand_printf("Failed to process instruction '%s': %s\n", insn->get_mnemonic().c_str(), e.what());
-      return false;
-    }
-
-    return true;
-}
 bool SymbolicExpansion::expandPPC64(SgAsmInstruction *rose_insn,
                                     BaseSemantics::RiscOperatorsPtr ops, 
 				    const std::string &/*insn_dump*/) {
