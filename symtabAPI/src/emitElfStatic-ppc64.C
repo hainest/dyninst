@@ -799,10 +799,6 @@ bool emitElfUtils::updateRelocation(Symtab *obj, relocationEntry &rel, Offset ad
         return false;
     }
 
-    // Here is ppc32 so should be addressWidth==4, and other case macros
-    // But until this function was moved, it didnt have a case for 32 bit
-    unsigned addressWidth = obj->getAddressWidth();
-    if( addressWidth == 8 ) {
         switch(rel.getRelType()) {
             case R_PPC64_IRELATIVE:
             case R_PPC64_RELATIVE:
@@ -811,7 +807,6 @@ bool emitElfUtils::updateRelocation(Symtab *obj, relocationEntry &rel, Offset ad
             default:
                 break;
         }
-    }
 
     // XXX The GOT also holds a pointer to the DYNAMIC segment -- this is currently not
     // updated. However, this appears to be unneeded for regular shared libraries.
