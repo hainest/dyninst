@@ -2538,9 +2538,6 @@ bool linux_thread::plat_convertToSystemRegs(const int_registerPool &regpool, uns
                is_gpr = (reg.isGeneralPurpose() || (rclass == x86_64::FLAG) ||
                          (rclass == x86_64::MISC) || (rclass == x86_64::SEG) || !rclass);
                break;
-            case Dyninst::Arch_ppc32:
-               is_gpr = true;
-               break;
             case Dyninst::Arch_ppc64:
                is_gpr = true;
                break;
