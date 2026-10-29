@@ -5,7 +5,6 @@ foreach(
   x86
   x86_64
   aarch64
-  ppc32
   ppc64
   amdgpu_gfx908
   amdgpu_gfx90a
