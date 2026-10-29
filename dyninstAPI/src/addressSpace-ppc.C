@@ -47,19 +47,11 @@ bool AddressSpace::getDynamicCallSiteArgs(di::Instruction i, Address addr,
 }
 
 Emitter *AddressSpace::getEmitter() {
-  static Dyninst::DyninstAPI::EmitterPowerPC32Dyn emitter32Dyn;
-  static Dyninst::DyninstAPI::EmitterPowerPC64Dyn emitter64Dyn;
-  static Dyninst::DyninstAPI::EmitterPowerPC32Stat emitter32Stat;
-  static Dyninst::DyninstAPI::EmitterPowerPC64Stat emitter64Stat;
+  static Dyninst::DyninstAPI::EmitterPowerPC64Dyn emitterDyn;
+  static Dyninst::DyninstAPI::EmitterPowerPC64Stat emitterStat;
 
-  if (getAddressWidth() == 8) {
-    if (proc()) {
-      return &emitter64Dyn;
-    } else
-      return &emitter64Stat;
+  if (proc()) {
+    return &emitterDyn;
   }
-  if (proc())
-    return &emitter32Dyn;
-  else
-    return &emitter32Stat;
+  return &emitterStat;
 }
