@@ -56,9 +56,6 @@ using namespace Dyninst;
 using namespace Dyninst::SymtabAPI;
 using namespace NS_power;
 
-static const unsigned PPC32_WIDTH = 4;
-static const unsigned PPC64_WIDTH = 8;
-
 static const Offset GOT_RESERVED_SLOTS = 0;
 
 unsigned int setBits(unsigned int target, unsigned int pos, unsigned int len, unsigned int value) {
@@ -572,21 +569,6 @@ bool emitElfStatic::isGOTRegion(Region *reg) {
 	return ( TOC_NAME.compare(reg->getRegionName()) == 0 );
 }
 bool emitElfStatic::isGOTRelocation(unsigned long relType) {
-    if( PPC32_WIDTH == addressWidth_ ) {
-        switch(relType) {
-            case R_PPC_GOT16:
-            case R_PPC_GOT16_LO:
-            case R_PPC_GOT16_HI:
-            case R_PPC_GOT16_HA:
-            case R_PPC_GOT_TPREL16:
-            case R_PPC_TLS:
-                return true;
-                break;
-            default:
-                return false;
-                break;
-        }
-    } else if( PPC64_WIDTH == addressWidth_) {
         switch(relType) {
             case R_PPC64_GOT16:
             case R_PPC64_GOT16_LO:
@@ -601,11 +583,6 @@ bool emitElfStatic::isGOTRelocation(unsigned long relType) {
                 return false;
                 break;
         }
-    } else{
-        assert(!UNKNOWN_ADDRESS_WIDTH_ASSERT);
-    }
-
-    return false;
 }
 
 void emitElfStatic::getExcludedSymbolNames(set<string> &) {
