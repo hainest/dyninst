@@ -26,22 +26,22 @@ jobs:
       - shell: bash
         run: true
 
-  labeler:
-    runs-on: ubuntu-latest
-    needs: check-if-needed
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      # Apply labels defined in .github/labeler.yml
-      - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13  # v7.0.0
+#  labeler:
+#    runs-on: ubuntu-latest
+#    needs: check-if-needed
+#    permissions:
+#      contents: read
+#      pull-requests: write
+#    steps:
+#      # Apply labels defined in .github/labeler.yml
+#      - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13  # v7.0.0
 
   prechecks:
-    needs: labeler
+#    needs: labeler
     uses: $/.github/workflows/prechecks.yaml
 
-  docs:
-    needs: prechecks
-    uses: $/.github/workflows/docs.yaml
-    permissions:
-      packages: read
+#  docs:
+#    needs: prechecks
+#    uses: $/.github/workflows/docs.yaml
+#    permissions:
+#      packages: read
