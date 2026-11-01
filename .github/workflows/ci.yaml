@@ -1,0 +1,61 @@
+# The primary driver for running CI for pull requests
+
+name: CI driver
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+       - master
+
+concurrency:
+  group: Testing-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+
+  # Don't run any checks for draft PRs
+  check-if-needed:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.draft == false }}
+    steps:
+      - shell: bash
+        run: true
+
+  labeler:
+    runs-on: ubuntu-latest
+    needs: check-if-needed
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # Apply labels defined in .github/labeler.yml
+      - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13  # v7.0.0
+
+  prechecks:
+    needs: labeler
+    uses: $/.github/workflows/prechecks.yaml
+
+  config:
+    runs-on: ubuntu-latest
+    needs: prechecks
+    outputs:
+      num_build_jobs: ${{ steps.all.outputs.num_build_jobs }}
+      os-latest: ${{ steps.all.outputs.os-latest }}
+      os-all: ${{ steps.all.outputs.os-all }}
+      compilers: ${{ steps.all.outputs.compilers }}
+    steps:
+      - id: all
+        uses: $/.github/actions/config
+
+  docs:
+    needs: config
+    uses: $/.github/workflows/docs.yaml
+    with:
+      num_jobs: ${{ needs.config.outputs.num_build_jobs }}
+    permissions:
+      packages: read
