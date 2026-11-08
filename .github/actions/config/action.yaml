@@ -1,0 +1,55 @@
+# Workflow configuration settings
+
+name: Configurations
+
+outputs:
+  num-build-jobs:
+    value: ${{ steps.build-jobs.outputs.count }}
+
+  os-latest:
+    value: ${{ steps.os-latest.outputs.names }}
+
+  os-all:
+    value: ${{ steps.os-all.outputs.names }}
+
+  compiler-names:
+    value: ${{ steps.compilers.outputs.names }}
+
+runs:
+  using: "composite"
+
+  steps:
+
+    # GitHub currently uses 4 CPUs per job
+    # docs.github.com/en/actions/reference/runners/github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+    - id: build-jobs
+      shell: bash
+      run: |
+        echo "count=4" >> $GITHUB_OUTPUT
+
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - shell: bash
+      run: echo SCRIPT="./.github/scripts/compiler_configs.py" >> $GITHUB_ENV
+
+    - id: os-all
+      shell: bash
+      run: |
+        set -ex
+        names=$(python3 ${SCRIPT} --os-all)
+        echo "names=${names}" >> $GITHUB_OUTPUT
+
+    - id: os-latest
+      shell: bash
+      run: |
+        set -ex
+        names=$(python3 ${SCRIPT} --os-latest)
+        echo "names=${names}" >> $GITHUB_OUTPUT
+
+    - id: compilers
+      shell: bash
+      run: |
+        set -ex
+        names=$(python3 ${SCRIPT} --compiler-names)
+        echo "names=${names}" >> $GITHUB_OUTPUT
