@@ -121,7 +121,7 @@ parser.add_argument(
 parser.add_argument(
     "--compiler-names",
     action='store_true',
-    help="Return the names of the compilers"
+    help="Return the generic names of the available compilers"
 )
 parser.add_argument(
     "--os-all",
@@ -133,7 +133,6 @@ parser.add_argument(
     action='store_true',
     help="Return the names of the most recent versions of the supported operating systems"
 )
-
 
 args = parser.parse_args()
 
