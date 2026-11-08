@@ -121,7 +121,12 @@ parser.add_argument(
 parser.add_argument(
     "--compiler-names",
     action='store_true',
-    help="Return the names of the compilers"
+    help="Return the generic names of the available compilers"
+)
+parser.add_argument(
+    "--compiler-translate",
+    type=str,
+    help="Translate from a generic to a language-specific compiler"
 )
 parser.add_argument(
     "--os-all",
@@ -134,11 +139,18 @@ parser.add_argument(
     help="Return the names of the most recent versions of the supported operating systems"
 )
 
-
 args = parser.parse_args()
 
 if args.compiler_names:
   print("[ 'gcc', 'clang' ]")
+  exit()
+
+if args.compiler_translate:
+  xlat = {
+    "gcc": '"cc":"gcc","cxx":"g++"',
+    "clang": '"cc":"clang","cxx":"clang++"'
+  }[args.compiler_translate]
+  print(f"{{ {xlat} }}")
   exit()
 
 if args.os_all:

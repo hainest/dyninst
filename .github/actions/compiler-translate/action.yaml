@@ -1,0 +1,59 @@
+# Translate a generic compiler name into its language-specific ones
+#
+# For example, 'gcc' becomes 'gcc' and 'g++'
+
+name: Compiler translator
+
+inputs:
+  name:
+    description: Name of compiler to translate
+    required: true
+
+  version:
+    description: Compiler version
+    required: false
+    default: ""
+
+outputs:
+  cc:
+    value: ${{ steps.cc.outputs.value }}
+
+  cxx:
+    value: ${{ steps.cxx.outputs.value }}
+
+runs:
+  using: "composite"
+
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - id: python-setup
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+
+    - id: parse
+      shell: bash
+      run: |
+        set -ex
+        script="./.github/scripts/compiler_configs.py"
+        pybin=${pythonLocation}/bin/python
+        names=$(${pybin} ${script} --compiler-translate ${{ inputs.name }})
+        echo "names=${names}" >> $GITHUB_OUTPUT
+
+    # These are a workaround for a github bug when using fromJson in 'outputs'
+    - id: cc
+      shell: bash
+      run: |
+        name="${{ fromJson(steps.parse.outputs.names).cc }}"
+        if [[ ! -z "${{ inputs.version }}" ]]; then
+          name+="-${{ inputs.version }}"
+        fi
+        echo "value=${name}" >> $GITHUB_OUTPUT
+
+    - id: cxx
+      shell: bash
+      run: |
+        name="${{ fromJson(steps.parse.outputs.names).cxx }}"
+        if [[ ! -z "${{ inputs.version }}" ]]; then
+          name+="-${{ inputs.version }}"
+        fi
+        echo "value=${name}" >> $GITHUB_OUTPUT
