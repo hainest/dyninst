@@ -1,0 +1,160 @@
+name: Build and Test
+
+on:
+  workflow_call:
+    inputs:
+      tests:
+        type: string
+        required: false
+        default: "OFF"
+      os-type:
+        type: string
+        required: false
+        default: "latest"   # can be 'all' or 'latest'
+
+permissions: {}
+
+jobs:
+
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      oses: ${{ steps.oses.outputs.value }}
+      compilers: ${{ steps.global-config.outputs.compiler-names }}
+      num-build-jobs: ${{ steps.global-config.outputs.num-build-jobs }}
+      files-changed: ${{ steps.changes.outputs.files }}
+    steps:
+      - id: global-config
+        uses: $/.github/actions/config
+
+      - id: oses
+        shell: bash
+        run: |
+          case "${{ inputs.os-type }}" in
+            latest)
+              echo "value=${{ steps.global-config.outputs.os-latest }}" >> $GITHUB_OUTPUT
+              ;;
+            all)
+              echo "value=${{ steps.global-config.outputs.os-all }}" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Unknown os-type: '${{ inputs.os-type }}' "
+              exit 1
+          esac
+
+      - id: changes
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            files:
+              - '**.h'
+              - '**.hpp'
+              - '**.C'
+              - '**.c'
+              - '**.cpp'
+              - '**.cmake'
+              - '**CMakeLists.txt'
+              - 'tests/*'
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    needs: config
+    if: ${{ needs.config.outputs.files-changed == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.config.outputs.oses) }}
+        compiler: ${{ fromJson(needs.config.outputs.compilers) }}
+        install-dir: ["${GITHUB_WORKSPACE}/install", "/usr"]
+    permissions:
+      packages: read
+    container:
+      image: ghcr.io/dyninst/amd64/${{ matrix.os }}:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    env:
+      DYNINST_BUILD_DIR: "/dyninst/build${{ inputs.compiler }}${{ inputs.tests }}"
+      DYNINST_SRC_DIR: "${GITHUB_WORKSPACE}"
+      DYNINST_INSTALL_DIR: ${{ matrix.install-dir }}
+      NUM_BUILD_JOBS: ${{ needs.config.outputs.num-build-jobs }}
+      LIBRARY_PATHS: "/lib:/lib64:/usr/lib:/usr/lib64"
+
+    name: ${{ matrix.os }}, ${{ matrix.compiler }}, ${{ matrix.install-dir }}
+    steps:
+      - name: Checkout Dyninst
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build Dyninst
+        uses: $/.github/actions/build
+        with:
+          os: ${{ matrix.os }}
+          compiler: ${{ matrix.compiler }}
+          install-dir: ${{ env.DYNINST_INSTALL_DIR }}
+          build-dir: ${{ env.DYNINST_BUILD_DIR }}
+          src-dir: ${{ env.DYNINST_SRC_DIR }}
+          num-jobs: ${{ env.NUM_BUILD_JOBS }}
+          tests: ${{ inputs.tests }}
+
+      - name: Dyninst CTest
+        if: ${{ inputs.tests != 'OFF' }}
+        shell: bash
+        run: |
+          set -ex
+          cd ${{ env.DYNINST_BUILD_DIR }}
+          export LD_LIBRARY_PATH=${LIBRARY_PATHS}:${LD_LIBRARY_PATH}
+          ctest -VV --no-tests=error --parallel ${{ env.NUM_BUILD_JOBS }} --output-on-failure .
+
+      - name: Checkout Test Suite
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: dyninst/testsuite
+          path: "testsuite"  # relative to ${GITHUB_WORKSPACE}
+
+      - name: Build testsuite
+        shell: bash
+        run: |
+          set -ex
+          cd ${GITHUB_WORKSPACE}/testsuite; mkdir build; cd build
+          cmake .. -DDyninst_ROOT=${{ env.DYNINST_INSTALL_DIR }}
+          cmake --build . --parallel ${{ env.NUM_BUILD_JOBS }}
+
+      - name: Checkout Examples
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: dyninst/examples
+          path: "examples"  # relative to ${GITHUB_WORKSPACE}
+
+      - name: Build examples
+        shell: bash
+        run: |
+          set -ex
+          cd ${GITHUB_WORKSPACE}/examples; mkdir build; cd build
+          cmake .. -DDyninst_ROOT=${{ env.DYNINST_INSTALL_DIR }}
+          cmake --build . --parallel ${{ env.NUM_BUILD_JOBS }}
+
+      - name: Checkout External Tests
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: dyninst/external-tests
+          path: "external-tests"  # relative to ${GITHUB_WORKSPACE}
+
+      - name: Build external tests
+        shell: bash
+        run: |
+          set -ex
+          cd ${GITHUB_WORKSPACE}/external-tests; mkdir build; cd build
+          cmake .. -DDyninst_ROOT=${{ env.DYNINST_INSTALL_DIR }} -DCMAKE_CXX_STANDARD=17
+          cmake --build . --parallel ${{ env.NUM_BUILD_JOBS }}
+
+      - name: Run external tests
+        if: ${{ matrix.compiler != 'clang' }}  # libdyninstAPI_RT doesn't work correctly with clang
+        shell: bash
+        run: |
+          set -ex
+          LD_LIBRARY_PATH+=":${{ env.DYNINST_INSTALL_DIR }}/lib"
+          LD_LIBRARY_PATH+=":${{ env.DYNINST_INSTALL_DIR }}/lib64"
+          export LD_LIBRARY_PATH
+          export DYNINSTAPI_RT_LIB=$(find ${{ env.DYNINST_INSTALL_DIR }} -name libdyninstAPI_RT.so)
+          cd ${GITHUB_WORKSPACE}/external-tests/build
+          ctest -VV --no-tests=error --parallel ${{ env.NUM_BUILD_JOBS }} --output-on-failure .
