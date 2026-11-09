@@ -1,18 +1,18 @@
-name: Build Fedora single-config
+name: Build Fedora
 
 inputs:
   extra-cmake-flags:
     required: false
   compiler:
     required: true
-  compiler-version:
-    required: false
   build-type:
     required: false
     default: "RELWITHDEBINFO"
   install-dir:
     required: false
-    default: "/dyninst/install"
+    default: ""
+  build-dir:
+    required: true
   src-dir:
     required: false
     default: "/dyninst/src"
@@ -27,6 +27,7 @@ inputs:
 
 runs:
   using: "composite"
+
   steps:
     - name: Install extra libs
       if: ${{ inputs.extra-libs != '' }}
@@ -37,31 +38,32 @@ runs:
 
     - name: Compiler names
       id: compiler-name
-      shell: bash
-      run: |
-        set -ex
-        
-        case "${{ inputs.compiler }}" in
-          clang) cc=clang; cxx=clang++; ;;
-            gcc) cc=gcc; cxx=g++; ;;
-        esac
-        echo "value={ \"c\" : \"${cc}\", \"cxx\" : \"${cxx}\" }" >> $GITHUB_OUTPUT
+      uses: $/.github/actions/compiler-translate
+      with:
+        name: ${{ inputs.compiler }}
 
-    - name: Build Dyninst (${{ fromJson(steps.compiler-name.outputs.value).c }}, ${{ inputs.build-type }} ${{ inputs.extra-cmake-flags }})
+    - name: ${{ inputs.compiler }} ${{ inputs.build-type }} ${{ inputs.extra-cmake-flags }}
       shell: bash
       run: |
-        cmake_args="-DCMAKE_C_COMPILER=${{ fromJson(steps.compiler-name.outputs.value).c }} "
-        cmake_args+="-DCMAKE_CXX_COMPILER=${{ fromJson(steps.compiler-name.outputs.value).cxx }} "
+        cmake_args="-DCMAKE_C_COMPILER=${{ steps.compiler-name.outputs.cc }} "
+        cmake_args+="-DCMAKE_CXX_COMPILER=${{ steps.compiler-name.outputs.cxx }} "
         cmake_args+="-DCMAKE_BUILD_TYPE=${{ inputs.build-type }} "
         cmake_args+="-DDYNINST_FORCE_RUNPATH=ON "
         cmake_args+="${{ inputs.extra-cmake-flags }} "
 
-        src="${{ inputs.src-dir }}"
-        dest="${{ inputs.install-dir }}"
-        
-        tests=
-        if ! test -z "${{ inputs.tests }}"; then
-          tests="-t ${{ inputs.tests }}"
+        opts="--src-dir ${{ inputs.src-dir }} "
+        opts+="--build-dir ${{ inputs.build-dir }} "
+
+        if [[ ! -z "${{ inputs.install-dir }}" ]]; then
+          opts+="--install-dir ${{ inputs.install-dir }} "
         fi
-        
-        bash ${src}/docker/build.sh $src $dest ${tests} -v -j ${{ inputs.num-jobs }} -c "${cmake_args}"
+
+        if [[ ! -z "${{ inputs.tests }}" ]]; then
+          opts+="-t ${{ inputs.tests }} "
+        fi
+
+        if [[ ! -z "${{ inputs.commit }}" ]]; then
+          opts+="-s ${{ inputs.commit }} "
+        fi
+
+        bash ${{ inputs.src-dir }}/docker/build.sh ${opts} -v -j ${{ inputs.num-jobs }} -c "${cmake_args}"
