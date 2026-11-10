@@ -37,3 +37,12 @@ jobs:
     uses: $/.github/workflows/docs.yaml
     permissions:
       packages: read
+
+  full-builds:
+    needs: docs
+    uses: $/.github/workflows/build-and-test.yaml
+    with:
+      tests: "REGRESSION"
+      os-type: "all"
+    permissions:
+      packages: read
