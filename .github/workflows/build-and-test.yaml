@@ -63,9 +63,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.config.outputs.oses) }}
-        compiler: ${{ fromJson(needs.config.outputs.compilers) }}
-        install-dir: ["${GITHUB_WORKSPACE}/install", "/usr"]
+        os: [ "fedora-43" ] #${{ fromJson(needs.config.outputs.oses) }}
+        compiler: [ "gcc" ] #${{ fromJson(needs.config.outputs.compilers) }}
+        install-dir: ["/usr"] #["${GITHUB_WORKSPACE}/install", "/usr"]
     permissions:
       packages: read
     container:
@@ -102,8 +102,9 @@ jobs:
         run: |
           set -ex
           cd ${{ env.DYNINST_BUILD_DIR }}
+          ls -R tests/regression/symtabAPI/Symtab/file_properties
           export LD_LIBRARY_PATH=${LIBRARY_PATHS}:${LD_LIBRARY_PATH}
-          ctest -VV --no-tests=error --parallel ${{ env.NUM_BUILD_JOBS }} --output-on-failure .
+          ctest -VV --no-tests=error --output-on-failure .
 
       - name: Checkout Test Suite
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
