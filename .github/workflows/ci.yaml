@@ -46,3 +46,12 @@ jobs:
       os-type: "all"
     permissions:
       packages: read
+
+  # When unit tests are enabled, all symbols become visible so ensure
+  # everything builds and tests when they aren't.
+  visibility-check:
+    needs: full-builds
+    uses: $/.github/workflows/build-and-test.yaml
+    with:
+      tests: "OFF"
+      os-type: "latest"
