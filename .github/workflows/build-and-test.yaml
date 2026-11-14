@@ -74,7 +74,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
     env:
-      DYNINST_BUILD_DIR: "/dyninst/build${{ inputs.compiler }}${{ inputs.tests }}"
+      DYNINST_BUILD_DIR: "/dyninst/build-${{ matrix.compiler }}-${{ inputs.tests }}"
       DYNINST_SRC_DIR: "${GITHUB_WORKSPACE}"
       DYNINST_INSTALL_DIR: ${{ matrix.install-dir }}
       NUM_BUILD_JOBS: ${{ needs.config.outputs.num-build-jobs }}
@@ -85,16 +85,16 @@ jobs:
       - name: Checkout Dyninst
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-#      - name: Build Dyninst
-#        uses: $/.github/actions/build
-#        with:
-#          os: ${{ matrix.os }}
-#          compiler: ${{ matrix.compiler }}
-#          install-dir: ${{ env.DYNINST_INSTALL_DIR }}
-#          build-dir: ${{ env.DYNINST_BUILD_DIR }}
-#          src-dir: ${{ env.DYNINST_SRC_DIR }}
-#          num-jobs: ${{ env.NUM_BUILD_JOBS }}
-#          tests: ${{ inputs.tests }}
+      - name: Build Dyninst
+        uses: $/.github/actions/build
+        with:
+          os: ${{ matrix.os }}
+          compiler: ${{ matrix.compiler }}
+          install-dir: ${{ env.DYNINST_INSTALL_DIR }}
+          build-dir: ${{ env.DYNINST_BUILD_DIR }}
+          src-dir: ${{ env.DYNINST_SRC_DIR }}
+          num-jobs: ${{ env.NUM_BUILD_JOBS }}
+          tests: ${{ inputs.tests }}
 
       - name: Dyninst CTest
         if: ${{ inputs.tests != 'OFF' }}
@@ -102,13 +102,10 @@ jobs:
         run: |
           set -ex
           cd ${{ env.DYNINST_BUILD_DIR }}
-          pwd
-          echo '--------------------------------------------------------'
-          echo $(realpath $PWD)
+          echo "Contents of PWD"
+          ls
           echo '--------------------------------------------------------'
           ls tests/regression/symtabAPI/Symtab/file_properties
-          echo '--------------------------------------------------------'
-          ls /dyninst/buildREGRESSION/
           echo '--------------------------------------------------------'
 
 #          export LD_LIBRARY_PATH=${LIBRARY_PATHS}:${LD_LIBRARY_PATH}

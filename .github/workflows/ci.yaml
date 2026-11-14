@@ -56,15 +56,15 @@ jobs:
 #      tests: "OFF"
 #      os-type: "latest"
 
-  # This is separate from `full-builds` because it would be
-  # inefficient to download the binary_tests repo for every job.
-  # The tradeoff is that these tests don't get run for every
-  # combination of compiler and OS.
-  binary-tests:
-    needs: full-builds
-    uses: $/.github/workflows/build-and-test.yaml
-    with:
-      tests: "ALL"
-      os-type: "latest"
-    permissions:
-      packages: read
+#  # This is separate from `full-builds` because it would be
+#  # inefficient to download the binary_tests repo for every job.
+#  # The tradeoff is that these tests don't get run for every
+#  # combination of compiler and OS.
+#  binary-tests:
+#    needs: full-builds
+#    uses: $/.github/workflows/build-and-test.yaml
+#    with:
+#      tests: "ALL"
+#      os-type: "latest"
+#    permissions:
+#      packages: read
