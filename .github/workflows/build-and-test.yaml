@@ -103,9 +103,9 @@ jobs:
           set -ex
           cd ${{ env.DYNINST_BUILD_DIR }}
           echo "Contents of PWD"
-          ls
+          ls -la
           echo '--------------------------------------------------------'
-          ls tests/regression/symtabAPI/Symtab/file_properties
+          ls -la tests/regression/symtabAPI/Symtab/file_properties
           echo '--------------------------------------------------------'
 
 #          export LD_LIBRARY_PATH=${LIBRARY_PATHS}:${LD_LIBRARY_PATH}
