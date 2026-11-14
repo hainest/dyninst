@@ -11,6 +11,10 @@ on:
         type: string
         required: false
         default: "latest"   # can be 'all' or 'latest'
+      extra-cmake-flags:
+        type: string
+        required: false
+        default: ""
 
 permissions: {}
 
@@ -95,6 +99,7 @@ jobs:
           src-dir: ${{ env.DYNINST_SRC_DIR }}
           num-jobs: ${{ env.NUM_BUILD_JOBS }}
           tests: ${{ inputs.tests }}
+          extra-cmake-flags: ${{ inputs.extra-cmake-flags }}
 
       - name: Dyninst CTest
         if: ${{ inputs.tests != 'OFF' }}
