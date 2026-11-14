@@ -113,9 +113,9 @@ jobs:
           ls -la tests/regression/symtabAPI/Symtab/file_properties
           echo '--------------------------------------------------------'
 
-#          export LD_LIBRARY_PATH=${LIBRARY_PATHS}:${LD_LIBRARY_PATH}
-#          ctest -VV --no-tests=error --output-on-failure .
-#
+          export LD_LIBRARY_PATH=${LIBRARY_PATHS}:${LD_LIBRARY_PATH}
+          ctest -VV --no-tests=error --output-on-failure .
+
 #      - name: Checkout Test Suite
 #        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 #        with:
