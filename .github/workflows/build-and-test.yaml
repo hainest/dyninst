@@ -80,7 +80,7 @@ jobs:
       NUM_BUILD_JOBS: ${{ needs.config.outputs.num-build-jobs }}
       LIBRARY_PATHS: "/lib:/lib64:/usr/lib:/usr/lib64"
 
-    name: ${{ matrix.os }}, ${{ matrix.compiler }}, ${{ matrix.install-dir }}
+    name: ${{ matrix.os }} (${{ matrix.compiler }}, ${{ matrix.install-dir }})
     steps:
       - name: Checkout Dyninst
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
