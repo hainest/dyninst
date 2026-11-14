@@ -1,0 +1,84 @@
+# The primary driver for running CI for pull requests
+
+name: CI driver
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+       - master
+
+concurrency:
+  group: Testing-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+
+#  labeler:
+#    runs-on: ubuntu-latest
+#    if: ${{ github.event.pull_request.draft == false }}
+#    permissions:
+#      contents: read
+#      pull-requests: write
+#    steps:
+#      # Apply labels defined in .github/labeler.yml
+#      - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13  # v7.0.0
+#
+#  prechecks:
+#    needs: labeler
+#    uses: $/.github/workflows/prechecks.yaml
+#
+#  docs:
+#    needs: prechecks
+#    uses: $/.github/workflows/docs.yaml
+#    permissions:
+#      packages: read
+
+  full-builds:
+#    needs: docs
+    uses: $/.github/workflows/build-and-test.yaml
+    with:
+      tests: "REGRESSION"
+      os-type: "all"
+    permissions:
+      packages: read
+
+#  # When unit tests are enabled, all symbols become visible so ensure
+#  # everything builds and tests when they aren't.
+#  visibility-check:
+#    needs: full-builds
+#    uses: $/.github/workflows/build-and-test.yaml
+#    with:
+#      tests: "OFF"
+#      os-type: "latest"
+#
+#  # This is separate from `full-builds` because it would be
+#  # inefficient to download the binary_tests repo for every job.
+#  # The tradeoff is that these tests don't get run for every
+#  # combination of compiler and OS.
+#  binary-tests:
+#    needs: full-builds
+#    uses: $/.github/workflows/build-and-test.yaml
+#    with:
+#      tests: "ALL"
+#      os-type: "latest"
+#    permissions:
+#      packages: read
+#
+#  codegen-cross-build:
+#    needs: full-builds
+#    strategry:
+#      matrix:
+#        arch: [i386, x86_64, aarch64, ppc64le, amdgpu_gfx908]
+#    name: Codegen build (${{ matrix.arch }})
+#    uses: $/.github/workflows/build-and-test.yaml
+#    with:
+#      tests: "REGRESSION"
+#      os-type: "latest"
+#      extra-cmake-flags: "-DDYNINST_CODEGEN_ARCH=${{ matrix.arch }}"
+#    permissions:
+#      packages: read

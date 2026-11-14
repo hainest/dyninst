@@ -1,4 +1,4 @@
-name: Build Ubuntu single-config
+name: Build Ubuntu
 
 inputs:
   extra-cmake-flags:
@@ -12,7 +12,9 @@ inputs:
     default: "RELWITHDEBINFO"
   install-dir:
     required: false
-    default: "/dyninst/install"
+    default: ""
+  build-dir:
+    required: true
   src-dir:
     required: false
     default: "/dyninst/src"
@@ -27,6 +29,7 @@ inputs:
 
 runs:
   using: "composite"
+
   steps:
     - name: Update
       shell: bash
@@ -36,28 +39,18 @@ runs:
 
     - name: Compiler names
       id: compiler-name
-      shell: bash
-      run: |
-        set -ex
-        
-        case "${{ inputs.compiler }}" in
-          clang) cc=clang; cxx=clang++; ;;
-            gcc) cc=gcc; cxx=g++; ;;
-        esac
-        if [[ ! -z "${{ inputs.compiler-version }}" ]]; then
-          cc+="-${{ inputs.compiler-version }}"
-          cxx+="-${{ inputs.compiler-version }}"
-        fi
-        echo "value={ \"c\" : \"${cc}\", \"cxx\" : \"${cxx}\" }" >> $GITHUB_OUTPUT
+      uses: $/.github/actions/compiler-translate
+      with:
+        name: ${{ inputs.compiler }}
+        version: ${{ inputs.compiler-version }}
 
-
-    # Clang requires that only a single libomp be present and it must match the version of clang.
+    # Clang requires that only a single libomp be present and it must match
+    # the version of clang.
     - name: Clean libomp install
       if: ${{ inputs.compiler == 'clang' && inputs.compiler-version != '' }}
       shell: bash
       run: |
         set -ex
-
         apt remove --purge -y "libomp*"
         apt install -qq -y libomp-${{ inputs.compiler-version }}-dev
 
@@ -65,7 +58,7 @@ runs:
       shell: bash
       run: |
         set -ex
-        apt install -qq -y ${{ fromJson(steps.compiler-name.outputs.value).c }}
+        apt install -qq -y ${{ steps.compiler-name.outputs.cc }}
 
     # There is no apt package for clang++
     - name: Install C++ compiler
@@ -73,7 +66,7 @@ runs:
       shell: bash
       run: |
         set -ex
-        apt install -qq -y ${{ fromJson(steps.compiler-name.outputs.value).cxx }}
+        apt install -qq -y ${{ steps.compiler-name.outputs.cxx }}
 
     - name: Install extra libs
       if: ${{ inputs.extra-libs != '' }}
@@ -82,22 +75,25 @@ runs:
         set -ex
         apt install -qq -y ${{ inputs.extra-libs }}
 
-    - name: Build Dyninst (${{ inputs.build-type }})
+    - name: ${{ inputs.compiler }} ${{ inputs.build-type }} ${{ inputs.extra-cmake-flags }}
       shell: bash
       run: |
         set -ex
-        
-        cmake_args="-DCMAKE_C_COMPILER=${{ fromJson(steps.compiler-name.outputs.value).c }} "
-        cmake_args+="-DCMAKE_CXX_COMPILER=${{ fromJson(steps.compiler-name.outputs.value).cxx }} "
+
+        cmake_args="-DCMAKE_C_COMPILER=${{ steps.compiler-name.outputs.cc }} "
+        cmake_args+="-DCMAKE_CXX_COMPILER=${{ steps.compiler-name.outputs.cxx }} "
         cmake_args+="-DCMAKE_BUILD_TYPE=${{ inputs.build-type }} "
         cmake_args+="${{ inputs.extra-cmake-flags }} "
 
-        src="${{ inputs.src-dir }}"
-        dest="${{ inputs.install-dir }}"
+        opts="--src-dir ${{ inputs.src-dir }} "
+        opts+="--build-dir ${{ inputs.build-dir }} "
 
-        tests=
-        if ! test -z "${{ inputs.tests }}"; then
-          tests="-t ${{ inputs.tests }}"
+        if [[ ! -z "${{ inputs.install-dir }}" ]]; then
+          opts+="--install-dir ${{ inputs.install-dir }} "
         fi
-        
-        bash ${src}/docker/build.sh $src $dest ${tests} -v -j ${{ inputs.num-jobs }} -c "${cmake_args}"
+
+        if [[ ! -z "${{ inputs.tests }}" ]]; then
+          opts+="-t ${{ inputs.tests }} "
+        fi
+
+        bash ${{ inputs.src-dir }}/docker/build.sh ${opts} -v -j ${{ inputs.num-jobs }} -c "${cmake_args}"
