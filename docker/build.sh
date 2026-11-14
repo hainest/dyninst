@@ -63,6 +63,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ ! -z "${verbose}" ]]; then
+  set -x
+fi
+
 if [[ -z "${src_dir}" ]]; then
   echo "No source directory specified"
   show_help
