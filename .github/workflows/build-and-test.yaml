@@ -77,7 +77,6 @@ jobs:
       matrix:
         os: ${{ fromJson(needs.config.outputs.oses) }}
         compiler: ${{ fromJson(needs.config.outputs.compilers) }}
-        install-dir: ["${GITHUB_WORKSPACE}/install", "/usr"]
     permissions:
       packages: read
     container:
@@ -88,11 +87,11 @@ jobs:
     env:
       DYNINST_BUILD_DIR: "/dyninst/build-${{ matrix.compiler }}-${{ inputs.tests }}"
       DYNINST_SRC_DIR: "${GITHUB_WORKSPACE}"
-      DYNINST_INSTALL_DIR: ${{ matrix.install-dir }}
+      DYNINST_INSTALL_DIRS: "${GITHUB_WORKSPACE}/install:/usr"
       NUM_BUILD_JOBS: ${{ needs.config.outputs.num-build-jobs }}
       LIBRARY_PATHS: "/lib:/lib64:/usr/lib:/usr/lib64"
 
-    name: ${{ matrix.os }} (${{ matrix.compiler }}, ${{ matrix.install-dir }})
+    name: ${{ matrix.os }} (${{ matrix.compiler }})
     steps:
       - name: Checkout Dyninst
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -102,7 +101,7 @@ jobs:
         with:
           os: ${{ matrix.os }}
           compiler: ${{ matrix.compiler }}
-          install-dir: ${{ env.DYNINST_INSTALL_DIR }}
+          install-dir: ${{ env.DYNINST_INSTALL_DIRS }}
           build-dir: ${{ env.DYNINST_BUILD_DIR }}
           src-dir: ${{ env.DYNINST_SRC_DIR }}
           num-jobs: ${{ env.NUM_BUILD_JOBS }}
