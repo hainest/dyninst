@@ -82,3 +82,9 @@ jobs:
       extra-cmake-flags: "-DDYNINST_CODEGEN_ARCH=${{ matrix.arch }}"
     permissions:
       packages: read
+
+  libabigail:
+    needs: full-builds
+    uses: $/.github/workflows/libabigail.yaml
+    permissions:
+      packages: read
