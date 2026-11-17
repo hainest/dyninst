@@ -119,15 +119,33 @@ parser.add_argument(
     help="Build types as a JSON array (e.g., '[\"DEBUG\", \"RELEASE\"]')"
 )
 parser.add_argument(
-    "--print-names",
+    "--compiler-names",
     action='store_true',
-    help="Print the names of the compilers"
+    help="Return the generic names of the available compilers"
+)
+parser.add_argument(
+    "--os-all",
+    action='store_true',
+    help="Return the names of all supported operating systems"
+)
+parser.add_argument(
+    "--os-latest",
+    action='store_true',
+    help="Return the names of the most recent versions of the supported operating systems"
 )
 
 args = parser.parse_args()
 
-if args.print_names:
+if args.compiler_names:
   print("[ 'gcc', 'clang' ]")
+  exit()
+
+if args.os_all:
+  print('[' + ','.join([f"'{k}'" for k in configs.keys()]) + ']')
+  exit()
+
+if args.os_latest:
+  print("[ 'ubuntu-25.04', 'fedora-43' ]")
   exit()
 
 types = json.loads(args.types)

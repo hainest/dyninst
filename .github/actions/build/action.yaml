@@ -16,7 +16,9 @@ inputs:
     default: "RELWITHDEBINFO"
   install-dir:
     required: false
-    default: "/dyninst/install"
+    default: ""
+  build-dir:
+    required: true
   src-dir:
     required: false
     default: "/dyninst/src"
@@ -28,34 +30,45 @@ inputs:
   tests:
     default: ""
     required: false
+  fresh-build:
+    default: false
+    required: false
+  clean-artifacts:
+    default: false
+    required: false
 
 runs:
   using: "composite"
   steps:
     - name: Build
       if: ${{ startsWith(inputs.os, 'fedora') }}
-      uses: dyninst/dyninst/.github/actions/build-fedora@master
+      uses: $/.github/actions/build-fedora
       with:
-        extra-cmake-flags: "-DDYNINST_WARNINGS_AS_ERRORS=ON ${{ inputs.extra-cmake-flags }}"
+        extra-cmake-flags: ${{ inputs.extra-cmake-flags }}
         compiler: ${{ inputs.compiler }}
-        compiler-version: ${{ inputs.compiler-version }}
         build-type: ${{ inputs.build-type }}
         install-dir: ${{ inputs.install-dir }}
+        build-dir: ${{ inputs.build-dir }}
         src-dir: ${{ inputs.src-dir }}
         num-jobs: ${{ inputs.num-jobs }}
         extra-libs: ${{ inputs.extra-libs }}
         tests: ${{ inputs.tests }}
+        fresh-build: ${{ inputs.fresh-build }}
+        clean-artifacts: ${{ inputs.clean-artifacts }}
 
     - name: Build
       if: ${{ startsWith(inputs.os, 'ubuntu') }}
-      uses: dyninst/dyninst/.github/actions/build-ubuntu@master
+      uses: $/.github/actions/build-ubuntu
       with:
-        extra-cmake-flags: "-DDYNINST_WARNINGS_AS_ERRORS=ON ${{ inputs.extra-cmake-flags }}"
+        extra-cmake-flags: ${{ inputs.extra-cmake-flags }}
         compiler: ${{ inputs.compiler }}
         compiler-version: ${{ inputs.compiler-version }}
         build-type: ${{ inputs.build-type }}
         install-dir: ${{ inputs.install-dir }}
+        build-dir: ${{ inputs.build-dir }}
         src-dir: ${{ inputs.src-dir }}
         num-jobs: ${{ inputs.num-jobs }}
         extra-libs: ${{ inputs.extra-libs }}
         tests: ${{ inputs.tests }}
+        fresh-build: ${{ inputs.fresh-build }}
+        clean-artifacts: ${{ inputs.clean-artifacts }}
