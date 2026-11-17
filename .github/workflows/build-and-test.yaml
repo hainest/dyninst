@@ -75,8 +75,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.config.outputs.oses) }}
-        compiler: ${{ fromJson(needs.config.outputs.compilers) }}
+        os: ["fedora-43"] #${{ fromJson(needs.config.outputs.oses) }}
+        compiler: ["gcc"] #${{ fromJson(needs.config.outputs.compilers) }}
     permissions:
       packages: read
     container:
