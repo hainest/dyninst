@@ -1,6 +1,12 @@
+"""
+Import Aarch64 registers from Capstone and system registers from
+the ARM XML spec files.
+"""
+
 import re
 from .sysregs import *
 from .dwarf import *
+import dyninst
 
 
 class registers:
@@ -43,9 +49,8 @@ class registers:
         self.capstone_sysregs = aarch64.sysregs.parse_capstone(
             cap_dir + "/include/capstone/aarch64.h"
         )
-        self.dyninst = _read_dyninst_registers(
-            dyn_dir + "/common/h/registers/aarch64_regs.def"
-        )
+        self.dyninst = dyninst.registers.load(dyn_dir, dyninst_suffix)
+
         spec_sysregs = aarch64.sysregs.parse_xml_specs(spec_dir)
 
         # Architecture aliases
@@ -165,33 +170,6 @@ def _read_capstone_registers(file: str):
                 registers.append(name)
 
     return registers
-
-
-def _read_dyninst_registers(file: str):
-    regs = []
-
-    with open(file, "r") as f:
-        for line in f:
-
-            # Don't include the internal pseudo-registers
-            if "pseudo-registers" in line.lower():
-                break
-
-            if not "DEF_REGISTER(" in line:
-                continue
-
-            if "DEF_REGISTER_ALIAS" in line:
-                # Format is DEF_REGISTER_ALIAS( X, Y)
-                name, _ = line[line.index("DEF_REGISTER_ALIAS(") + 19 :].split(",", 1)
-                name = name.strip()
-            else:
-                # Format is DEF_REGISTER( x0, 0 | FULL | GPR | Arch_aarch64)
-                name, _ = line[line.index("DEF_REGISTER(") + 13 :].split(",", 1)
-                name = name.strip()
-
-            regs.append(name.lower())
-
-    return sorted(regs)
 
 
 def _process_regs(capstone, capstone_sysregs, spec_sysregs, aliases):

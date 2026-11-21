@@ -1,10 +1,9 @@
-def _read_capstone_registers(file: str):
-    pass
+"""
+Import PowerPC registers from Capstone
+"""
 
-
-def _read_dyninst_registers(file: str):
-    pass
-
+from .dwarf import *
+import dyninst
 
 class registers:
     def __init__(self, cap_dir: str, dyn_dir: str):

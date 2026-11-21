@@ -1,16 +1,17 @@
 import argparse
-import zydis.registers
+from zydis.x86_64 import registers as x86_64
+from zydis.x86 import registers as x86
 import capstone.aarch64.registers
 import capstone.ppc.registers
 
 parser = argparse.ArgumentParser(
-    description="Translate Capstone's registers into Dyninst registers",
+    description="Translate third-party registers into Dyninst registers",
 )
 parser.add_argument(
-    "--capstone-dir",
+    "--src-dir",
     type=str,
     required=True,
-    help="Capstone source directory (e.g., /capstone-engine/capstone/)",
+    help="Third-party source directory (e.g., /capstone-engine/capstone/)",
 )
 parser.add_argument(
     "--dyninst-dir",
@@ -25,7 +26,7 @@ parser.add_argument(
     help="Location of XML specification files (required for aarch64)",
 )
 parser.add_argument(
-    "--arch", type=str, choices=["x86", "aarch64", "ppc"], default="x86"
+    "--arch", type=str, choices=["x86_64", "x86", "aarch64", "ppc"], default="x86_64"
 )
 args = parser.parse_args()
 
@@ -34,18 +35,17 @@ if args.arch == "aarch64" and args.spec_dir is None:
 
 print("Processing registers for {0:s}\n".format(args.arch))
 
+if args.arch == "x86_64":
+    registers = x86_64.registers(args.src_dir, args.dyninst_dir)
 if args.arch == "x86":
-    registers = x86.registers.registers(
-        args.capstone_dir, args.dyninst_dir, args.spec_dir
-    )
+    registers = x86.registers(args.src_dir, args.dyninst_dir)
 elif args.arch == "aarch64":
     registers = aarch64.registers.registers(
-        args.capstone_dir, args.dyninst_dir, args.spec_dir
+        args.src_dir, args.dyninst_dir, args.spec_dir
     )
 elif args.arch == "ppc":
-    registers = ppc.registers.registers(
-        args.capstone_dir, args.dyninst_dir, args.spec_dir
-    )
+    registers = ppc.registers.registers(args.src_dir, args.dyninst_dir, args.spec_dir)
+
 
 # Check for duplicate register names
 def _check_uniqueness():
