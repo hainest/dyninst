@@ -10,7 +10,7 @@ function show_help {
   usage
   echo <<EOF
   --src-dir         Source directory
-  --install-dir     Installation directory
+  --install-dir     Installation directory (specify multiple with colon-delimited list)
   --build-dir       Build directory
   --fresh-build     Clean the build directory before building
   --clean-artifacts Remove large build artifacts after build
@@ -76,7 +76,7 @@ if [[ ! -z "${verbose}" ]]; then
 fi
 
 for opt in build_dir src_dir; do
-  if [[ -z "${opt}" ]]; then
+  if [[ -z "${!opt}" ]]; then
     echo -e "'${opt}' is required\n"
     show_help
     exit 1
@@ -88,11 +88,6 @@ if [[ "${fresh_build}" = "yes" ]]; then
   rm -rf "${build_dir}"
 fi
 echo "Building in ${build_dir}"
-
-if [[ ! -z "${install_dir}" ]]; then
-  cmake_args+="-DCMAKE_INSTALL_PREFIX=${install_dir} "
-  echo "Installing in ${install_dir}"
-fi
 
 # Containers run with Docker's default seccomp profile, which does not permit
 # unprivileged user namespaces. Before the caller's arguments, so they can override it.
@@ -107,10 +102,8 @@ function do_config() {
   args="$1"
   cmake -S "${src_dir}" -B "${build_dir}" ${cmake_args} ${args} 
 }
-function do_build() {
-  cmake --build "${build_dir}" --parallel "${num_jobs}" ${verbose}
-}
 
+do_config
 cmake --build "${build_dir}" --parallel "${num_jobs}" ${verbose}
 
 if [[ ! -z "${install_dir}" ]]; then
