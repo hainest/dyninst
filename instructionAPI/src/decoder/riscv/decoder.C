@@ -32,10 +32,6 @@
 #include "capstone/capstone.h"
 #include "capstone/riscv.h"
 
-#ifndef CS_MODE_RISCV_C
-#define CS_MODE_RISCV_C CS_MODE_RISCVC
-#endif
-
 #include "categories.h"
 #include "debug.h"
 #include "decoder/riscv/decoder.h"
