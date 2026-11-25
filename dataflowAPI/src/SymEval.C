@@ -754,8 +754,7 @@ static bool isCodegenArch(Architecture arch) {
 #elif defined(DYNINST_CODEGEN_ARCH_I386)
   return arch == Arch_x86;
 #elif defined(DYNINST_CODEGEN_ARCH_POWER)
-  // cap_32_64 also sets up the 32-bit POWER ABI
-  return arch == Arch_ppc64 || arch == Arch_ppc32;
+  return arch == Arch_ppc64;
 #elif defined(DYNINST_CODEGEN_ARCH_RISCV64)
   return arch == Arch_riscv64;
 #else
