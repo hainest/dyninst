@@ -104,7 +104,7 @@ bool test_missing_symbols(char const* filename) {
 
     for(auto sym : symbols) {
       st::Region *reg{};
-      if(symtab->findRegion(reg, std::string(".") + sym.first)) {
+      if(symtab->findRegion(reg, sym.first)) {
         std::vector<st::Symbol *> syms{};
         if(!symtab->findSymbol(syms, sym.second)) {
           std::cerr << "Didn't find '" << sym.second << "'\n";
