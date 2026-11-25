@@ -31,15 +31,25 @@
 import re
 
 
-def _read_capstone_mnemonics(file: str):
-    reg = re.compile(r'\s+{\s*.*,\s*"(.*)"')
+def _read_capstone_mnemonics(file: str) -> tuple[list[str], list[str]]:
     mnemonics = []
     with open(file, "r") as f:
         for line in f:
-            matches = reg.search(line)
-            if matches:
-                mnemonic = matches.group(1).replace(".", "_").replace("aqrl", "aq_rl")
-                mnemonics.append(mnemonic)
+            line = re.sub(r"\s", "", line).lower()
+            if not "riscv_ins_" in line:
+                continue
+
+            # Format: 'RISCV_INS_<MNEMONIC>,'
+            mnemonic = line.replace("riscv_ins_", "").replace("aqrl", "aq_rl")
+            if mnemonic == "ending":
+                continue
+            
+            # Format: 'RISCV_INS_ALIAS_NOP, // Real instr.: RISCV_ADDI'
+            if mnemonic.startswith("alias_"):
+                (mnemonic, comment) = mnemonic.replace("alias_","").split(",")
+                
+            mnemonics.append(mnemonic.replace(",", ""))
+
     return sorted(mnemonics)
 
 
@@ -70,9 +80,7 @@ class mnemonics:
         self.dyninst_prefix = "riscv64_op"
         self.missing = []
         self.pseudo = []
-        self.external = _read_capstone_mnemonics(
-            cap_dir + "/arch/RISCV/RISCVGenInsnNameMaps.inc"
-        )
+        self.external = _read_capstone_mnemonics(cap_dir + "/include/capstone/riscv.h")
         self.dyninst = _read_dyninst_mnemonics(
             dyn_dir + "/common/h/mnemonics/riscv64_entryIDs.h", self.dyninst_prefix
         )
