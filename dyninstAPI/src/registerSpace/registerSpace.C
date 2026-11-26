@@ -1370,14 +1370,12 @@ bool registerSpace::checkLive(Register reg, const bitArray &liveRegs){
 	std::pair<std::multimap<Register, MachRegister>::iterator, std::multimap<Register, MachRegister>::iterator> range;
 	LivenessAnalyzer *live;
 	if (addr_width == 4){
-#if defined(DYNINST_CODEGEN_ARCH_AARCH64)
-	assert(0);
-	//#error "aarch64 should not be 32bit long"
-#elif defined(DYNINST_CODEGEN_ARCH_AMDGPU_GFX908)
-	assert(0 && "AMDGPU is 64-bit; addr_width==4 is unreachable");
-#else
+#ifdef DYNINST_CODEGEN_ARCH_I386
 		range = regToMachReg32.equal_range(reg);
 		live = &live1;
+#else
+  assert(!"Only 32-bit x86 is supported");
+  return false;
 #endif
 	}
 	else {
