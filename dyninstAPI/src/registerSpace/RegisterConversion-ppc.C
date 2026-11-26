@@ -215,7 +215,7 @@ Register convertRegID(RegisterAST* toBeConverted)
     return convertRegID(toBeConverted->getID());
 }
 
-MachRegister convertRegID(Register r, Dyninst::Architecture arch) {
+MachRegister convertRegID(Register r, Dyninst::Architecture) {
   switch(r) {
       case registerSpace::r0: return ppc64::r0;
       case registerSpace::r1: return ppc64::r1;
