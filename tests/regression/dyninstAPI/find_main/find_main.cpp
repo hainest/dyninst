@@ -1,3 +1,4 @@
+#include "dyninstAPI/src/binaryEdit.h"
 #include "dyninstAPI/src/debug.h"
 #include "dyninstAPI/src/find_main.h"
 #include "Symtab.h"
@@ -11,7 +12,7 @@ namespace st = Dyninst::SymtabAPI;
 namespace dd = Dyninst::DyninstAPI;
 
 static bool test_find_main(char const*, Dyninst::Address);
-static bool test_missing_symbols(char const*);
+static bool test_symbols(char const*);
 
 int main(int argc, char** argv) {
   if(argc != 3) {
@@ -19,9 +20,12 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  auto const* unstripped_file = argv[1];
+  auto const* stripped_file = argv[2];
+
   st::Symtab* symtab{};
-  if(!st::Symtab::openFile(symtab, argv[1])) {
-    std::cerr << "Failed to open '" << argv[1] << "'\n";
+  if(!st::Symtab::openFile(symtab, unstripped_file)) {
+    std::cerr << "Failed to open '" << unstripped_file << "'\n";
     return EXIT_FAILURE;
   }
 
@@ -47,24 +51,24 @@ int main(int argc, char** argv) {
   std::cout << "Symtab returned 0x" << std::hex << symtab_main_addr << "\n";
 
   std::cout << "Testing find_main with symbols...\n";
-  if(!test_find_main(argv[1], symtab_main_addr)) {
+  if(!test_find_main(unstripped_file, symtab_main_addr)) {
     return EXIT_FAILURE;
   }
 
   std::cout << "Testing find_main without symbols...\n";
-  if(!test_find_main(argv[2], symtab_main_addr)) {
+  if(!test_find_main(stripped_file, symtab_main_addr)) {
     return EXIT_FAILURE;
   }
 
-  // Stripped binaries get some missing symbols added
-  if(!test_missing_symbols(argv[2])) {
-    return EXIT_FAILURE;
+  for(auto f : {unstripped_file, stripped_file}) {
+    if(!test_symbols(f)) {
+      return EXIT_FAILURE;
+    }
   }
-
   return EXIT_SUCCESS;
 }
 
-bool test_missing_symbols(char const* filename) {
+bool test_symbols(char const* filename) {
   std::cout << "Ensuring missing symbols were added for " << filename << "\n";
 
   st::Symtab* symtab{};
@@ -75,7 +79,18 @@ bool test_missing_symbols(char const* filename) {
 
   auto main = dd::find_main(symtab);
 
+  std::cerr << "0x" << std::hex << main.addr << ", " << std::boolalpha << main.is_from_symbol << ", "
+            << main.is_executable << ", " << main.is_valid << "\n";
+
   dd::add_missing_symbols(symtab, main);
+
+  {
+    std::vector<st::Symbol*> syms;
+    symtab->getAllSymbols(syms);
+    for(auto *s : syms) {
+      std::cout << s->getMangledName() << "@" << s->getOffset() << "\n";
+    }
+  }
 
   // These are required
   {
