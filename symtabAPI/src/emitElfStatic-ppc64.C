@@ -92,54 +92,6 @@ static_assert(sizeof(decltype(setBits(0,0,0,0))) == sizeof(Elf64_Word), "setBits
  * the function interface are explicitly left out.
  */
 
-/** 
- *
- * Given a relocation, determines if the relocation corresponds to a .ctors or .dtors
- * table that requires special consideration. Modifies the passed symbol offset to
- * point to the right table, if applicable.
- *
- * rel          The relocation entry to examine
- * globalOffset The offset of the linked code (used for symbol offset calculation)
- * lmap         Holds information about .ctors/.dtors tables
- * errMsg       Set on error
- * symbolOffset Modified by this routine to contain the offset of the table
- *
- * Returns true, if there are no errors including the case where the relocation 
- * entry doesn't reference the .ctors/.dtors tables.
- */
-
-static bool computeCtorDtorAddress(relocationEntry &rel, Offset globalOffset,
-        LinkMap &lmap, string &errMsg, Offset &symbolOffset)
-{
-    if( rel.name() ==  SYMTAB_CTOR_LIST_REL ) {
-        // This needs to be: (the location of the .ctors table)
-        if( lmap.newCtorRegions.size() > 0 ) {
-            symbolOffset = lmap.ctorRegionOffset + globalOffset;
-	    rewrite_printf("new CTOR computeCtorDtorAddress symbolOffset 0x%lx \n", symbolOffset);
-        }else if( lmap.originalCtorRegion != NULL ) {
-            symbolOffset = lmap.originalCtorRegion->getMemOffset();
-	    rewrite_printf("original CTOR computeCtorDtorAddress symbolOffset 0x%lx \n", symbolOffset);
-        }else{
-            errMsg = "Failed to locate original .ctors Region -- cannot apply relocation";
-            rewrite_printf("Failed to locate original .ctors Region -- cannot apply relocation\n");
-            return false;
-        }
-    }else if( rel.name() == SYMTAB_DTOR_LIST_REL ) {
-        // This needs to be: (the location of the .dtors table)
-        if( lmap.newDtorRegions.size() > 0 ) {
-            symbolOffset = lmap.dtorRegionOffset + globalOffset;
-        }else if( lmap.originalDtorRegion != NULL ) {
-            symbolOffset = lmap.originalDtorRegion->getMemOffset();
-        }else{
-            errMsg = "Failed to locate original .dtors Region -- cannot apply relocation";
-            rewrite_printf("Failed to locate original .dtors Region -- cannot apply relocation\n");
-            return false;
-        }
-    }
-    return true;
-}
-
-
 bool emitElfStatic::archSpecificRelocation(Symtab* targetSymtab, Symtab* srcSymtab,
 					   char *targetData, relocationEntry &rel,
 					   Offset dest, Offset relOffset, Offset globalOffset, LinkMap &lmap,
