@@ -127,9 +127,8 @@ ABI* ABI::getABI(int addr_width){
 #endif
 
 #if defined(DYNINST_CODEGEN_ARCH_POWER)
-	globalABI64_->addr_width = 4;
-	globalABI_->index = &machRegIndex_ppc();
-	globalABI64_->index = &machRegIndex_ppc();
+	globalABI64_->addr_width = 8;
+	globalABI64_->index = &machRegIndex_ppc_64();
 
 #endif
 
