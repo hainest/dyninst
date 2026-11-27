@@ -115,6 +115,17 @@ Clang-specific libraries are installed automatically. For example, `compiler: 'c
 
 ## Workflows
 
+### Main CI driver ([workflows/ci](workflows/ci.yaml)]
+
+*Runs all checks, builds, and tests in a single workflow*
+
+The CI checks are organized into a logical sequence from simple to complex. For
+example, the CMake formatting checks are run before any builds are done. Because builds
+are executed when any CMake file is changed, sequencing the workflows prevents doing
+unnecessary builds that would be re-executed if the CMake formatting check fails.
+
+
+
 ### Regression tests against known binaries ([workflows/binary-tests](workflows/binary-tests.yaml))
 
 *Runs all tests, including those that require access to the dyninst/binary_tests repo*
