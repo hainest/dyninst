@@ -88,4 +88,13 @@ dyninst_add_test(
   REQUIRES capstone
 )
 
+dyninst_add_test(
+  instructionAPI_zfa_ext_riscv64
+  TYPE integration
+  SOURCE_FILES zfa_ext.cpp
+  DEPS instructionAPI register_tests opcode_tests
+  COMPILE_OPTIONS ${_flags}
+  REQUIRES capstone
+)
+
 unset(_flags)

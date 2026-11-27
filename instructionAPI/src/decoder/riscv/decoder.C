@@ -143,11 +143,12 @@ void InstructionDecoder_riscv64::decode_operands(Instruction &insn) {
 
   /* Decode _explicit_ operands
    *
-   * There are three types:
+   * There are four types:
    *
    *   add r1, r2, r3    ; r1, r2 are both RISCV_OP_REG
    *   addi r1, r2, -64  ; -64 is RISCV_OP_IMM
    *   ld r1, (0x33)r2   ; r1 is RISCV_OP_REG, (0x33)r2 is RISCV_OP_MEM
+   *   fli.s ft1, -1.0   ; -1.0 is RISCV_OP_FP (a floating-point literal)
    */
 
   constexpr bool is_encoded = true;
@@ -161,6 +162,9 @@ void InstructionDecoder_riscv64::decode_operands(Instruction &insn) {
       break;
     case RISCV_OP_MEM:
       decode_mem(insn, operand, !is_encoded);
+      break;
+    case RISCV_OP_FP:
+      // Floating-point literals aren't in compressed instructions
       break;
     case RISCV_OP_INVALID:
       decode_printf("[0x%lx %s %s] has an invalid operand.\n",
@@ -180,6 +184,9 @@ void InstructionDecoder_riscv64::decode_operands(Instruction &insn) {
       break;
     case RISCV_OP_MEM:
       decode_mem(insn, operand, is_encoded);
+      break;
+    case RISCV_OP_FP:
+      decode_imm_fp(insn, operand);
       break;
     case RISCV_OP_INVALID:
       decode_printf("[0x%lx %s %s] has an invalid operand.\n",
@@ -248,6 +255,19 @@ void InstructionDecoder_riscv64::decode_imm(cs_riscv_op const &operand, bool is_
     add_operand(std::move(imm), !OP_READ, !OP_WRITTEN, !OP_IMPLICIT);
   }
   return;
+}
+
+void InstructionDecoder_riscv64::decode_imm_fp(const Instruction &insn, cs_riscv_op const &operand) {
+  // Capstone stores all FP immediates as 'double', but the actual
+  // operand size is dictated by the instruction.
+  switch(insn.m_InsnOp) {
+
+  }
+
+  auto type = size_to_type_float(8);
+  auto imm = Immediate::makeImmediate(Result(type, operand.imm));
+
+  add_operand(std::move(imm), OP_READ, !OP_WRITTEN, !OP_IMPLICIT);
 }
 
 void InstructionDecoder_riscv64::decode_mem(const Instruction &insn, cs_riscv_op const &operand, bool is_encoded) {
